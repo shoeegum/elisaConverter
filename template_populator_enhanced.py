@@ -273,6 +273,34 @@ class TemplatePopulator:
                     {'property': 'Cross-reactivity', 'value': 'N/A'}
                 ]
                 
+        # Process preparations before assay
+        if 'preparations_before_assay' in processed_data:
+            prep_data = processed_data['preparations_before_assay']
+            
+            # If it's a dictionary with 'text' and 'steps' keys
+            if isinstance(prep_data, dict) and 'text' in prep_data and 'steps' in prep_data:
+                # Keep the original full text
+                processed_data['preparations_text'] = prep_data['text']
+                
+                # Check if we have numbered steps
+                if prep_data['steps']:
+                    # Create a numbered list
+                    numbered_steps = []
+                    for step in prep_data['steps']:
+                        numbered_steps.append(f"{step['number']}. {step['text']}")
+                        
+                    processed_data['preparations_numbered'] = "\n".join(numbered_steps)
+                    processed_data['preparations_steps'] = prep_data['steps']
+                else:
+                    # No numbered steps, use the same text
+                    processed_data['preparations_numbered'] = prep_data['text']
+                    processed_data['preparations_steps'] = []
+            elif isinstance(prep_data, str):
+                # Handle the old format where prep_data is a string
+                processed_data['preparations_text'] = prep_data
+                processed_data['preparations_numbered'] = prep_data
+                processed_data['preparations_steps'] = []
+                
         # Define patterns to remove for all text processing
         patterns_to_remove = [
             r'For more information on.*?\.', 

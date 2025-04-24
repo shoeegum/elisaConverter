@@ -678,32 +678,80 @@ To measure the target protein, add standards and samples to the wells, then add 
         
         return technical_details
         
-    def _extract_preparations_before_assay(self) -> str:
-        """Extract the preparations before assay section from the datasheet."""
+    def _extract_preparations_before_assay(self) -> dict:
+        """Extract the preparations before assay section from the datasheet.
+        
+        Returns:
+            A dictionary with 'text' (str) and 'steps' (list) keys containing
+            the preparation text and numbered steps.
+        """
         # Try to find the preparations section
         prep_idx = self._find_section("Preparations Before Assay")
         if prep_idx is not None:
             # Get the content of the preparations section
-            text = []
+            full_text = []
+            numbered_steps = []
             current_idx = prep_idx + 1
+            current_step = 1
+            step_pattern = re.compile(r'^(\d+)\.\s*(.*)')
+            
             while current_idx < len(self.doc.paragraphs):
                 paragraph = self.doc.paragraphs[current_idx]
-                if paragraph.text.strip() and "KIT COMPONENTS" not in paragraph.text.upper():
-                    text.append(paragraph.text.strip())
-                else:
+                paragraph_text = paragraph.text.strip()
+                
+                if paragraph_text and "KIT COMPONENTS" not in paragraph_text.upper():
+                    # Check if the paragraph starts with a number (like "1. ")
+                    match = step_pattern.match(paragraph_text)
+                    if match:
+                        # Extract the step number and text
+                        step_num = int(match.group(1))
+                        step_text = match.group(2).strip()
+                        
+                        # Add to numbered steps
+                        numbered_steps.append({
+                            'number': step_num,
+                            'text': step_text
+                        })
+                        
+                        # Also add to full text
+                        full_text.append(paragraph_text)
+                    else:
+                        # Regular text paragraph
+                        full_text.append(paragraph_text)
+                elif "KIT COMPONENTS" in paragraph_text.upper():
                     # Stop if we hit another major section
-                    if "KIT COMPONENTS" in paragraph.text.upper():
-                        break
+                    break
+                
                 current_idx += 1
-            return "\n\n".join(text)
+            
+            # If we found numbered steps, return them with the full text
+            if numbered_steps:
+                return {
+                    'text': "\n\n".join(full_text),
+                    'steps': numbered_steps
+                }
+            else:
+                # No numbered steps found, return just the text
+                return {
+                    'text': "\n\n".join(full_text),
+                    'steps': []
+                }
         
         # If not found, try reagent preparation
         reagent_prep = self._extract_reagent_preparation()
         if reagent_prep:
-            return "Please prepare all reagents before starting the assay.\n\n" + reagent_prep
+            default_text = "Please prepare all reagents before starting the assay.\n\n" + reagent_prep
+            return {
+                'text': default_text,
+                'steps': []
+            }
             
         # If still not found, return standard instructions
-        return "Please prepare all reagents and samples before starting the assay. Allow all kit components to reach room temperature before use."
+        default_text = "Please prepare all reagents and samples before starting the assay. Allow all kit components to reach room temperature before use."
+        return {
+            'text': default_text,
+            'steps': []
+        }
     
     def _extract_reagents(self) -> List[Dict[str, str]]:
         """Extract the reagents/kit components from the datasheet."""
