@@ -243,7 +243,7 @@ def download_file(filename):
             directory=str(OUTPUT_FOLDER),
             path=safe_filename,
             as_attachment=True,
-            download_name=f"ELISA_Kit_Datasheet_{safe_filename}"
+            download_name=f"{safe_filename}"
         )
     except Exception as e:
         logger.exception(f"Error downloading file: {e}")

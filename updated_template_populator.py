@@ -16,7 +16,7 @@ import re
 
 from docx import Document
 import docx
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING
 from docx.shared import Pt, RGBColor
 from docxtpl import DocxTemplate
 

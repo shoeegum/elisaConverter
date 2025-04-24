@@ -12,7 +12,8 @@ from typing import Dict, List, Any, Optional
 import docx
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt, RGBColor, Length
+from docx.enum.text import WD_LINE_SPACING
 
 from docxtpl import DocxTemplate
 
@@ -502,6 +503,9 @@ class TemplatePopulator:
             # Format the document header and first page
             self._format_document_header(doc)
             
+            # Apply Calibri font and 1.15 line spacing to the entire document
+            self._apply_document_formatting(doc)
+            
             # Add disclaimer at the end of the document
             self._add_disclaimer(doc)
             
@@ -731,6 +735,35 @@ class TemplatePopulator:
             self.logger.error(f"Error in post-processing kit components: {e}")
             # Continue anyway - this is just an enhancement
             
+    def _apply_document_formatting(self, doc):
+        """
+        Apply Calibri font and 1.15 line spacing to all paragraphs in the document.
+        
+        Args:
+            doc: The Document object to modify
+        """
+        for para in doc.paragraphs:
+            # Set paragraph spacing to 1.15
+            para.paragraph_format.line_spacing = 1.15
+            para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+            
+            # Set font to Calibri for all runs in the paragraph
+            for run in para.runs:
+                run.font.name = "Calibri"
+        
+        # Also apply to table content
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for para in cell.paragraphs:
+                        # Set paragraph spacing to 1.15
+                        para.paragraph_format.line_spacing = 1.15
+                        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+                        
+                        # Set font to Calibri for all runs
+                        for run in para.runs:
+                            run.font.name = "Calibri"
+    
     def _post_process_technical_tables(self, output_path: Path, processed_data: Dict[str, Any]) -> None:
         """
         Perform post-processing on the populated template to properly populate
