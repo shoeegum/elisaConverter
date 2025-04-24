@@ -558,12 +558,24 @@ class TemplatePopulator:
     def _add_disclaimer(self, doc):
         """
         Add a disclaimer section at the end of the document.
+        Place it directly after the DATA ANALYSIS section without a page break,
+        or with a page break if after any other section.
         
         Args:
             doc: The Document object to modify
         """
-        # Add a page break before the disclaimer
-        if len(doc.paragraphs) > 0:
+        # Find if the last section is DATA ANALYSIS
+        is_after_data_analysis = False
+        
+        # Check the last heading in the document
+        for i in range(len(doc.paragraphs) - 1, -1, -1):
+            if doc.paragraphs[i].style.name.startswith('Heading'):
+                if doc.paragraphs[i].text.strip().upper() == "DATA ANALYSIS":
+                    is_after_data_analysis = True
+                break
+        
+        # Only add a page break if not following the DATA ANALYSIS section
+        if not is_after_data_analysis and len(doc.paragraphs) > 0:
             last_para = doc.paragraphs[-1]
             if len(last_para.runs) > 0:
                 last_para.runs[-1].add_break(docx.enum.text.WD_BREAK.PAGE)

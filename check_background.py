@@ -30,7 +30,7 @@ def check_background(document_path="output_populated_template.docx"):
     # Find the next section to determine the end of background
     background_end = len(doc.paragraphs)
     for i in range(background_start + 1, len(doc.paragraphs)):
-        if paragraph.style.name.startswith('Heading'):
+        if doc.paragraphs[i].style.name.startswith('Heading'):
             background_end = i
             break
             
