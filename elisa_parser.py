@@ -581,6 +581,9 @@ To measure the target protein, add standards and samples to the wells, then add 
             'reactivity': 'Cross-reactivity'
         }
         
+        # Properties that should not be mapped to Capture/Detection Antibodies
+        not_capture_antibodies = ['sensitivity', 'detection range', 'range']
+        
         # Extract general text content
         text_content = []
         
@@ -614,6 +617,10 @@ To measure the target protein, add standards and samples to the wells, then add 
         for text in text_content:
             # Check if text contains any of our target fields
             for key_term, property_name in property_mapping.items():
+                # Skip if we find terms that shouldn't map to Capture/Detection Antibodies
+                if property_name == 'Capture/Detection Antibodies' and any(term in text.lower() for term in not_capture_antibodies):
+                    continue
+                
                 if key_term.lower() in text.lower():
                     # Try to split the text to get the value
                     if ':' in text:
@@ -634,6 +641,10 @@ To measure the target protein, add standards and samples to the wells, then add 
                     value = row.cells[1].text.strip()
                     
                     if not label or not value:
+                        continue
+                    
+                    # Skip if we find terms that shouldn't map to Capture/Detection Antibodies
+                    if any(term in label.lower() for term in not_capture_antibodies):
                         continue
                     
                     # Map to our standard properties

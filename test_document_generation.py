@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from elisa_parser import ELISADatasheetParser
-from template_populator import TemplatePopulator
+from template_populator_enhanced import TemplatePopulator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -19,7 +19,7 @@ def main():
     
     # Define paths
     source_path = Path("attached_assets/EK1586_Mouse_KLK1Kallikrein_1_ELISA_Kit_PicoKine_Datasheet.docx")
-    template_path = Path("attached_assets/boster_template_ready.docx")
+    template_path = Path("templates_docx/enhanced_template.docx")
     output_path = Path("outputs/test_output.docx")
     
     if not source_path.exists():
@@ -43,7 +43,14 @@ def main():
     print(f"\nAssay Principle:\n{data['assay_principle'][:150]}...")
     
     print(f"\nOverview:\n{data['overview'][:150]}...")
-    print(f"\nTechnical Details:\n{data['technical_details'][:150]}...")
+    # Technical details is now a dictionary with 'text' and 'technical_table'
+    if isinstance(data['technical_details'], dict):
+        print(f"\nTechnical Details (Text):\n{data['technical_details'].get('text', '')[:150]}...")
+        print("\nTechnical Details Table:")
+        for item in data['technical_details'].get('technical_table', []):
+            print(f"  - {item.get('property', 'Unknown')}: {item.get('value', 'N/A')}")
+    else:
+        print(f"\nTechnical Details:\n{str(data['technical_details'])[:150]}...")
     print(f"\nPreparations Before Assay:\n{data['preparations_before_assay'][:150]}...")
     
     # Process required materials
