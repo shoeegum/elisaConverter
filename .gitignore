@@ -1,0 +1,45 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Instance folder - contains local data
+instance/
+
+# User-uploaded files
+uploads/
+outputs/
+batch_outputs/
+
+# Output DOCX files
+*.docx
+!attached_assets/*.docx
+!templates_docx/*.docx
+
+# IDE files
+.idea/
+.vscode/
+
+# Environment variables
+.env
+
+# SQLite databases
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Replit specific
+.replit
+.breakpoints
