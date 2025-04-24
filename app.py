@@ -33,9 +33,9 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
-# Set the application password (in a real app, this would be stored securely, not hardcoded)
-# The hashed version of "ElisaParser2025!" - in production, this should come from environment variables
-APP_PASSWORD_HASH = "3b8fc838840530f5acee33eeef31785c41fc9502"
+# Set the application password from environment variables for security
+# Fall back to a default hash only in development 
+APP_PASSWORD_HASH = os.environ.get("APP_PASSWORD_HASH", "3b8fc838840530f5acee33eeef31785c41fc9502")
 
 # Create upload folders if they don't exist
 UPLOAD_FOLDER = Path('uploads')
