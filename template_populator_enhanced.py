@@ -8,6 +8,10 @@ import logging
 import re
 from pathlib import Path
 from typing import Dict, Any, Optional, List
+import docx
+from docx import Document
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.shared import Pt, Inches
 
 from docxtpl import DocxTemplate
 
