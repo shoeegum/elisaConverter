@@ -148,16 +148,68 @@ def main():
         
         # Populate the template with extracted data
         logger.info(f"Populating template: {template_path}")
-        populator = TemplatePopulator(template_path)
         
-        # Pass optional user-provided values
-        populator.populate(
-            data, 
-            output_path,
-            kit_name=args.kit_name if hasattr(args, 'kit_name') else None,
-            catalog_number=catalog_number,
-            lot_number=lot_number
-        )
+        # Try a different approach to avoid document corruption
+        import shutil
+        import tempfile
+        import os
+        from docxtpl import DocxTemplate
+        
+        # Create a temporary directory for processing
+        temp_dir = tempfile.mkdtemp()
+        temp_template = os.path.join(temp_dir, "temp_template.docx")
+        temp_output = os.path.join(temp_dir, "temp_output.docx")
+        
+        try:
+            # Make a clean copy of the template
+            shutil.copy2(template_path, temp_template)
+            
+            # Process data before populating
+            if "kit_name" not in data and args.kit_name:
+                data["kit_name"] = args.kit_name
+            if catalog_number:
+                data["catalog_number"] = catalog_number
+            if lot_number:
+                data["lot_number"] = lot_number
+                
+            # Use docxtpl directly
+            template = DocxTemplate(temp_template)
+            template.render(data)
+            template.save(str(output_path))
+            
+            # Check if file exists and has content
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                logger.info(f"Successfully populated template using direct approach")
+            else:
+                # Fallback to original method
+                logger.warning("Direct template population failed, trying alternative method")
+                populator = TemplatePopulator(template_path)
+                populator.populate(
+                    data, 
+                    output_path,
+                    kit_name=args.kit_name if hasattr(args, 'kit_name') else None,
+                    catalog_number=catalog_number,
+                    lot_number=lot_number
+                )
+                
+        except Exception as template_error:
+            logger.warning(f"Error with direct template approach: {template_error}")
+            # Fall back to original method
+            populator = TemplatePopulator(template_path)
+            populator.populate(
+                data, 
+                output_path,
+                kit_name=args.kit_name if hasattr(args, 'kit_name') else None,
+                catalog_number=catalog_number,
+                lot_number=lot_number
+            )
+            
+        finally:
+            # Clean up temporary files
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            except:
+                pass
         
         logger.info(f"Successfully generated populated template at: {output_path}")
         return 0
