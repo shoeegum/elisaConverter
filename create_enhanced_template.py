@@ -237,41 +237,9 @@ def create_enhanced_template():
     # KIT COMPONENTS/MATERIALS PROVIDED
     kit_components_header = doc.add_paragraph("KIT COMPONENTS/MATERIALS PROVIDED", style='Heading 2')
     
-    # Add 4-column reagents table
-    reagents_table = doc.add_table(rows=1, cols=4)
-    reagents_table.style = 'Table Grid'
-    
-    # Set column widths
-    col_widths = [3.0, 1.0, 1.5, 2.5]  # inches for each column
-    for i, width in enumerate(col_widths):
-        for cell in reagents_table.columns[i].cells:
-            cell.width = Inches(width)
-    
-    # Add headers to reagents table
-    reagents_headers = reagents_table.rows[0].cells
-    reagents_headers[0].text = "Description"
-    reagents_headers[1].text = "Quantity"
-    reagents_headers[2].text = "Volume"
-    reagents_headers[3].text = "Storage of opened/reconstituted material"
-    
-    # Make headers bold and center-aligned
-    for cell in reagents_headers:
-        cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        for run in cell.paragraphs[0].runs:
-            run.font.bold = True
-    
-    # Add jinja2 for-loop for the reagents - place it before any rows that use reagent data
-    doc.add_paragraph("{% for reagent in reagents_list %}", style="Hidden Text")
-    
-    # Add a sample row with template variables *inside* the loop
-    row = reagents_table.add_row()
-    row.cells[0].text = "{{ reagent.name }}"
-    row.cells[1].text = "{{ reagent.quantity }}"
-    row.cells[2].text = "{{ reagent.volume }}"
-    row.cells[3].text = "{{ reagent.storage }}"
-    
-    # End the for loop
-    doc.add_paragraph("{% endfor %}", style="Hidden Text")
+    # Instead of trying to use Jinja loops in tables (which can be problematic),
+    # use a placeholder for an HTML table that will be inserted later
+    doc.add_paragraph("{{ reagents_table_html|safe }}")
     
     # MATERIALS REQUIRED BUT NOT PROVIDED
     materials_header = doc.add_paragraph("MATERIALS REQUIRED BUT NOT PROVIDED", style='Heading 2')

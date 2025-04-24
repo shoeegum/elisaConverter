@@ -429,49 +429,57 @@ class TemplatePopulator:
             # Clean and prepare the data
             processed_data = self._clean_data(data, kit_name, catalog_number, lot_number)
             
-            # Prepare reagents as a list for the template with all columns
+            # Generate an HTML table for the reagents instead of using complex templates
             if 'reagents' in processed_data and 'reagents_header' in processed_data:
-                # Ensure we have proper reagent data with all columns
-                reagents_list = []
-                
-                # Get the header row for column mapping
+                # Get the header row for the reagents table
                 header_row = processed_data.get('reagents_header', ['Description', 'Quantity'])
                 
-                # Create a simplified header name that will be used in the template
-                processed_data['reagents_header_simple'] = []
-                for header in header_row:
-                    # Convert header to a simplified format
-                    simple_header = header.lower().replace(' ', '_').replace('/', '_')
-                    processed_data['reagents_header_simple'].append(simple_header)
+                # Define column keys based on expected headers
+                column_keys = ['name', 'quantity', 'volume', 'storage']
                 
-                # Create a full reagent table with all columns
+                # Start building HTML for the reagents table
+                reagents_html = '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse;">'
+                
+                # Add header row
+                reagents_html += '<tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">'
+                for header in header_row:
+                    reagents_html += f'<th>{header}</th>'
+                reagents_html += '</tr>'
+                
+                # Add data rows
                 for reagent in processed_data['reagents']:
                     if isinstance(reagent, dict) and 'name' in reagent:
-                        # Process each reagent entry
-                        reagent_entry = {
-                            'name': reagent.get('name', ''),
-                            'quantity': reagent.get('quantity', ''),
-                            'volume': reagent.get('volume', ''),
-                            'storage': reagent.get('storage', '')
-                        }
-                        
-                        # Add any other columns from the original data
-                        for key, value in reagent.items():
-                            if key not in ['name', 'quantity', 'volume', 'storage']:
-                                reagent_entry[key] = value
-                                
-                        reagents_list.append(reagent_entry)
+                        reagents_html += '<tr>'
+                        # Add each column value
+                        for i, key in enumerate(column_keys):
+                            if i < len(header_row):  # Make sure we don't exceed the number of headers
+                                value = reagent.get(key, '')
+                                reagents_html += f'<td>{value}</td>'
+                        reagents_html += '</tr>'
                 
-                processed_data['reagents_list'] = reagents_list
-                processed_data['has_full_reagents_table'] = True
+                # Close the table
+                reagents_html += '</table>'
+                
+                # Add the HTML table to the processed data
+                processed_data['reagents_table_html'] = reagents_html
+                
+                # Keep the original reagent data for backward compatibility
+                processed_data['reagents_list'] = processed_data['reagents']
+                
             elif 'reagents' in processed_data:
-                # Fallback for old format
-                reagents_list = []
+                # Fallback for old format - simpler 2-column table
+                reagents_html = '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse;">'
+                reagents_html += '<tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;"><th>Description</th><th>Quantity</th></tr>'
+                
                 for reagent in processed_data['reagents']:
                     if isinstance(reagent, dict) and 'name' in reagent and 'quantity' in reagent:
-                        reagents_list.append(reagent)
-                processed_data['reagents_list'] = reagents_list
-                processed_data['has_full_reagents_table'] = False
+                        name = reagent.get('name', '')
+                        quantity = reagent.get('quantity', '')
+                        reagents_html += f'<tr><td>{name}</td><td>{quantity}</td></tr>'
+                
+                reagents_html += '</table>'
+                processed_data['reagents_table_html'] = reagents_html
+                processed_data['reagents_list'] = processed_data['reagents']
             
             # Render the template with the context data
             self.template.render(processed_data)
