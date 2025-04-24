@@ -931,38 +931,56 @@ To measure the target protein, add standards and samples to the wells, then add 
             section_idx = self._find_section(name)
             if section_idx is not None:
                 section_found = True
+                self.logger.info(f"Found '{name}' section at paragraph {section_idx}")
                 # Get content for the next few paragraphs only - direct extraction
                 end_idx = min(section_idx + 15, len(self.doc.paragraphs))
                 
                 # Starting after the header
+                found_bullet_points = False
                 for i in range(section_idx + 1, end_idx):
-                    text = self.doc.paragraphs[i].text.strip()
-                    if text:
-                        # Stop if we hit another section header
-                        if any(key in text.upper() for key in ["PROTOCOL", "PREPARATION", "PROCEDURE", "ASSAY", "DILUTION", "STANDARD"]):
-                            break
+                    para = self.doc.paragraphs[i]
+                    text = para.text.strip()
+                    
+                    # Check if we've hit the next section
+                    if any(key in text.upper() for key in ["PROTOCOL", "PREPARATION", "PROCEDURE", "ASSAY", "DILUTION", "STANDARD", "REAGENT", "KIT COMPONENTS"]):
+                        self.logger.info(f"Reached next section at paragraph {i}: {text}")
+                        break
+                    
+                    # Skip if empty
+                    if not text:
+                        continue
                         
-                        # Clean the text
+                    # Skip headers and redundant section names
+                    if any(ignore in text.lower() for ignore in ['materials required', 'not provided', 'not supplied']):
+                        continue
+                    
+                    # Check if this is a bullet point paragraph (List Bullet style or has • character)
+                    is_bullet = para.style.name == 'List Bullet' or '•' in text or '-' in text
+                    if is_bullet:
+                        found_bullet_points = True
+                        # Clean the text and remove bullet character
                         cleaned_text = text.strip()
-                        # Remove numbering if present
-                        cleaned_text = re.sub(r'^\d+\.?\s+', '', cleaned_text)
+                        cleaned_text = re.sub(r'^[•\-]\s*', '', cleaned_text)
                         
-                        # Skip headers and empty lines
-                        if cleaned_text and not any(ignore in cleaned_text.lower() for ignore in 
-                                              ['materials required', 'not provided', 'not supplied']):
-                            # Further split by bullet points if present
-                            if '•' in cleaned_text:
-                                bullet_items = cleaned_text.split('•')
-                                for item in bullet_items:
-                                    item = item.strip()
-                                    if item:
-                                        materials_list.append(item)
-                            else:
-                                materials_list.append(cleaned_text)
+                        # Split by additional bullet points if present
+                        if '•' in cleaned_text:
+                            bullet_items = cleaned_text.split('•')
+                            for item in bullet_items:
+                                item = item.strip()
+                                if item:
+                                    materials_list.append(item)
+                        else:
+                            materials_list.append(cleaned_text)
+                    # If not a bullet but in a bullet list section, treat as bullet point
+                    elif found_bullet_points:
+                        # Remove numbering if present
+                        cleaned_text = re.sub(r'^\d+\.?\s+', '', text)
+                        materials_list.append(cleaned_text)
                 break  # We found and processed a section, so exit the loop
         
-        # If we didn't find the section in the paragraphs, check tables
+        # If we didn't find the section in the paragraphs, or didn't find bullet points, check tables
         if not section_found or not materials_list:
+            self.logger.info("Checking tables for required materials")
             for table in self.doc.tables:
                 has_materials_header = False
                 
@@ -976,6 +994,7 @@ To measure the target protein, add standards and samples to the wells, then add 
                         break
                         
                 if has_materials_header:
+                    self.logger.info("Found materials table")
                     # Process the table rows
                     for row in table.rows:
                         # Skip header rows
@@ -989,6 +1008,36 @@ To measure the target protein, add standards and samples to the wells, then add 
                                 cell_text = re.sub(r'^\d+\.?\s+', '', cell_text)  # Remove numbering
                                 materials_list.append(cell_text)
         
+        # If no bullet points were found, try to extract from the section text
+        if not materials_list:
+            self.logger.info("No bullet points found, attempting to extract from section text")
+            for name in section_names:
+                section_text = self._extract_section_text(name, ["REAGENT PREPARATION", "KIT COMPONENTS", "STANDARD"])
+                if section_text:
+                    # Try to split by newlines, commas, or periods
+                    lines = section_text.split('\n')
+                    items = []
+                    for line in lines:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        
+                        # Skip headers and redundant section names
+                        if any(ignore in line.lower() for ignore in ['materials required', 'not provided', 'not supplied']):
+                            continue
+                            
+                        # Split by commas if the line seems to be a list
+                        if ',' in line and not any(key in line.upper() for key in ["PROTOCOL", "PREPARATION", "PROCEDURE"]):
+                            comma_items = [item.strip() for item in line.split(',')]
+                            for item in comma_items:
+                                if item and len(item) > 5 and '.' not in item:  # Avoid splitting sentences
+                                    items.append(item)
+                        else:
+                            items.append(line)
+                    
+                    if items:
+                        materials_list.extend(items)
+        
         # Clean up the materials list - remove duplicates and very short items
         clean_materials = []
         for item in materials_list:
@@ -999,16 +1048,29 @@ To measure the target protein, add standards and samples to the wells, then add 
                 if not any(ignore in item.lower() for ignore in ['standard curve', 'highest o.d', 'example', 'intra', 'inter']):
                     clean_materials.append(item)
         
-        # If no items found, return default list
+        # Add default items if needed to ensure we have a comprehensive list
+        default_items = [
+            "Microplate reader capable of measuring absorbance at 450 nm",
+            "Automated plate washer (optional)",
+            "Adjustable pipettes and pipette tips capable of precisely dispensing volumes",
+            "Tubes for sample preparation",
+            "Deionized or distilled water"
+        ]
+        
+        # If no items found, use default list
         if not clean_materials:
-            clean_materials = [
-                "Microplate reader capable of measuring absorbance at 450 nm",
-                "Automated plate washer (optional)",
-                "Adjustable pipettes and pipette tips",
-                "Clean tubes for sample preparation",
-                "Deionized or distilled water"
-            ]
+            self.logger.warning("No materials found, using default list")
+            clean_materials = default_items
+        # If we have fewer than 3 items, add some of the default items
+        elif len(clean_materials) < 3:
+            self.logger.warning(f"Only {len(clean_materials)} items found, supplementing with default items")
+            for item in default_items:
+                if item not in clean_materials:
+                    clean_materials.append(item)
+                if len(clean_materials) >= 5:
+                    break
             
+        self.logger.info(f"Extracted {len(clean_materials)} required materials")
         return clean_materials
     
     def _extract_standard_curve(self) -> Dict[str, List[str]]:
