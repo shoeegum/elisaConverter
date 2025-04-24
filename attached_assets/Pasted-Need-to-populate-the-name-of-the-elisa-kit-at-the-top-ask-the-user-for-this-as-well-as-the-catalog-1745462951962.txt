@@ -1,0 +1,39 @@
+Need to populate the name of the elisa kit at the top, ask the user for this, as well as the catalog number and lot no.
+
+The intended use section is the first paragraph of the Assay principle section. 
+
+Background is titled 'Baclground on Klk1' for this document, but will be titled something different for each document depending on the product, regardless this section will always start with 'Background on' populate the rest of this heading depending on the user input
+
+Principle of the assay will come from the second paragraph in the 'Assay principle' section. delete the last sentence of this paragraph always from boster documents.
+
+Overview is a section that exclusively only has a table and a short paragraph after the table, copy and paste each cells contents into the template. make sure the table fills up the whole table and is a perfect rectangle.
+The same instructions go for the 'Technical Details' section.
+
+Preparation Before Assay section should directly take what is in this section and populate it into the new template. However, the numbered list should be lined up and the writing for each number list shouldbe uniformly indented.
+
+Kit components/materials provided section should be a perfect rectangle as well that fills up the space and directly takes whats in the cells and transfers them to the template. 
+
+Required materials that are not supplied should be the same for both the outside document and the inside document, and make the text into bullet points that are aligned.
+
+The 'Mouse Klk1 Elisa Standard Curve Example' will have a different name depending on which product document we're transferring. Either ask the user for an input for what to put before '...ELISA Standard Curve Example' or leave this section heading without the product name.
+The Concentration (pg/ml) and O.D. table needs to have a 2x9 row x column, the first number is 0.0 always, you may get confused because that 0.0 number is for some reason attached to the Concentration (pg/ml) line. If possible, the picture of the standard curve within this section needs to be transferred to the new document. 
+
+Intra/Inter-Assay variability should be transferred exactly as it is. The table that is included in this section needs to be a perfect rectangle and have borders.
+
+The reproducibility section needs to be a perfect rectangle and have borders around the table. 
+
+Preparation before the experiment section can be transferred over exactly as it appears, with each cell being populated with the same information when transferring.
+
+"Dilution of 'Mouse Klk1' Standard" should be labeled to populate either each new individual product that is specific to this document, or the title can just read 'DILUTION OF STANDARD', whatever is easier. The content in this section should be a numbered list where the numbers are perfectly aligned as well as the contents for each of those number lists. the picture is in this section can be included if possible.
+
+Sample Preparation and Storage section can be transferred exactly how it appears. With the table having borders, and each cell is directly populated into the transferred document.
+
+Sample Collection Notes section can be directly transferred as is, with the numbered list being aligned as well as the contents for each of those number lists.
+
+'Sample Dilution Guideline' can be transferred exactly how it appears in the ELISA datasheet. As well as the section 'Assay Protocol'
+
+the 'Data Analysis' section should include everything but the first two sentences that are in this section. cut out and delete: "Boster Bio offers an easy-to-use online ELISA data analysis tool. Try it out at https://www.bosterbio.com/biology-research-tools/elisa-data-analysis- online"
+
+If there is a '1 Publications Citing This Product' section in the ElISA datasheet, delete it. As well as a 'Submit a Product Review to Biocompare.com'
+
+All instances of the word Boster should be replaced with Innnovative Research, and any instances (including all variations) of PicoKine® should be deleted and not replaced with anything.

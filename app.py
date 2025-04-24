@@ -86,13 +86,24 @@ def upload_file():
         output_filename = f"output_{unique_id}.docx"
         output_path = OUTPUT_FOLDER / output_filename
         
+        # Get optional user-provided values
+        kit_name = request.form.get('kit_name')
+        catalog_number = request.form.get('catalog_number')
+        lot_number = request.form.get('lot_number')
+        
         # Process the file
         parser = ELISADatasheetParser(source_path)
         data = parser.extract_data()
         
-        # Populate template
+        # Populate template with user-provided values
         populator = TemplatePopulator(template_path)
-        populator.populate(data, output_path)
+        populator.populate(
+            data, 
+            output_path,
+            kit_name=kit_name,
+            catalog_number=catalog_number,
+            lot_number=lot_number
+        )
         
         # Redirect to download page
         return redirect(url_for('download_file', filename=output_filename))

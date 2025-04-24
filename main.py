@@ -54,6 +54,21 @@ def parse_arguments():
     )
     
     parser.add_argument(
+        '--kit-name', 
+        help='Name of the ELISA kit (e.g., "Mouse KLK1 ELISA Kit")'
+    )
+    
+    parser.add_argument(
+        '--catalog-number', 
+        help='Catalog number of the ELISA kit (e.g., "EK1586")'
+    )
+    
+    parser.add_argument(
+        '--lot-number', 
+        help='Lot number of the ELISA kit'
+    )
+    
+    parser.add_argument(
         '--debug', 
         action='store_true',
         help='Enable debug mode with additional logging'
@@ -98,7 +113,15 @@ def main():
         # Populate the template with extracted data
         logger.info(f"Populating template: {template_path}")
         populator = TemplatePopulator(template_path)
-        populator.populate(data, output_path)
+        
+        # Pass optional user-provided values
+        populator.populate(
+            data, 
+            output_path,
+            kit_name=args.kit_name if hasattr(args, 'kit_name') else None,
+            catalog_number=args.catalog_number if hasattr(args, 'catalog_number') else None,
+            lot_number=args.lot_number if hasattr(args, 'lot_number') else None
+        )
         
         logger.info(f"Successfully generated populated template at: {output_path}")
         return 0
