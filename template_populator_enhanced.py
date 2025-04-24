@@ -437,16 +437,16 @@ class TemplatePopulator:
                 # Define column keys based on expected headers
                 column_keys = ['name', 'quantity', 'volume', 'storage']
                 
-                # Start building HTML for the reagents table
-                reagents_html = '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse;">'
+                # Create a simpler HTML table without complex styling that might cause issues
+                reagents_html = '<table border="1">'
                 
-                # Add header row
-                reagents_html += '<tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;">'
+                # Add header row - simpler styling
+                reagents_html += '<tr>'
                 for header in header_row:
                     reagents_html += f'<th>{header}</th>'
                 reagents_html += '</tr>'
                 
-                # Add data rows
+                # Add data rows - very basic formatting
                 for reagent in processed_data['reagents']:
                     if isinstance(reagent, dict) and 'name' in reagent:
                         reagents_html += '<tr>'
@@ -454,6 +454,9 @@ class TemplatePopulator:
                         for i, key in enumerate(column_keys):
                             if i < len(header_row):  # Make sure we don't exceed the number of headers
                                 value = reagent.get(key, '')
+                                # Clean any problematic characters that might break Word
+                                if isinstance(value, str):
+                                    value = value.replace('<', '&lt;').replace('>', '&gt;')
                                 reagents_html += f'<td>{value}</td>'
                         reagents_html += '</tr>'
                 
@@ -467,14 +470,14 @@ class TemplatePopulator:
                 processed_data['reagents_list'] = processed_data['reagents']
                 
             elif 'reagents' in processed_data:
-                # Fallback for old format - simpler 2-column table
-                reagents_html = '<table width="100%" border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse;">'
-                reagents_html += '<tr style="background-color: #f2f2f2; font-weight: bold; text-align: center;"><th>Description</th><th>Quantity</th></tr>'
+                # Fallback for old format - simplest 2-column table with minimal styling
+                reagents_html = '<table border="1">'
+                reagents_html += '<tr><th>Description</th><th>Quantity</th></tr>'
                 
                 for reagent in processed_data['reagents']:
                     if isinstance(reagent, dict) and 'name' in reagent and 'quantity' in reagent:
-                        name = reagent.get('name', '')
-                        quantity = reagent.get('quantity', '')
+                        name = reagent.get('name', '').replace('<', '&lt;').replace('>', '&gt;')
+                        quantity = reagent.get('quantity', '').replace('<', '&lt;').replace('>', '&gt;')
                         reagents_html += f'<tr><td>{name}</td><td>{quantity}</td></tr>'
                 
                 reagents_html += '</table>'
