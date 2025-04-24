@@ -333,11 +333,13 @@ def batch_process():
     return render_template('batch_process.html', templates=templates, source_files=source_file_names, default_template=default_template_name)
 
 @app.route('/about')
+@login_required
 def about():
     """Show about page with information about the application"""
     return render_template('about.html')
 
 @app.route('/upload_batch', methods=['POST'])
+@login_required
 def upload_batch():
     """Handle batch file upload and processing"""
     if 'source_files' not in request.files:
@@ -443,6 +445,7 @@ def upload_batch():
     return jsonify({'task_id': task_id})
 
 @app.route('/batch_status/<task_id>')
+@login_required
 def batch_status(task_id):
     """Get the status of a batch processing task"""
     if task_id not in batch_tasks:
@@ -458,6 +461,7 @@ def batch_status(task_id):
     return jsonify(task)
 
 @app.route('/download_batch/<task_id>')
+@login_required
 def download_batch(task_id):
     """Download a ZIP file containing all batch outputs"""
     if task_id not in batch_tasks:
@@ -487,12 +491,14 @@ def download_batch(task_id):
         return redirect(url_for('batch_process'))
 
 @app.route('/api/templates')
+@login_required
 def api_templates():
     """API to get available templates"""
     templates = get_available_templates(TEMPLATE_FOLDER)
     return jsonify({'templates': templates})
 
 @app.route('/api/recent_outputs')
+@login_required
 def api_recent_outputs():
     """API to get recent outputs"""
     recent_outputs = list(OUTPUT_FOLDER.glob('*.docx'))
