@@ -59,7 +59,9 @@ class ELISADatasheetParser:
             'overview_specifications': overview_data.get('specifications_table', []),  # Table data for overview
             'technical_details': self._extract_technical_details(),
             'preparations_before_assay': self._extract_preparations_before_assay(),
-            'reagents': self._extract_reagents(),
+            # Extract reagents data (now returns a dict with header_row and reagents)
+            'reagents': self._extract_reagents()['reagents'],
+            'reagents_header': self._extract_reagents()['header_row'],
             'required_materials': self._extract_required_materials(),
             'standard_curve': self._extract_standard_curve(),
             'variability': self._extract_variability(),
@@ -753,9 +755,17 @@ To measure the target protein, add standards and samples to the wells, then add 
             'steps': []
         }
     
-    def _extract_reagents(self) -> List[Dict[str, str]]:
-        """Extract the reagents/kit components from the datasheet."""
+    def _extract_reagents(self) -> Dict[str, Any]:
+        """
+        Extract the reagents/kit components from the datasheet.
+        
+        Returns:
+            A dictionary containing:
+            - 'header_row': List of header column names
+            - 'reagents': List of dictionaries with component information
+        """
         reagents = []
+        header_row = ["Description", "Quantity"]  # Default header
         
         # Find the kit components section
         section_names = ["Kit Components", "Materials Provided", "Reagents", "Kit Components/Materials Provided"]
@@ -770,32 +780,79 @@ To measure the target protein, add standards and samples to the wells, then add 
         if section_idx is None:
             self.logger.warning("Reagents/kit components section not found")
             # Provide a standard set of reagents for ELISA kits
-            return [
-                {"name": "Pre-coated Microplate", "quantity": "1"},
-                {"name": "Standard", "quantity": "2"},
-                {"name": "Biotinylated Detection Antibody", "quantity": "1"},
-                {"name": "Avidin-HRP Conjugate", "quantity": "1"},
-                {"name": "Sample Diluent", "quantity": "1"},
-                {"name": "Wash Buffer Concentrate", "quantity": "1"}
-            ]
+            return {
+                'header_row': header_row,
+                'reagents': [
+                    {"name": "Pre-coated Microplate", "quantity": "1", "volume": "96 wells", "storage": "2-8°C"},
+                    {"name": "Standard", "quantity": "2", "volume": "1 vial", "storage": "-20°C"},
+                    {"name": "Biotinylated Detection Antibody", "quantity": "1", "volume": "130 μL", "storage": "2-8°C"},
+                    {"name": "Avidin-HRP Conjugate", "quantity": "1", "volume": "130 μL", "storage": "2-8°C"},
+                    {"name": "Sample Diluent", "quantity": "1", "volume": "30 mL", "storage": "2-8°C"},
+                    {"name": "Wash Buffer Concentrate", "quantity": "1", "volume": "30 mL", "storage": "2-8°C"}
+                ]
+            }
             
         # Look for tables after the section header
         for table_idx, table in enumerate(self.doc.tables):
             # Check if the table is after the section header
             if self._is_table_after_paragraph(table, section_idx):
-                # Process the table rows to extract reagents
-                for row in table.rows[1:]:  # Skip header row
-                    if len(row.cells) >= 2:
-                        name = row.cells[0].text.strip()
-                        quantity = row.cells[1].text.strip()
+                # Get the header row first to determine columns
+                if len(table.rows) > 0:
+                    # Extract header row
+                    header_cells = [cell.text.strip() for cell in table.rows[0].cells if cell.text.strip()]
+                    if header_cells:
+                        header_row = header_cells
                         
-                        # Skip items that are likely technical details, not reagents
-                        if name and name not in ["Description", "Component", "Reagent", "Specificity", "Standard Protein", "Cross-reactivity", "Sensitivity", "Detection Range"]:
-                            reagents.append({"name": name, "quantity": quantity})
+                        # Map standard column names to our expected format
+                        header_map = {}
+                        for i, header in enumerate(header_row):
+                            header_lower = header.lower()
+                            if any(keyword in header_lower for keyword in ['description', 'component', 'name', 'reagent']):
+                                header_map[i] = 'name'
+                            elif any(keyword in header_lower for keyword in ['qty', 'quantity', 'amount']):
+                                header_map[i] = 'quantity'
+                            elif any(keyword in header_lower for keyword in ['vol', 'volume', 'size']):
+                                header_map[i] = 'volume'
+                            elif any(keyword in header_lower for keyword in ['storage', 'store', 'condition']):
+                                header_map[i] = 'storage'
+                            else:
+                                # Use the column name as is
+                                header_map[i] = header.lower().replace(' ', '_')
+                    
+                    # Process the table rows to extract reagents (skip header row)
+                    for row in table.rows[1:]:
+                        if len(row.cells) >= 2:  # Ensure at least name and quantity
+                            # Extract all cell values
+                            cell_values = [cell.text.strip() for cell in row.cells]
+                            
+                            # Skip empty rows
+                            if not any(cell_values):
+                                continue
+                                
+                            # Create a reagent entry with all available columns
+                            reagent = {}
+                            for i, value in enumerate(cell_values):
+                                if i in header_map:
+                                    column_name = header_map[i]
+                                    reagent[column_name] = value
+                            
+                            # Skip items that are likely technical details, not reagents
+                            name = cell_values[0] if cell_values else ""
+                            if name and name not in ["Description", "Component", "Reagent", "Specificity", 
+                                                    "Standard Protein", "Cross-reactivity", "Sensitivity", 
+                                                    "Detection Range", "Name"]:
+                                # Ensure name key exists
+                                if 'name' not in reagent and len(cell_values) > 0:
+                                    reagent['name'] = cell_values[0]
+                                # Ensure quantity key exists    
+                                if 'quantity' not in reagent and len(cell_values) > 1:
+                                    reagent['quantity'] = cell_values[1]
+                                    
+                                reagents.append(reagent)
                 
-                # If we found reagents, return them
+                # If we found reagents, return them along with the header
                 if reagents:
-                    return reagents
+                    return {'header_row': header_row, 'reagents': reagents}
                     
         # If no table found, try to extract reagents from paragraphs
         if not reagents:
@@ -820,8 +877,12 @@ To measure the target protein, add standards and samples to the wells, then add 
                             if not re.search(r"(instruction|note|method|procedure|criteria)", name.lower()) and \
                                name.lower() not in ["specificity", "standard protein", "cross-reactivity", "sensitivity", "detection range"]:
                                 reagents.append({"name": name, "quantity": quantity})
-                
-        return reagents if reagents else [{"name": "N/A", "quantity": "N/A"}]
+        
+        # If we still don't have reagents, return default structure
+        if not reagents:
+            reagents = [{"name": "N/A", "quantity": "N/A"}]
+            
+        return {'header_row': header_row, 'reagents': reagents}
     
     def _is_table_after_paragraph(self, table: Table, para_idx: int) -> bool:
         """
