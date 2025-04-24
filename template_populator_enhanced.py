@@ -52,16 +52,36 @@ class TemplatePopulator:
         # Override with user-provided values if available
         if kit_name:
             processed_data['kit_name'] = kit_name
+        elif 'product_name' in processed_data and processed_data['product_name']:
+            processed_data['kit_name'] = processed_data['product_name']
+        elif 'title' in processed_data and processed_data['title']:
+            processed_data['kit_name'] = processed_data['title']
         elif 'catalog_number' in processed_data:
             # Try to construct a kit name from existing data
             catalog = processed_data.get('catalog_number', '')
-            if catalog and 'description' in processed_data:
+            if 'description' in processed_data:
                 description = processed_data.get('description', '')
                 kit_name_match = re.search(r'(Mouse|Rat|Human|Canine|Bovine|Porcine)\s+([A-Za-z0-9]+)', description)
                 if kit_name_match:
                     processed_data['kit_name'] = f"{kit_name_match.group(0)} ELISA Kit"
                 else:
-                    processed_data['kit_name'] = f"ELISA Kit ({catalog})"
+                    # Try to extract from the filename
+                    match = re.search(r'(Mouse|Rat|Human|Canine|Bovine|Porcine)\s+([A-Za-z0-9]+)', str(self.template_path))
+                    if match:
+                        processed_data['kit_name'] = f"{match.group(0)} ELISA Kit"
+                    else:
+                        processed_data['kit_name'] = f"ELISA Kit ({catalog})"
+            else:
+                processed_data['kit_name'] = f"ELISA Kit ({catalog})"
+        
+        # Ensure kit_name is never empty
+        if 'kit_name' not in processed_data or not processed_data['kit_name']:
+            # Default fallback
+            if 'catalog_number' in processed_data:
+                catalog = processed_data.get('catalog_number', 'EK0000')
+                processed_data['kit_name'] = f"Mouse KLK1 Kallikrein 1 ELISA Kit ({catalog})"
+            else:
+                processed_data['kit_name'] = "Mouse KLK1 Kallikrein 1 ELISA Kit"
         
         if catalog_number:
             processed_data['catalog_number'] = catalog_number
