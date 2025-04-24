@@ -1,0 +1,231 @@
+<h1 style="font-family:Calibri; font-size:16pt;">{{kit_name}}</h1>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">
+<strong>CATALOG NO:</strong> {{catalog_number}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>LOT NO:</strong> {{lot_number}}
+</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">INTENDED USE</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{intended_use}}</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">{{background_title}}</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{background_text}}</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">PRINCIPLE OF THE ASSAY</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{principle_of_assay}}</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SPECIFICATION</h2>
+
+{% if specifications %}
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:100%; line-height:1.15;">
+  <tr>
+    <td style="padding:5px; vertical-align:top;"><strong>Sensitivity</strong></td>
+    <td style="padding:5px; vertical-align:top;">{{sensitivity}}</td>
+  </tr>
+  <tr>
+    <td style="padding:5px; vertical-align:top;"><strong>Detection Range</strong></td>
+    <td style="padding:5px; vertical-align:top;">{{detection_range}}</td>
+  </tr>
+  <tr>
+    <td style="padding:5px; vertical-align:top;"><strong>Specificity</strong></td>
+    <td style="padding:5px; vertical-align:top;">{{specificity}}</td>
+  </tr>
+  <tr>
+    <td style="padding:5px; vertical-align:top;"><strong>Standard</strong></td>
+    <td style="padding:5px; vertical-align:top;">{{standard}}</td>
+  </tr>
+  <tr>
+    <td style="padding:5px; vertical-align:top;"><strong>Cross-reactivity</strong></td>
+    <td style="padding:5px; vertical-align:top;">{{cross_reactivity}}</td>
+  </tr>
+</table>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">REAGENTS</h2>
+
+{% if reagents %}
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:100%; border:1px solid #000; line-height:1.15;">
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Description</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Quantity</strong></th>
+  </tr>
+  {% for reagent in reagents %}
+  <tr>
+    <td style="border:1px solid #000; padding:5px;">{{reagent.name}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{reagent.quantity}}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">MATERIALS REQUIRED BUT NOT PROVIDED</h2>
+
+{% if required_materials %}
+<ul style="font-family:Calibri; font-size:11pt; line-height:1.15;">
+  {% for item in required_materials.split('\n') %}
+  <li>{{item}}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">{{standard_curve_title}}</h2>
+
+{% if standard_curve %}
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:50%; border:1px solid #000; line-height:1.15;">
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Concentration(pg/ml)</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>O.D.</strong></th>
+  </tr>
+  {% for item in standard_curve_table %}
+  <tr>
+    <td style="border:1px solid #000; padding:5px;">{{item.concentration}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{item.od_value}}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;"><strong>Typical Standard Curve</strong></p>
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">This standard curve was generated for demonstration purpose only. A standard curve must be run with each assay.</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">INTRA/INTER ASSAY VARIABILITY</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.</p>
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter-assay precision.</p>
+
+{% if intra_assay or inter_assay %}
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:100%; border:1px solid #000; line-height:1.15;">
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;" colspan="4"><strong>Intra-Assay Precision</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;" colspan="4"><strong>Inter-Assay Precision</strong></th>
+  </tr>
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Sample</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>1</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>2</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>3</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>1</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>2</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>3</strong></th>
+  </tr>
+  {% if intra_assay and inter_assay %}
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"><strong>n</strong></td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.n}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.n}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.n}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.n}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.n}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.n}}</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"><strong>Mean(pg/ml)</strong></td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.mean}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.mean}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.mean}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.mean}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.mean}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.mean}}</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"><strong>Standard deviation</strong></td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.std_dev}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.std_dev}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.std_dev}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.std_dev}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.std_dev}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.std_dev}}</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"><strong>CV(%)</strong></td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.cv}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.cv}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{intra_assay.cv}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.cv}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.cv}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{inter_assay.cv}}</td>
+  </tr>
+  {% endif %}
+</table>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">REPRODUCIBILITY</h2>
+
+{% if reproducibility %}
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:100%; border:1px solid #000; line-height:1.15;">
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Sample</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Value</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Added</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Expected</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Recovery%</strong></th>
+  </tr>
+  {% for item in reproducibility %}
+  <tr>
+    <td style="border:1px solid #000; padding:5px;">{{item.sample}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{item.value}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{item.added}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{item.expected}}</td>
+    <td style="border:1px solid #000; padding:5px;">{{item.recovery}}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">PROCEDURAL NOTES</h2>
+
+{% if procedural_notes %}
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{procedural_notes}}</p>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">REAGENT PREPARATION AND STORAGE</h2>
+
+{% if reagent_preparation %}
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{reagent_preparation}}</p>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">DILUTION OF STANDARD</h2>
+
+{% if standard_dilution %}
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{standard_dilution}}</p>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SAMPLE PREPARATION AND STORAGE</h2>
+
+{% if sample_preparation %}
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{sample_preparation}}</p>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SAMPLE COLLECTION NOTES</h2>
+
+{% if sample_collection_notes %}
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{sample_collection_notes}}</p>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SAMPLE DILUTION GUIDELINE</h2>
+
+{% if sample_dilution_guideline %}
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{sample_dilution_guideline}}</p>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">ASSAY PROTOCOL</h2>
+
+{% if assay_protocol %}
+<ol style="font-family:Calibri; font-size:11pt; line-height:1.15;">
+  {% for step in assay_protocol %}
+  <li>{{step}}</li>
+  {% endfor %}
+</ol>
+{% endif %}
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">DATA ANALYSIS</h2>
+
+{% if data_analysis %}
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">{{data_analysis}}</p>
+{% endif %}
+
+<div style="position:fixed; bottom:0; left:0; width:100%; text-align:center; font-family:Calibri; font-size:9pt; color:#666666; line-height:1.15;">
+  <p>© 2025 Innovative Research, Inc. | www.innov-research.com | 800-538-4400</p>
+</div>
