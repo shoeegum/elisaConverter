@@ -64,6 +64,16 @@ def check_tables(document_path="output_populated_template.docx"):
             logger.info(f"Found REPRODUCIBILITY section at paragraph {i}")
     
     # Check all tables to identify and validate our target tables
+    # Print basic info about all tables first
+    print("\n--- Tables in Document ---")
+    for i, table in enumerate(doc.tables):
+        if not table.rows:
+            print(f"Table {i}: Empty table")
+            continue
+        
+        row_sample = " ".join([cell.text for cell in table.rows[0].cells])
+        print(f"Table {i}: {len(table.rows)} rows x {len(table.rows[0].cells)} cols - First row: {row_sample[:50]}...")
+    
     for i, table in enumerate(doc.tables):
         if not table.rows:
             continue
@@ -83,8 +93,24 @@ def check_tables(document_path="output_populated_template.docx"):
         
         table_content = table_content.lower()
         
-        # Check for technical details table
-        if 'sensitivity' in table_content and 'detection range' in table_content:
+        # Look for key terms in the table to identify it
+        contains_capture = 'capture' in table_content or 'antibod' in table_content
+        contains_sensitivity = 'sensitivity' in table_content
+        contains_detection_range = 'detection range' in table_content or 'range' in table_content
+        contains_product = 'product' in table_content and ('name' in table_content)
+        contains_species = 'species' in table_content or 'reactive' in table_content
+        contains_reproducibility = 'cv' in table_content or 'intra-assay' in table_content or 'inter-assay' in table_content
+        
+        logger.info(f"Table {i} content keywords: " +
+                  f"capture={contains_capture}, " +
+                  f"sensitivity={contains_sensitivity}, " +
+                  f"detection_range={contains_detection_range}, " +
+                  f"product={contains_product}, " +
+                  f"species={contains_species}, " +
+                  f"reproducibility={contains_reproducibility}")
+        
+        # Check for technical details table (Table 0)
+        if i == 0 or (contains_capture and contains_sensitivity):
             found_technical_details_table = True
             logger.info(f"Found technical details table at index {i}")
             
@@ -107,8 +133,8 @@ def check_tables(document_path="output_populated_template.docx"):
                 else:
                     logger.warning("Technical details table has too many empty cells")
         
-        # Check for overview table
-        elif 'product' in table_content and ('species' in table_content or 'reactive' in table_content):
+        # Check for overview table (Table 1)
+        elif i == 1 or (contains_product and contains_species):
             found_overview_table = True
             logger.info(f"Found overview table at index {i}")
             
@@ -131,8 +157,8 @@ def check_tables(document_path="output_populated_template.docx"):
                 else:
                     logger.warning("Overview table has too many empty cells")
         
-        # Check for reproducibility tables
-        elif ('intra-assay' in table_content or 'inter-assay' in table_content or 'cv' in table_content) and reproducibility_section is not None:
+        # Check for reproducibility tables (indices 4 and 5)
+        elif (i in [4, 5]) or (contains_reproducibility and reproducibility_section is not None):
             # This is likely a reproducibility table
             if not found_reproducibility_tables:
                 found_reproducibility_tables = True

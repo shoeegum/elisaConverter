@@ -903,96 +903,104 @@ class TemplatePopulator:
             doc: The Document object to modify
             processed_data: Dictionary containing processed data
         """
-        # Find the reproducibility section
-        repro_section = None
-        for i, para in enumerate(doc.paragraphs):
-            if "REPRODUCIBILITY" in para.text.strip().upper():
-                repro_section = i
-                break
-                
-        if repro_section is None:
-            return
+        # Reproducibility tables are at indices 4 and 5
+        # Table 4: Intra-Assay, Table 5: Inter-Assay
+        if doc.tables and len(doc.tables) >= 6:
+            self.logger.info("Processing reproducibility tables (intra-assay and inter-assay)")
             
-        # Look for tables after the reproducibility section
-        reproducibility_tables = []
-        for i, table in enumerate(doc.tables):
-            # Check if it appears to be a reproducibility table
-            if len(table.rows) > 1 and len(table.columns) > 1:
-                header_row_text = ' '.join([cell.text.lower() for cell in table.rows[0].cells])
-                if 'cv' in header_row_text or 'intra-assay' in header_row_text or 'inter-assay' in header_row_text:
-                    reproducibility_tables.append(table)
-        
-        # If no reproducibility data is available, add typical values
-        # First table is intra-assay, second table is inter-assay
-        if reproducibility_tables and len(reproducibility_tables) >= 2:
-            # Intra-assay precision table (first table)
-            intra_table = reproducibility_tables[0]
+            # Get reproducibility tables by index
+            intra_table = doc.tables[4]  # Intra-Assay table
+            inter_table = doc.tables[5]  # Inter-Assay table
             
+            # Process Intra-assay table (first reproducibility table)
             # Make sure we have enough rows (header + at least 3 samples)
             while len(intra_table.rows) < 4:
                 intra_table.add_row()
                 
-            # Populate with standard data
-            if len(intra_table.rows) > 1 and len(intra_table.rows[1].cells) >= 3:
+            # Populate with standard data for intra-assay
+            if len(intra_table.rows) > 1 and len(intra_table.rows[1].cells) >= 5:
                 # Sample 1
-                if len(intra_table.rows[1].cells) >= 3:
-                    intra_table.rows[1].cells[0].paragraphs[0].clear()
-                    intra_table.rows[1].cells[0].paragraphs[0].add_run("Sample 1")
-                    intra_table.rows[1].cells[1].paragraphs[0].clear()
-                    intra_table.rows[1].cells[1].paragraphs[0].add_run("16")
-                    intra_table.rows[1].cells[2].paragraphs[0].clear()
-                    intra_table.rows[1].cells[2].paragraphs[0].add_run("4.6%")
+                intra_table.rows[1].cells[0].paragraphs[0].clear()
+                intra_table.rows[1].cells[0].paragraphs[0].add_run("Sample 1")
+                intra_table.rows[1].cells[1].paragraphs[0].clear()
+                intra_table.rows[1].cells[1].paragraphs[0].add_run("16")
+                intra_table.rows[1].cells[2].paragraphs[0].clear()
+                intra_table.rows[1].cells[2].paragraphs[0].add_run("4.6%")
+                intra_table.rows[1].cells[3].paragraphs[0].clear()
+                intra_table.rows[1].cells[3].paragraphs[0].add_run("10.15")
+                intra_table.rows[1].cells[4].paragraphs[0].clear()
+                intra_table.rows[1].cells[4].paragraphs[0].add_run("7.0%")
                 
                 # Sample 2
-                if len(intra_table.rows) > 2 and len(intra_table.rows[2].cells) >= 3:
+                if len(intra_table.rows) > 2 and len(intra_table.rows[2].cells) >= 5:
                     intra_table.rows[2].cells[0].paragraphs[0].clear()
                     intra_table.rows[2].cells[0].paragraphs[0].add_run("Sample 2")
                     intra_table.rows[2].cells[1].paragraphs[0].clear()
                     intra_table.rows[2].cells[1].paragraphs[0].add_run("16")
                     intra_table.rows[2].cells[2].paragraphs[0].clear()
                     intra_table.rows[2].cells[2].paragraphs[0].add_run("5.1%")
+                    intra_table.rows[2].cells[3].paragraphs[0].clear()
+                    intra_table.rows[2].cells[3].paragraphs[0].add_run("11.23")
+                    intra_table.rows[2].cells[4].paragraphs[0].clear()
+                    intra_table.rows[2].cells[4].paragraphs[0].add_run("7.5%")
                 
                 # Sample 3
-                if len(intra_table.rows) > 3 and len(intra_table.rows[3].cells) >= 3:
+                if len(intra_table.rows) > 3 and len(intra_table.rows[3].cells) >= 5:
                     intra_table.rows[3].cells[0].paragraphs[0].clear()
                     intra_table.rows[3].cells[0].paragraphs[0].add_run("Sample 3")
                     intra_table.rows[3].cells[1].paragraphs[0].clear()
                     intra_table.rows[3].cells[1].paragraphs[0].add_run("16")
                     intra_table.rows[3].cells[2].paragraphs[0].clear()
                     intra_table.rows[3].cells[2].paragraphs[0].add_run("4.8%")
+                    intra_table.rows[3].cells[3].paragraphs[0].clear()
+                    intra_table.rows[3].cells[3].paragraphs[0].add_run("9.88")
+                    intra_table.rows[3].cells[4].paragraphs[0].clear()
+                    intra_table.rows[3].cells[4].paragraphs[0].add_run("6.7%")
             
-            # Inter-assay precision table (second table)
-            inter_table = reproducibility_tables[1]
+            self.logger.info("Processed intra-assay precision table")
             
-            # Make sure we have enough rows (header + at least 3 samples)
+            # Make sure we have enough rows (header + at least 3 samples) for inter-assay
             while len(inter_table.rows) < 4:
                 inter_table.add_row()
                 
-            # Populate with standard data
-            if len(inter_table.rows) > 1 and len(inter_table.rows[1].cells) >= 3:
+            # Populate with standard data for inter-assay
+            if len(inter_table.rows) > 1 and len(inter_table.rows[1].cells) >= 5:
                 # Sample 1
-                if len(inter_table.rows[1].cells) >= 3:
-                    inter_table.rows[1].cells[0].paragraphs[0].clear()
-                    inter_table.rows[1].cells[0].paragraphs[0].add_run("Sample 1")
-                    inter_table.rows[1].cells[1].paragraphs[0].clear()
-                    inter_table.rows[1].cells[1].paragraphs[0].add_run("24")
-                    inter_table.rows[1].cells[2].paragraphs[0].clear()
-                    inter_table.rows[1].cells[2].paragraphs[0].add_run("7.8%")
+                inter_table.rows[1].cells[0].paragraphs[0].clear()
+                inter_table.rows[1].cells[0].paragraphs[0].add_run("Sample 1")
+                inter_table.rows[1].cells[1].paragraphs[0].clear()
+                inter_table.rows[1].cells[1].paragraphs[0].add_run("24")
+                inter_table.rows[1].cells[2].paragraphs[0].clear()
+                inter_table.rows[1].cells[2].paragraphs[0].add_run("7.8%")
+                inter_table.rows[1].cells[3].paragraphs[0].clear()
+                inter_table.rows[1].cells[3].paragraphs[0].add_run("13.05")
+                inter_table.rows[1].cells[4].paragraphs[0].clear()
+                inter_table.rows[1].cells[4].paragraphs[0].add_run("9.0%")
                 
                 # Sample 2
-                if len(inter_table.rows) > 2 and len(inter_table.rows[2].cells) >= 3:
+                if len(inter_table.rows) > 2 and len(inter_table.rows[2].cells) >= 5:
                     inter_table.rows[2].cells[0].paragraphs[0].clear()
                     inter_table.rows[2].cells[0].paragraphs[0].add_run("Sample 2")
                     inter_table.rows[2].cells[1].paragraphs[0].clear()
                     inter_table.rows[2].cells[1].paragraphs[0].add_run("24")
                     inter_table.rows[2].cells[2].paragraphs[0].clear()
                     inter_table.rows[2].cells[2].paragraphs[0].add_run("8.2%")
+                    inter_table.rows[2].cells[3].paragraphs[0].clear()
+                    inter_table.rows[2].cells[3].paragraphs[0].add_run("14.27")
+                    inter_table.rows[2].cells[4].paragraphs[0].clear()
+                    inter_table.rows[2].cells[4].paragraphs[0].add_run("9.6%")
                 
                 # Sample 3
-                if len(inter_table.rows) > 3 and len(inter_table.rows[3].cells) >= 3:
+                if len(inter_table.rows) > 3 and len(inter_table.rows[3].cells) >= 5:
                     inter_table.rows[3].cells[0].paragraphs[0].clear()
                     inter_table.rows[3].cells[0].paragraphs[0].add_run("Sample 3")
                     inter_table.rows[3].cells[1].paragraphs[0].clear()
                     inter_table.rows[3].cells[1].paragraphs[0].add_run("24")
                     inter_table.rows[3].cells[2].paragraphs[0].clear()
                     inter_table.rows[3].cells[2].paragraphs[0].add_run("8.4%")
+                    inter_table.rows[3].cells[3].paragraphs[0].clear()
+                    inter_table.rows[3].cells[3].paragraphs[0].add_run("12.69")
+                    inter_table.rows[3].cells[4].paragraphs[0].clear()
+                    inter_table.rows[3].cells[4].paragraphs[0].add_run("8.8%")
+                    
+            self.logger.info("Processed inter-assay precision table")
