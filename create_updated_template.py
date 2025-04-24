@@ -160,9 +160,8 @@ def create_updated_template():
     materials_title.style = 'Heading 2'
     materials_title.runs[0].font.color.rgb = RGBColor(0, 70, 180)
     
-    # Add bullet points for required materials
-    for i in range(1, 11):
-        bullet_para = doc.add_paragraph(f"{{{{ req_material_{i}|default('') }}}}", style='List Bullet')
+    # Add placeholder for materials
+    materials_para = doc.add_paragraph("{{ required_materials_with_bullets|default('') }}")
     
     # Add reagent preparation section
     reagent_title = doc.add_paragraph("REAGENT PREPARATION")

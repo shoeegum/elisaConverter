@@ -198,15 +198,23 @@ class TemplatePopulator:
             # Also keep original format for compatibility
             processed_data['required_materials_text'] = "\n".join(processed_data['required_materials'])
             
-            # Prepare materials as a simple list
+            # Prepare materials as a simple list with bullet points
             materials = processed_data['required_materials']
             if materials:
-                # Clean up the items
+                # Clean up the items and add bullet points
                 clean_materials = []
                 for item in materials:
                     if item.strip():
-                        clean_materials.append(item.strip())
+                        # Add a bullet point if it doesn't already have one
+                        material_text = item.strip()
+                        if not material_text.startswith('•') and not material_text.startswith('-'):
+                            material_text = f"• {material_text}"
+                        clean_materials.append(material_text)
                 processed_data['required_materials_list_items'] = clean_materials
+                
+                # Create a single text block with all materials with bullet points
+                # This will replace the template's placeholder bullets
+                processed_data['required_materials_with_bullets'] = "\n".join(clean_materials)
                 
         # Format assay protocol as numbered steps
         if 'assay_protocol' in processed_data and processed_data['assay_protocol']:
