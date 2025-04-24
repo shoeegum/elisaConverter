@@ -327,22 +327,34 @@ class ELISADatasheetParser:
                 text = ""
                 current_idx = section_idx + 1
                 
-                # Collect paragraphs until we hit one that seems like a different section
-                # or until we've collected enough content
+                # Gather all paragraphs in the principle section
                 paragraphs = []
-                while current_idx < len(self.doc.paragraphs) and len(paragraphs) < 4:
+                
+                # First, add paragraph immediately after the section header
+                paragraph_text = self.doc.paragraphs[current_idx].text.strip()
+                if paragraph_text and len(paragraph_text) > 5:
+                    paragraphs.append(paragraph_text)
+                current_idx += 1
+                
+                # Then, check for additional paragraphs that could belong to this section
+                # Specifically look for the second paragraph that may be separated
+                while current_idx < len(self.doc.paragraphs) and len(paragraphs) < 5:
                     paragraph_text = self.doc.paragraphs[current_idx].text.strip()
                     
                     # Stop if we hit a new section
                     if paragraph_text and (paragraph_text.isupper() or 
-                                          any(term in paragraph_text.upper() for term in ["OVERVIEW", "TECHNICAL", "REAGENT"])):
+                                          any(term in paragraph_text.upper() for term in ["OVERVIEW", "TECHNICAL", "REAGENT", "KIT COMPONENTS"])):
                         break
                     
                     # Add non-empty paragraphs to our collection
                     if paragraph_text and len(paragraph_text) > 5:
                         # Skip sentences about "submit a product review" or "gift card"
                         if not any(term in paragraph_text.lower() for term in ["submit a review", "gift card", "amazon", "biocompare"]):
-                            paragraphs.append(paragraph_text)
+                            # For the first few paragraphs after the principle header, include all paragraphs
+                            # This ensures we get the full principle text even if it doesn't contain specific keywords
+                            if len(paragraphs) < 2 or any(term in paragraph_text.lower() for term in ["elisa", "antibody", "incubate", "substrate", "detection", 
+                                                                                                     "conjugate", "sample", "standard", "avidin", "hrp", "tmb"]):
+                                paragraphs.append(paragraph_text)
                     
                     current_idx += 1
                 
@@ -350,36 +362,28 @@ class ELISADatasheetParser:
                     # Join all found paragraphs
                     text = "\n\n".join(paragraphs)
                     
-                    # Remove any final sentences mentioning "this kit uses" as they may be redundant
-                    text_parts = text.split(".")
-                    filtered_parts = []
-                    for part in text_parts:
-                        if "this kit uses" not in part.lower() and "kit is based on" not in part.lower():
-                            filtered_parts.append(part)
+                    # For the principle section, keep the full text as requested by the user
+                    # This includes any "this kit uses" sentences
                     
-                    # Rejoin with periods
-                    text = ".".join(filtered_parts)
+                    # Just clean up any formatting issues
+                    text = text.replace("..", ".").replace(". .", ".").strip()
+                    
+                    # Make sure it ends with a period
                     if not text.endswith(".") and text:
                         text += "."
-                    
-                    # Clean up any double periods or formatting issues
-                    text = text.replace("..", ".").replace(". .", ".").strip()
                     
                     return text
         
         # Look for paragraphs describing the assay type
         for i, para in enumerate(self.doc.paragraphs):
             if "ELISA" in para.text and "antibody" in para.text.lower():
-                # Extract this paragraph and remove any final sentence about kit usage
+                # Extract this paragraph and keep the full text as requested by the user
                 text = para.text
-                text_parts = text.split(".")
-                filtered_parts = []
-                for part in text_parts:
-                    if "this kit uses" not in part.lower() and "kit is based on" not in part.lower():
-                        filtered_parts.append(part)
                 
-                # Rejoin with periods
-                text = ".".join(filtered_parts)
+                # Just clean up formatting
+                text = text.replace("..", ".").replace(". .", ".").strip()
+                
+                # Make sure it ends with a period
                 if not text.endswith(".") and text:
                     text += "."
                 
