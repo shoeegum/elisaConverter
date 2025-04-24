@@ -29,112 +29,68 @@ def create_innovative_template():
     font.name = 'Calibri'
     font.size = Pt(11)
     
-    # Create styles for headers
+    # Create styles for headers - blue and bold
     header_style = styles.add_style('Header Style', styles['Normal'].type)
     header_style.font.name = 'Calibri'
     header_style.font.size = Pt(12)
     header_style.font.bold = True
-    header_style.font.color.rgb = RGBColor(0, 0, 139)  # Dark blue
+    header_style.font.color.rgb = RGBColor(0, 0, 128)  # Dark blue to match sample
     
-    # Add the title at the top
+    # Set paragraph spacing to match the sample document
+    paragraph_format = styles['Normal'].paragraph_format
+    paragraph_format.space_before = Pt(0)
+    paragraph_format.space_after = Pt(8)
+    paragraph_format.line_spacing = 1.15  # Matches sample document spacing
+    
+    # Add the kit name title at the top - centered, bold, 14pt 
     title_para = doc.add_paragraph()
     title_run = title_para.add_run("{{ kit_name }}")
     title_run.font.name = 'Calibri'
-    title_run.font.size = Pt(16)
+    title_run.font.size = Pt(14)
     title_run.font.bold = True
     title_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     
-    # Add catalog number and lot number
+    # Add catalog/lot line - centered
     cat_lot_para = doc.add_paragraph()
-    cat_lot_para.add_run("Catalog Number: ").bold = True
+    cat_lot_para.add_run("CATALOG NO: ").bold = True
     cat_lot_para.add_run("{{ catalog_number }}")
-    cat_lot_para.add_run("          Lot Number: ").bold = True
+    cat_lot_para.add_run(" LOT NO: ").bold = True
     cat_lot_para.add_run("{{ lot_number }}")
     cat_lot_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     
-    # Add sections with proper formatting
+    # Add sections with proper formatting - exactly match the sample document
     
-    # Intended Use
-    doc.add_paragraph()
-    intended_use_heading = doc.add_paragraph("Intended Use:", style='Header Style')
-    doc.add_paragraph("{{ intended_use }}")
-    doc.add_paragraph()
+    # INTENDED USE - all caps, blue, bold
+    intended_use_header = doc.add_paragraph("INTENDED USE", style='Header Style')
+    intended_use_para = doc.add_paragraph("{{ intended_use }}")
     
     # Background
-    background_heading = doc.add_paragraph("Background:", style='Header Style')
-    doc.add_paragraph("{{ background }}")
-    doc.add_paragraph()
+    background_header = doc.add_paragraph("Background", style='Header Style')
+    background_para = doc.add_paragraph("{{ background }}")
     
-    # Assay Principle
-    assay_heading = doc.add_paragraph("Principle of the Assay:", style='Header Style')
-    doc.add_paragraph("{{ assay_principle }}")
-    doc.add_paragraph()
+    # Principle of the assay
+    principle_header = doc.add_paragraph("Principle of the assay", style='Header Style')
+    principle_para = doc.add_paragraph("{{ assay_principle }}")
     
-    # Kit Components
-    components_heading = doc.add_paragraph("Kit Components:", style='Header Style')
-    component_para = doc.add_paragraph()
-    component_para.add_run("The following reagents are included:").bold = True
+    # SPECIFICATION - this is a section header in the sample
+    specification_header = doc.add_paragraph("specification", style='Header Style')
     
-    # Add a table for kit components
-    comp_table = doc.add_table(rows=1, cols=3)
-    comp_table.style = 'Table Grid'
+    # Reagents section 
+    reagents_header = doc.add_paragraph("Reagents", style='Header Style')
+    # Add reagents table here if needed
     
-    # Add headers to the table
-    header_cells = comp_table.rows[0].cells
-    header_cells[0].text = "Component"
-    header_cells[1].text = "Volume"
-    header_cells[2].text = "Storage"
+    # Materials Required But Not Provided
+    materials_header = doc.add_paragraph("Materials Required But Not Provided", style='Header Style')
+    materials_para = doc.add_paragraph("{{ required_materials }}")
     
-    # Make headers bold
-    for cell in header_cells:
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.bold = True
-    
-    # Add placeholder rows with Jinja tags
-    for i in range(5):  # We'll add 5 placeholder rows
-        row = comp_table.add_row().cells
-        row[0].text = f"{{{{ reagents[{i}].name if {i} < reagents|length else '' }}}}"
-        row[1].text = f"{{{{ reagents[{i}].volume if {i} < reagents|length else '' }}}}"
-        row[2].text = f"{{{{ reagents[{i}].storage if {i} < reagents|length else '' }}}}"
-    
-    doc.add_paragraph()
-    
-    # Materials Required
-    materials_heading = doc.add_paragraph("Materials Required But Not Supplied:", style='Header Style')
-    doc.add_paragraph("{{ required_materials }}")
-    doc.add_paragraph()
-    
-    # Reagent Preparation
-    reagent_heading = doc.add_paragraph("Reagent Preparation:", style='Header Style')
-    doc.add_paragraph("{{ reagent_preparation }}")
-    doc.add_paragraph()
-    
-    # Sample Collection and Storage
-    sample_heading = doc.add_paragraph("Sample Collection and Storage:", style='Header Style')
-    doc.add_paragraph("{{ sample_collection_notes }}")
-    doc.add_paragraph()
-    
-    # Assay Procedure
-    procedure_heading = doc.add_paragraph("Assay Procedure:", style='Header Style')
-    
-    # Add each step of the procedure as a numbered list
-    for i in range(10):  # We'll add 10 placeholder steps
-        para = doc.add_paragraph(style='List Number')
-        para.add_run(f"{{{{ assay_protocol[{i}] if {i} < assay_protocol|length else '' }}}}")
-    
-    doc.add_paragraph()
-    
-    # Calculation of Results
-    calculation_heading = doc.add_paragraph("Calculation of Results:", style='Header Style')
-    doc.add_paragraph("{{ data_analysis }}")
-    doc.add_paragraph()
+    # Typical Data
+    typical_data_header = doc.add_paragraph("Typical Data", style='Header Style')
     
     # Standard Curve
-    curve_heading = doc.add_paragraph("Standard Curve:", style='Header Style')
-    doc.add_paragraph("{{ standard_curve_title }}")
+    curve_header = doc.add_paragraph("Typical Standard Curve", style='Header Style')
+    curve_para = doc.add_paragraph("This standard curve was generated for demonstration purpose only. A standard curve must be run with each assay.")
     
-    # Add a table for standard curve data
+    # Add a table for standard curve data if needed
     curve_table = doc.add_table(rows=1, cols=2)
     curve_table.style = 'Table Grid'
     
@@ -155,79 +111,52 @@ def create_innovative_template():
         row[0].text = f"{{{{ standard_curve_table[{i}].concentration if {i} < standard_curve_table|length else '' }}}}"
         row[1].text = f"{{{{ standard_curve_table[{i}].od_value if {i} < standard_curve_table|length else '' }}}}"
     
-    doc.add_paragraph()
-    
-    # Sensitivity
-    sensitivity_heading = doc.add_paragraph("Sensitivity:", style='Header Style')
-    doc.add_paragraph("{{ sensitivity }}")
-    doc.add_paragraph()
-    
-    # Precision
-    precision_heading = doc.add_paragraph("Precision:", style='Header Style')
+    # INTRA/INTER ASSAY VARIABILITY
+    variability_header = doc.add_paragraph("INTRA/INTER ASSAY VARIABILITY", style='Header Style')
     
     # Intra-Assay Precision
-    doc.add_paragraph("Intra-Assay Precision (Precision within an assay)")
-    
-    # Intra-Assay Precision table
-    intra_table = doc.add_table(rows=1, cols=3)
-    intra_table.style = 'Table Grid'
-    
-    # Add headers to the intra-assay table
-    intra_headers = intra_table.rows[0].cells
-    intra_headers[0].text = "Sample"
-    intra_headers[1].text = "n"
-    intra_headers[2].text = "CV%"
-    
-    # Make headers bold
-    for cell in intra_headers:
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.bold = True
-    
-    # Add placeholder rows with Jinja tags
-    for i in range(3):  # We'll add 3 placeholder rows for intra-assay precision
-        row = intra_table.add_row().cells
-        row[0].text = f"{{{{ intra_precision[{i}].sample if intra_precision and {i} < intra_precision|length else '' }}}}"
-        row[1].text = f"{{{{ intra_precision[{i}].n if intra_precision and {i} < intra_precision|length else '' }}}}"
-        row[2].text = f"{{{{ intra_precision[{i}].cv if intra_precision and {i} < intra_precision|length else '' }}}}"
-    
-    doc.add_paragraph()
+    intra_para = doc.add_paragraph("Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.")
     
     # Inter-Assay Precision
-    doc.add_paragraph("Inter-Assay Precision (Precision between assays)")
+    inter_para = doc.add_paragraph("Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter- assay precision.")
     
-    # Inter-Assay Precision table
-    inter_table = doc.add_table(rows=1, cols=3)
-    inter_table.style = 'Table Grid'
+    # Reproducibility
+    repro_header = doc.add_paragraph("Reproducibility", style='Header Style')
+    repro_para = doc.add_paragraph("*number of samples for each test n=16.")
     
-    # Add headers to the inter-assay table
-    inter_headers = inter_table.rows[0].cells
-    inter_headers[0].text = "Sample"
-    inter_headers[1].text = "n"
-    inter_headers[2].text = "CV%"
+    # Procedural Notes
+    procedural_header = doc.add_paragraph("Procedural Notes", style='Header Style')
+    procedural_para = doc.add_paragraph("{{ procedural_notes }}")
     
-    # Make headers bold
-    for cell in inter_headers:
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.bold = True
+    # Reagent Preparation and Storage
+    prep_header = doc.add_paragraph("Reagent Preparation and Storage", style='Header Style')
     
-    # Add placeholder rows with Jinja tags
-    for i in range(3):  # We'll add 3 placeholder rows for inter-assay precision
-        row = inter_table.add_row().cells
-        row[0].text = f"{{{{ inter_precision[{i}].sample if inter_precision and {i} < inter_precision|length else '' }}}}"
-        row[1].text = f"{{{{ inter_precision[{i}].n if inter_precision and {i} < inter_precision|length else '' }}}}"
-        row[2].text = f"{{{{ inter_precision[{i}].cv if inter_precision and {i} < inter_precision|length else '' }}}}"
+    # Dilution of Standard
+    dilution_header = doc.add_paragraph("Dilution of standard", style='Header Style')
+    dilution_para = doc.add_paragraph("{{ dilution_of_standard }}")
     
-    doc.add_paragraph()
+    # Sample Collection & Storage
+    sample_header = doc.add_paragraph("Sample Collection & Storage", style='Header Style')
+    sample_para = doc.add_paragraph("{{ sample_collection_notes }}")
     
-    # Specificity
-    specificity_heading = doc.add_paragraph("Specificity:", style='Header Style')
-    doc.add_paragraph("{{ specificity }}")
-    doc.add_paragraph()
-
+    # Assay Procedure
+    assay_procedure_header = doc.add_paragraph("Assay Procedure", style='Header Style')
+    
+    # Instead of fixed number of steps, render the protocol dynamically
+    assay_para = doc.add_paragraph("{{ '{% for step in assay_protocol %}' }}")
+    assay_para = doc.add_paragraph("{{ '{{ step }}' }}")
+    assay_para = doc.add_paragraph("{{ '{% endfor %}' }}")
+    
+    # Data Analysis
+    data_analysis_header = doc.add_paragraph("data analysis", style='Header Style')
+    data_analysis_para = doc.add_paragraph("{{ data_analysis }}")
+    
+    # Disclaimer
+    disclaimer_header = doc.add_paragraph("DISCLAIMER", style='Header Style')
+    disclaimer_para = doc.add_paragraph("This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification.")
+    
     # Save the template
-    template_path = Path('templates_docx/innovative_proper_template.docx')
+    template_path = Path('templates_docx/innovative_exact_template.docx')
     doc.save(template_path)
     
     logger.info(f"Created template at {template_path}")
