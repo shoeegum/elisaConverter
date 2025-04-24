@@ -31,6 +31,7 @@ UPLOAD_FOLDER = Path('uploads')
 OUTPUT_FOLDER = Path('outputs')
 TEMPLATE_FOLDER = Path('templates_docx')
 ASSETS_FOLDER = Path('attached_assets')
+DEFAULT_TEMPLATE = TEMPLATE_FOLDER / 'enhanced_template.docx'
 
 for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, TEMPLATE_FOLDER]:
     folder.mkdir(exist_ok=True)
@@ -38,18 +39,39 @@ for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, TEMPLATE_FOLDER]:
 # Initialize templates
 initialize_templates(TEMPLATE_FOLDER, ASSETS_FOLDER)
 
+# Make sure the enhanced template is the default
+if not DEFAULT_TEMPLATE.exists():
+    logger.warning(f"Default enhanced template not found at {DEFAULT_TEMPLATE}")
+    logger.info("Looking for any available template to use as default...")
+    # Find any template to use as a fallback
+    templates = list(TEMPLATE_FOLDER.glob('*.docx'))
+    if templates:
+        DEFAULT_TEMPLATE = templates[0]
+        logger.info(f"Using {DEFAULT_TEMPLATE.name} as the default template")
+    else:
+        logger.warning("No templates found. The application may not work correctly.")
+
 @app.route('/')
 def index():
     """Render the home page"""
     # Get available templates with descriptions
     templates = get_available_templates(TEMPLATE_FOLDER)
     
+    # Mark the default enhanced template
+    default_template_name = DEFAULT_TEMPLATE.name if DEFAULT_TEMPLATE.exists() else None
+    for template in templates:
+        if template['name'] == default_template_name:
+            template['is_default'] = True
+            template['description'] += " (Default)"
+        else:
+            template['is_default'] = False
+    
     # List recent outputs if any
     recent_outputs = list(OUTPUT_FOLDER.glob('*.docx'))
     recent_outputs = sorted(recent_outputs, key=lambda x: x.stat().st_mtime, reverse=True)[:5]
     recent_output_names = [output.name for output in recent_outputs]
     
-    return render_template('index.html', templates=templates, recent_outputs=recent_output_names)
+    return render_template('index.html', templates=templates, recent_outputs=recent_output_names, default_template=default_template_name)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -67,12 +89,20 @@ def upload_file():
         flash('Only DOCX files are supported', 'error')
         return redirect(request.url)
     
-    # Get selected template or use default
-    template_name = request.form.get('template', 'default_template.docx')
-    template_path = TEMPLATE_FOLDER / template_name
+    # Get selected template or use enhanced template as default
+    template_name = request.form.get('template')
     
+    if template_name:
+        template_path = TEMPLATE_FOLDER / template_name
+        if not template_path.exists():
+            logger.warning(f"Selected template {template_name} not found, using default")
+            template_path = DEFAULT_TEMPLATE
+    else:
+        # No template selected, use enhanced template
+        template_path = DEFAULT_TEMPLATE
+        
     if not template_path.exists():
-        flash(f'Template {template_name} not found', 'error')
+        flash(f'Template not found. Please upload a template first.', 'error')
         return redirect(request.url)
     
     try:
@@ -198,11 +228,20 @@ def batch_process():
     # Get available templates with descriptions
     templates = get_available_templates(TEMPLATE_FOLDER)
     
+    # Mark the default enhanced template
+    default_template_name = DEFAULT_TEMPLATE.name if DEFAULT_TEMPLATE.exists() else None
+    for template in templates:
+        if template['name'] == default_template_name:
+            template['is_default'] = True
+            template['description'] += " (Default)"
+        else:
+            template['is_default'] = False
+    
     # List available source files
     source_files = list(UPLOAD_FOLDER.glob('*.docx'))
     source_file_names = [source.name for source in source_files]
     
-    return render_template('batch_process.html', templates=templates, source_files=source_file_names)
+    return render_template('batch_process.html', templates=templates, source_files=source_file_names, default_template=default_template_name)
 
 @app.route('/about')
 def about():
