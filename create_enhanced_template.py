@@ -138,31 +138,15 @@ def create_enhanced_template():
     overview_header = doc.add_paragraph("OVERVIEW", style='Heading 2')
     overview_para = doc.add_paragraph("{{ overview }}")
     
-    # Add specifications table to the Overview section
-    spec_table = doc.add_table(rows=1, cols=2)
+    # Create a table for the specifications - no header row, just the 8 specification rows
+    spec_table = doc.add_table(rows=8, cols=2)  # 8 standard specs only
     spec_table.style = 'Table Grid'
-    spec_table.autofit = True
     
     # Set column widths for better readability
     for cell in spec_table.columns[0].cells:
         cell.width = Inches(2.5)
     for cell in spec_table.columns[1].cells:
         cell.width = Inches(3.5)
-    
-    # Add headers to specifications table
-    spec_headers = spec_table.rows[0].cells
-    spec_headers[0].text = "Property"
-    spec_headers[1].text = "Value"
-    
-    # Make headers bold
-    for cell in spec_headers:
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.bold = True
-    
-    # Create a table for the specifications - no header row, just the 8 specification rows
-    spec_table = doc.add_table(rows=8, cols=2)  # 8 standard specs only
-    spec_table.style = 'Table Grid'
     
     # Add the standard specifications rows with Jinja2 variables
     standard_specs = [
