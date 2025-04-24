@@ -140,15 +140,20 @@ class TemplatePopulator:
                 
                 processed_data['standard_curve_table'] = std_curve_table
         
-        # Process data analysis section - remove Boster reference
+        # Process data analysis section - remove Boster reference and unwanted sections
         if 'data_analysis' in processed_data:
             data_analysis = processed_data['data_analysis']
+            
             # Remove first two sentences if they contain Boster references
             sentences = re.split(r'(?<=[.!?])\s+', data_analysis)
             if len(sentences) > 2 and any(word in ' '.join(sentences[:2]).lower() for word in ['boster', 'biocompare', 'online']):
                 processed_data['data_analysis'] = ' '.join(sentences[2:])
             else:
                 processed_data['data_analysis'] = data_analysis
+                
+            # Remove the Publications and Submit a Product Review sections
+            processed_data['data_analysis'] = re.sub(r'Publications.*?using this product.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
+            processed_data['data_analysis'] = re.sub(r'Submit a Product Review to Biocompare.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
                 
         # Replace "Boster" with "Innovative Research" in all text fields
         for key, value in processed_data.items():

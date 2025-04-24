@@ -29,7 +29,18 @@ def create_innovative_template():
     font.name = 'Calibri'
     font.size = Pt(11)
     
-    # Create styles for headers - blue and bold
+    # Create style for section headers as Heading 2
+    if 'Heading 2' not in styles:
+        heading2_style = styles.add_style('Heading 2', styles['Normal'].type)
+    else:
+        heading2_style = styles['Heading 2']
+    
+    heading2_style.font.name = 'Calibri'
+    heading2_style.font.size = Pt(12)
+    heading2_style.font.bold = True
+    heading2_style.font.color.rgb = RGBColor(0, 0, 128)  # Dark blue
+    
+    # Also keep the original header style for other uses
     header_style = styles.add_style('Header Style', styles['Normal'].type)
     header_style.font.name = 'Calibri'
     header_style.font.size = Pt(12)
@@ -60,34 +71,40 @@ def create_innovative_template():
     
     # Add sections with proper formatting - exactly match the sample document
     
-    # INTENDED USE - all caps, blue, bold
-    intended_use_header = doc.add_paragraph("INTENDED USE", style='Header Style')
+    # INTENDED USE - all caps, Heading 2 style
+    intended_use_header = doc.add_paragraph("INTENDED USE", style='Heading 2')
     intended_use_para = doc.add_paragraph("{{ intended_use }}")
     
-    # BACKGROUND - all caps, blue, bold
-    background_header = doc.add_paragraph("BACKGROUND", style='Header Style')
+    # BACKGROUND - all caps, Heading 2 style
+    background_header = doc.add_paragraph("BACKGROUND ON {{ kit_name }}", style='Heading 2')
     background_para = doc.add_paragraph("{{ background }}")
     
-    # PRINCIPLE OF THE ASSAY - all caps, blue, bold
-    principle_header = doc.add_paragraph("PRINCIPLE OF THE ASSAY", style='Header Style')
+    # PRINCIPLE OF THE ASSAY - all caps, Heading 2 style
+    principle_header = doc.add_paragraph("PRINCIPLE OF THE ASSAY", style='Heading 2')
     principle_para = doc.add_paragraph("{{ assay_principle }}")
     
-    # SPECIFICATION - all caps, blue, bold
-    specification_header = doc.add_paragraph("SPECIFICATION", style='Header Style')
+    # OVERVIEW - all caps, Heading 2 style
+    overview_header = doc.add_paragraph("OVERVIEW", style='Heading 2')
     
-    # REAGENTS - all caps, blue, bold
-    reagents_header = doc.add_paragraph("REAGENTS", style='Header Style')
+    # TECHNICAL DETAILS - all caps, Heading 2 style
+    tech_details_header = doc.add_paragraph("TECHNICAL DETAILS", style='Heading 2')
+    
+    # PREPARATIONS BEFORE ASSAY - all caps, Heading 2 style
+    prep_before_header = doc.add_paragraph("PREPARATIONS BEFORE ASSAY", style='Heading 2')
+    
+    # KIT COMPONENTS/MATERIALS PROVIDED - all caps, Heading 2 style
+    reagents_header = doc.add_paragraph("KIT COMPONENTS/MATERIALS PROVIDED", style='Heading 2')
     # Add reagents table here if needed
     
-    # MATERIALS REQUIRED BUT NOT PROVIDED - all caps, blue, bold
-    materials_header = doc.add_paragraph("MATERIALS REQUIRED BUT NOT PROVIDED", style='Header Style')
+    # REQUIRED MATERIALS THAT ARE NOT SUPPLIED - all caps, Heading 2 style
+    materials_header = doc.add_paragraph("REQUIRED MATERIALS THAT ARE NOT SUPPLIED", style='Heading 2')
     materials_para = doc.add_paragraph("{{ required_materials }}")
     
-    # TYPICAL DATA - all caps, blue, bold
-    typical_data_header = doc.add_paragraph("TYPICAL DATA", style='Header Style')
+    # TYPICAL DATA - all caps, Heading 2 style
+    typical_data_header = doc.add_paragraph("TYPICAL DATA", style='Heading 2')
     
-    # TYPICAL STANDARD CURVE - all caps, blue, bold
-    curve_header = doc.add_paragraph("TYPICAL STANDARD CURVE", style='Header Style')
+    # PRODUCT NAME ELISA STANDARD CURVE EXAMPLE - all caps, Heading 2 style
+    curve_header = doc.add_paragraph("{{ kit_name }} STANDARD CURVE EXAMPLE", style='Heading 2')
     curve_para = doc.add_paragraph("This standard curve was generated for demonstration purpose only. A standard curve must be run with each assay.")
     
     # Add a table for standard curve data if needed
@@ -111,8 +128,8 @@ def create_innovative_template():
         row[0].text = f"{{{{ standard_curve_table[{i}].concentration if {i} < standard_curve_table|length else '' }}}}"
         row[1].text = f"{{{{ standard_curve_table[{i}].od_value if {i} < standard_curve_table|length else '' }}}}"
     
-    # INTRA/INTER ASSAY VARIABILITY
-    variability_header = doc.add_paragraph("INTRA/INTER ASSAY VARIABILITY", style='Header Style')
+    # INTRA/INTER-ASSAY VARIABILITY - all caps, Heading 2 style
+    variability_header = doc.add_paragraph("INTRA/INTER-ASSAY VARIABILITY", style='Heading 2')
     
     # Intra-Assay Precision
     intra_para = doc.add_paragraph("Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.")
@@ -120,39 +137,42 @@ def create_innovative_template():
     # Inter-Assay Precision
     inter_para = doc.add_paragraph("Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter- assay precision.")
     
-    # REPRODUCIBILITY - all caps, blue, bold
-    repro_header = doc.add_paragraph("REPRODUCIBILITY", style='Header Style')
+    # REPRODUCIBILITY - all caps, Heading 2 style
+    repro_header = doc.add_paragraph("REPRODUCIBILITY", style='Heading 2')
     repro_para = doc.add_paragraph("*number of samples for each test n=16.")
     
-    # PROCEDURAL NOTES - all caps, blue, bold
-    procedural_header = doc.add_paragraph("PROCEDURAL NOTES", style='Header Style')
+    # PREPARATION BEFORE THE EXPERIMENT - all caps, Heading 2 style
+    procedural_header = doc.add_paragraph("PREPARATION BEFORE THE EXPERIMENT", style='Heading 2')
     procedural_para = doc.add_paragraph("{{ procedural_notes }}")
     
-    # REAGENT PREPARATION AND STORAGE - all caps, blue, bold
-    prep_header = doc.add_paragraph("REAGENT PREPARATION AND STORAGE", style='Header Style')
-    
-    # DILUTION OF STANDARD - all caps, blue, bold
-    dilution_header = doc.add_paragraph("DILUTION OF STANDARD", style='Header Style')
+    # DILUTION OF PRODUCT STANDARD - all caps, Heading 2 style
+    dilution_header = doc.add_paragraph("DILUTION OF {{ kit_name }} STANDARD", style='Heading 2')
     dilution_para = doc.add_paragraph("{{ dilution_of_standard }}")
     
-    # SAMPLE COLLECTION & STORAGE - all caps, blue, bold
-    sample_header = doc.add_paragraph("SAMPLE COLLECTION & STORAGE", style='Header Style')
+    # SAMPLE PREPARATION AND STORAGE - all caps, Heading 2 style
+    sample_header = doc.add_paragraph("SAMPLE PREPARATION AND STORAGE", style='Heading 2')
     sample_para = doc.add_paragraph("{{ sample_collection_notes }}")
     
-    # ASSAY PROCEDURE - all caps, blue, bold
-    assay_procedure_header = doc.add_paragraph("ASSAY PROCEDURE", style='Header Style')
+    # SAMPLE COLLECTION NOTES - all caps, Heading 2 style
+    sample_notes_header = doc.add_paragraph("SAMPLE COLLECTION NOTES", style='Heading 2')
+    
+    # SAMPLE DILUTION GUIDELINE - all caps, Heading 2 style
+    sample_dilution_header = doc.add_paragraph("SAMPLE DILUTION GUIDELINE", style='Heading 2')
+    
+    # ASSAY PROCEDURE - all caps, Heading 2 style
+    assay_procedure_header = doc.add_paragraph("ASSAY PROCEDURE", style='Heading 2')
     
     # Instead of fixed number of steps, render the protocol dynamically
     assay_para = doc.add_paragraph("{{ '{% for step in assay_protocol %}' }}")
     assay_para = doc.add_paragraph("{{ '{{ step }}' }}")
     assay_para = doc.add_paragraph("{{ '{% endfor %}' }}")
     
-    # DATA ANALYSIS - all caps, blue, bold
-    data_analysis_header = doc.add_paragraph("DATA ANALYSIS", style='Header Style')
+    # DATA ANALYSIS - all caps, Heading 2 style
+    data_analysis_header = doc.add_paragraph("DATA ANALYSIS", style='Heading 2')
     data_analysis_para = doc.add_paragraph("{{ data_analysis }}")
     
-    # DISCLAIMER - all caps, blue, bold
-    disclaimer_header = doc.add_paragraph("DISCLAIMER", style='Header Style')
+    # DISCLAIMER - all caps, Heading 2 style
+    disclaimer_header = doc.add_paragraph("DISCLAIMER", style='Heading 2')
     disclaimer_para = doc.add_paragraph("This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification.")
     
     # Add footer
