@@ -289,7 +289,7 @@ def fix_sample_sections(document_path: Path) -> None:
         if temp_path.exists():
             os.remove(temp_path)
             
-        logger.info(f"Fixed sample sections and saved to {document_path} with {tables_added} tables preserved")
+        logger.info(f"Fixed sample sections and saved to {document_path} with {table_idx_in_new_doc} tables before sample prep + {tables_added} tables after assay procedure")
         
     except Exception as e:
         logger.error(f"Error fixing sample sections: {e}")
