@@ -89,7 +89,13 @@ def main():
     
     # Validate file paths
     source_path = Path(args.source)
+    
+    # Check if template is the default boster template and replace with enhanced template
     template_path = Path(args.template)
+    if template_path.name == "boster_template_ready.docx" and Path("templates_docx/enhanced_template.docx").exists():
+        logger.info("Using enhanced template instead of basic boster template")
+        template_path = Path("templates_docx/enhanced_template.docx")
+        
     output_path = Path(args.output)
     
     if not source_path.exists():
