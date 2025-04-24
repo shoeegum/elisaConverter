@@ -74,6 +74,8 @@ def get_available_templates(template_dir: Path) -> List[Dict[str, str]]:
             description = "Innovative Research Template"
         elif name == 'innovative_formatted_template.docx':
             description = "Innovative Research Template (Formatted)"
+        elif name == 'innovative_direct_template.docx':
+            description = "Innovative Research Direct Format Template"
         else:
             # Remove extension and replace underscores with spaces
             description = name.replace('.docx', '').replace('_', ' ').title()

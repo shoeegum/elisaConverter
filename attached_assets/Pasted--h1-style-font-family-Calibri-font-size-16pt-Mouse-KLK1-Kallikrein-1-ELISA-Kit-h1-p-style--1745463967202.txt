@@ -1,0 +1,458 @@
+<h1 style="font-family:Calibri; font-size:16pt;">Mouse KLK1/Kallikrein 1 ELISA Kit</h1>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">
+<strong>CATALOG NO:</strong> IMSKLK1KT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>LOT NO:</strong> Sample
+</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">INTENDED USE</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">The Innovative Research Picokine® Mouse Klk1 Pre-Coated ELISA (Enzyme-Linked Immunosorbent Assay) kit is a solid-phase immunoassay specially designed to measure Mouse Klk1 with a 96-well strip plate that is pre-coated with antibody specific for Klk1. The detection antibody is a biotinylated antibody specific for Klk1. The capture antibody is monoclonal antibody from rat and the detection antibody is polyclonal antibody from goat. The kit includes Mouse Klk1 protein as standards.</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">Background on KLK1</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">Repeat steps a-b 2 additional times.
+
+Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid.
+
+Add 100 µl of the prepared 1x Avidin-Biotin-Peroxidase Complex into each well. Cover with the plate sealer provided and incubate for 40 minutes at RT (or 30 minutes at 37°C).
+
+Wash the plate 5 times with the 1x wash buffer:
+
+Discard the liquid in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time.
+
+Add 300 µl of the 1x wash buffer to each assay well. (For cleaner background incubate for 60 seconds between each wash).
+
+Repeat steps a-b 4 additional times.
+
+Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid.
+
+Add 90 µl of Color Developing Reagent to each well. Cover with the plate sealer provided and incubate in the dark for 30 minutes at RT (or
+
+15-25 minutes at 37°C). (The optimal incubation time must be empirically determined. A guideline to look for is blue shading the top four standard wells, while the remaining standards remain clear.)
+
+Add 100 µl of Stop Solution to each well. The color should immediately change to yellow.
+
+Within 30 minutes of stopping the reaction, the O.D. absorbance should be read with a microplate reader at 450nm.
+
+Assay Protocol Notes
+
+Solutions: To avoid cross-contamination, change pipette tips between additions of each standard, between sample additions, and between reagent additions. Also, use separate reservoirs for each reagent.
+
+Applying Solutions: All solutions should be added to the bottom of the ELISA plate well. Avoid touching the inside wall of the well. Avoid foaming when possible.</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">PRINCIPLE OF THE ASSAY</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">To measure Mouse Klk1, add standards and samples to the wells, then add the biotinylated detection antibody. Wash the wells with PBS or TBS buffer, and add Avidin-Biotin-Peroxidase Complex (ABC-HRP). Wash away the unbounded ABC-HRP with PBS or TBS buffer and add TMB. TMB is an HRP substrate and will be catalyzed to produce a blue color product, which changes into yellow after adding the acidic stop solution. The absorbance of the yellow product at 450nm is linearly proportional to Mouse Klk1 in the sample. Read the absorbance of the yellow product in each well using a plate reader, and benchmark the sample wells' readings against the standard curve to determine the concentration of Mouse Klk1 in the sample.</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SPECIFICATION</h2>
+
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">REAGENTS</h2>
+
+
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:100%; border:1px solid #000; line-height:1.15;">
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Description</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Quantity</strong></th>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;">Specificity</td>
+    <td style="border:1px solid #000; padding:5px;">Natural and recombinant Mouse Klk1</td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;">Standard Protein</td>
+    <td style="border:1px solid #000; padding:5px;">Expression system for standard: NS0; Immunogen sequence: I25-D261</td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;">Cross-reactivity</td>
+    <td style="border:1px solid #000; padding:5px;">This kit is for the detection of Mouse Klk1. No significant cross-reactivity or interference between Klk1 and its analogs was observed. This claim is limited by existing techniques; therefore, cross- reactivity may exist with untested analogs.</td>
+  </tr>
+  
+</table>
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">MATERIALS REQUIRED BUT NOT PROVIDED</h2>
+
+
+<ul style="font-family:Calibri; font-size:11pt; line-height:1.15;">
+  
+  <li>Microplate reader capable of reading absorbance at 450 nm. Incubator.</li>
+  
+  <li></li>
+  
+  <li>Automated plate washer (optional)</li>
+  
+  <li></li>
+  
+  <li>Pipettes and pipette tips capable of precisely dispensing 0.5 µl through 1 ml volumes of aqueous solutions. Multichannel pipettes are recommended for a large numbers of samples.</li>
+  
+  <li></li>
+  
+  <li>Deionized or distilled water. 500 ml graduated cylinders. Test tubes for dilution.</li>
+  
+  <li></li>
+  
+  <li>Mouse Klk1 ELISA Standard Curve Example</li>
+  
+  <li></li>
+  
+  <li>The highest O.D. value might be higher or lower than in the example. The experiment result is statistically significant if the highest O.D. value is no less than 1.0.</li>
+  
+  <li></li>
+  
+  <li>Mouse KLK1  ELISA Kit standard curve	A standard curve is provided for demonstration only. A standard curve</li>
+  
+  <li></li>
+  
+  <li>should be generated for each set of samples assayed.</li>
+  
+  <li></li>
+  
+  <li>Intra/Inter-Assay Variability</li>
+  
+  <li></li>
+  
+  <li>Innovative Research spends great efforts in documenting lot-to-lot variability and ensuring our assay kits produce robust data that are reproducible.</li>
+  
+  <li></li>
+  
+  <li>Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.</li>
+  
+  <li></li>
+  
+  <li>Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter-assay precision.</li>
+  
+  <li></li>
+  
+  <li>Reproducibility</li>
+  
+  <li></li>
+  
+  <li>We ensure reproducibility by testing three samples with differing concentrations of Klk1 in ELISA kits from four different production batches/lots.</li>
+  
+  <li></li>
+  
+  <li>*number of samples for each test n=16.</li>
+  
+  <li></li>
+  
+  <li>Preparation Before The Experiment</li>
+  
+  <li></li>
+  
+  <li>Dilution of Mouse Klk1 Standard</li>
+  
+  <li></li>
+  
+  <li>Number tubes 1-8. Final Concentrations to be Tube # 1: 4,000.00 pg/ml, # 2: 2,000.00 pg/ml, # 3: 1,000.00</li>
+  
+  <li></li>
+  
+  <li>pg/ml, # 4: 500.00 pg/ml,</li>
+  
+  <li></li>
+  
+  <li># 5: 250.00 pg/ml, # 6: 125.00 pg/ml, # 7: 62.50 pg/ml, # 8: Sample Diluent serves as the zero standard (0 pg/ml).</li>
+  
+  <li></li>
+  
+  <li>To generate standard #1, add 400 µl of the reconstituted standard stock solution of 10 ng/ml and 600 µl of sample diluent to tube #1 for a</li>
+  
+  <li></li>
+  
+  <li>final volume of 1000 µl. Mix thoroughly.</li>
+  
+  <li></li>
+  
+  <li>Add 300 µl of sample diluent to tubes # 2-7.</li>
+  
+  <li></li>
+  
+  <li>To generate standard # 2, add 300 µl of standard # 1 from tube # 1 to tube # 2 for a final volume of 600 µl. Mix thoroughly.</li>
+  
+  <li></li>
+  
+  <li>To generate standard # 3, add 300 µl of standard # 2 from tube # 2 to tube # 3 for a final volume of 600 µl. Mix</li>
+  
+  <li></li>
+  
+  <li>thoroughly.</li>
+  
+  <li></li>
+  
+  <li>Continue the serial dilution for tube # 4-7.</li>
+  
+</ul>
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">Mouse KLK1 ELISA Standard Curve Example</h2>
+
+
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:50%; border:1px solid #000; line-height:1.15;">
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Concentration(pg/ml)</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>O.D.</strong></th>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;">0.0</td>
+    <td style="border:1px solid #000; padding:5px;">0.061</td>
+  </tr>
+  
+</table>
+
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;"><strong>Typical Standard Curve</strong></p>
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">This standard curve was generated for demonstration purpose only. A standard curve must be run with each assay.</p>
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">INTRA/INTER ASSAY VARIABILITY</h2>
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.</p>
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter-assay precision.</p>
+
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">REPRODUCIBILITY</h2>
+
+
+<table style="font-family:Calibri; font-size:11pt; border-collapse:collapse; width:100%; border:1px solid #000; line-height:1.15;">
+  <tr>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Sample</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Value</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Added</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Expected</strong></th>
+    <th style="border:1px solid #000; padding:5px; background-color:#f0f0f0;"><strong>Recovery%</strong></th>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+  </tr>
+  
+  <tr>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+    <td style="border:1px solid #000; padding:5px;"></td>
+  </tr>
+  
+</table>
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">PROCEDURAL NOTES</h2>
+
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">REAGENT PREPARATION AND STORAGE</h2>
+
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">
+        Bring all reagents to room temperature before use.
+        
+        Wash Buffer: Dilute Wash Buffer (25X) with distilled water. For example, if preparing 500 ml of Wash Buffer, dilute 20 ml of Wash Buffer (25X) into 480 ml of distilled water.
+        
+        Standard: Reconstitute the standard with standard diluent according to the label instructions. This reconstitution produces a stock solution. Let the standard stand for a minimum of 15 minutes with gentle agitation prior to making dilutions.
+        
+        Detection Reagent A and B: Dilute to the working concentration using Assay Diluent A and B, respectively.
+        </p>
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">DILUTION OF STANDARD</h2>
+
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SAMPLE PREPARATION AND STORAGE</h2>
+
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SAMPLE COLLECTION NOTES</h2>
+
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">Innovative Research recommends that samples are used immediately upon preparation.
+
+Avoid repeated freeze/thaw cycles for all samples.
+
+In the event that a sample type not listed above is intended to be used with the kit, it is recommended that the customer conduct validation experiments in order to be confident in the results.
+
+Due to chemical interference, the use of tissue or cell extraction samples prepared by chemical lysis buffers may result in inaccurate results.
+
+Due to factors including cell viability, cell number, or sampling time, samples from cell culture supernatant may not be detected by the kit.
+
+Samples should be brought to room temperature (18-25°C) before performing the assay without the use of extra heating.</p>
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">SAMPLE DILUTION GUIDELINE</h2>
+
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">To inspect the validity of experiment operation and the appropriateness of sample dilution proportion, a pilot experiment using standards and a small number of samples is recommended.
+
+Before using the kit, spin tubes to bring down all components to the bottom of the tubes.
+
+Don’t let the 96-well plate dry out since this will inactivate active components on the plate.
+
+Don’t reuse tips and tubes to avoid cross-contamination.
+
+Avoid using the reagents from different batches together.
+
+The kit should not be used beyond the expiration date on the kit label. Any variation in diluent, operator, pipetting technique, washing technique, incubation time or temperature, and kit age can cause variation in binding. Variations in sample collection, processing, and storage may cause sample value differences.
+
+Kit Components/Materials Provided
+
+Required Materials That Are Not Supplied
+
+Microplate reader capable of reading absorbance at 450 nm. Incubator.
+
+Automated plate washer (optional)
+
+Pipettes and pipette tips capable of precisely dispensing 0.5 µl through 1 ml volumes of aqueous solutions. Multichannel pipettes are recommended for a large numbers of samples.
+
+Deionized or distilled water. 500 ml graduated cylinders. Test tubes for dilution.
+
+Mouse Klk1 ELISA Standard Curve Example
+
+The highest O.D. value might be higher or lower than in the example. The experiment result is statistically significant if the highest O.D. value is no less than 1.0.
+
+Mouse KLK1  ELISA Kit standard curve	A standard curve is provided for demonstration only. A standard curve
+
+should be generated for each set of samples assayed.
+
+Intra/Inter-Assay Variability
+
+Innovative Research spends great efforts in documenting lot-to-lot variability and ensuring our assay kits produce robust data that are reproducible.
+
+Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.
+
+Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter-assay precision.
+
+Reproducibility
+
+We ensure reproducibility by testing three samples with differing concentrations of Klk1 in ELISA kits from four different production batches/lots.
+
+*number of samples for each test n=16.
+
+Preparation Before The Experiment
+
+Dilution of Mouse Klk1 Standard
+
+Number tubes 1-8. Final Concentrations to be Tube # 1: 4,000.00 pg/ml, # 2: 2,000.00 pg/ml, # 3: 1,000.00
+
+pg/ml, # 4: 500.00 pg/ml,
+
+# 5: 250.00 pg/ml, # 6: 125.00 pg/ml, # 7: 62.50 pg/ml, # 8: Sample Diluent serves as the zero standard (0 pg/ml).
+
+To generate standard #1, add 400 µl of the reconstituted standard stock solution of 10 ng/ml and 600 µl of sample diluent to tube #1 for a
+
+final volume of 1000 µl. Mix thoroughly.
+
+Add 300 µl of sample diluent to tubes # 2-7.
+
+To generate standard # 2, add 300 µl of standard # 1 from tube # 1 to tube # 2 for a final volume of 600 µl. Mix thoroughly.
+
+To generate standard # 3, add 300 µl of standard # 2 from tube # 2 to tube # 3 for a final volume of 600 µl. Mix
+
+thoroughly.
+
+Continue the serial dilution for tube # 4-7.
+
+Sample Preparation and Storage
+
+These sample collection instructions and storage conditions are intended as a general guideline, and the sample stability has not been evaluated.
+
+Sample dilution ratios should be determined by a pilot study (run a serial dilution of samples and see which dilution ratio results in the idea O.D., near the middle of the standard range). In general, high concentration samples can be dilutioned by 1:100, mid concentration samples 1:10, low concentration samples 1:2 or neat.
+
+Sample Collection Notes
+
+Innovative Research recommends that samples are used immediately upon preparation.
+
+Avoid repeated freeze/thaw cycles for all samples.
+
+In the event that a sample type not listed above is intended to be used with the kit, it is recommended that the customer conduct validation experiments in order to be confident in the results.
+
+Due to chemical interference, the use of tissue or cell extraction samples prepared by chemical lysis buffers may result in inaccurate results.
+
+Due to factors including cell viability, cell number, or sampling time, samples from cell culture supernatant may not be detected by the kit.
+
+Samples should be brought to room temperature (18-25°C) before performing the assay without the use of extra heating.
+
+Sample concentrations should be predicted before being used in the assay. If the sample concentration is not within the range of the standard curve, users must determine the optimal sample dilutions for their particular experiments.
+
+Innovative Research is responsible for the quality and performance of the kit components but is NOT responsible for the performance of customer supplied samples used with the kit.
+
+Sample Dilution Guideline
+
+The user needs to estimate the concentration of the target protein in the sample and use an appropriate dilution factor so that the diluted target protein concentration falls in the range of O.D. values of the standard curve. Dilute the sample using provided diluent buffer. Pilot tests using a dilution series of each sample type are necessary. The sample must be mixed thoroughly with Sample Diluent.</p>
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">ASSAY PROTOCOL</h2>
+
+
+<ol style="font-family:Calibri; font-size:11pt; line-height:1.15;">
+  
+  <li> It is recommended that all reagents and materials be equilibrated to room temperature (18-25°C) prior to the experiment (see Preparation Before The Experiment, if you have missed this information). Prepare all reagents and working standards as directed previously. Remove excess microplate strips from the plate frame and seal and store them in the original packaging. Add 100 µl of the standard, samples, or control per well. Add 100 µl of the Sample Diluent into the zero well. At least two replicates of each standard, sample, or control is recommended. Cover with the plate sealer provided and incubate for 120 minutes at room temperature (or 90 min. at 37 °C). Remove the cover and discard the liquid in the wells into an appropriate waste receptacle. Invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time. Add 100 µl of the prepared 1x Biotinylated Anti-Mouse Klk1 antibody to each well. Cover with a plate sealer and incubate for 90 minutes at room temperature (or 60 minutes at 37°C). Wash the plate 3 times with the 1x wash buffer: Discard the liquid in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time. Add 300 µl of the 1x wash buffer to each assay well. (For cleaner background incubate for 60 seconds between each wash). Repeat steps a-b 2 additional times. Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. Add 100 µl of the prepared 1x Avidin-Biotin-Peroxidase Complex into each well. Cover with the plate sealer provided and incubate for 40 minutes at RT (or 30 minutes at 37°C). Wash the plate 5 times with the 1x wash buffer: Discard the liquid in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time. Add 300 µl of the 1x wash buffer to each assay well. (For cleaner background incubate for 60 seconds between each wash). Repeat steps a-b 4 additional times. Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. Add 90 µl of Color Developing Reagent to each well. Cover with the plate sealer provided and incubate in the dark for 30 minutes at RT (or 15-25 minutes at 37°C). (The optimal incubation time must be empirically determined. A guideline to look for is blue shading the top four standard wells, while the remaining standards remain clear.) Add 100 µl of Stop Solution to each well. The color should immediately change to yellow. Within 30 minutes of stopping the reaction, the O.D. absorbance should be read with a microplate reader at 450nm. Assay Protocol Notes Solutions: To avoid cross-contamination, change pipette tips between additions of each standard, between sample additions, and between reagent additions. Also, use separate reservoirs for each reagent. Applying Solutions: All solutions should be added to the bottom of the ELISA plate well. Avoid touching the inside wall of the well. Avoid foaming when possible. Assay Timing: The interval between adding samples to the first and last wells should be minimized. Delays will increase the incubation time differential between wells, which will significantly affect the experimental accuracy and repeatability. For each step in the procedure, total dispensing time for addition of reagents or samples should not exceed 10 minutes.</li>
+  
+</ol>
+
+
+<h2 style="font-family:Calibri; font-size:12pt; color:#0070C0; line-height:1.15;">DATA ANALYSIS</h2>
+
+
+<p style="font-family:Calibri; font-size:11pt; line-height:1.15;">Subtract the average zero standard O.D. reading. It is recommended that a standard curve be created using computer software to generate a four-parameter logistic (4-PL) curve-fit. A free program capable of generating a four-parameter logistic (4-PL) curve-fit can be found online at: www.myassays.com/four-parameter-logistic-curve.assay. Alternatively, plot the mean absorbance for each standard against the concentration. The measured concentration in the sample can be interpolated by using linear regression of each average relative O.D. against the standard curve generated using curve fitting software. This will generate an adequate but less precise fit of the data. For diluted samples, the concentration reading from the standard curve must be multiplied by the dilution factor. Background on Klk1
+
+Kallikrein-1, also known as tissue kallikrein, is a protein that in humans is encoded by the KLK1 gene. This serine protease generates Lys-bradykinin by specific proteolysis of kininogen-1. KLK1 is a member of the peptidase S1 family. Its gene is mapped to 19q13.3. In all, it has got 262-amino acids which contain a putative signal peptide, followed by a short activating peptide and the protease domain. The protein is mainly found in kidney, pancreas, and salivary gland, showing a unique pattern of tissue-specific expression relative to other members of the family. KLK1 is implicated in carcinogenesis and some have potential as novel cancer and other disease biomarkers. 1 Publications Citing This Product
+
+PubMed ID: 10.1186/s12014-021-09335-9, Proteomics and functional study reveal kallikrein-6 enhances communicating hydrocephalus Visit bosterbio.com/mouse-klk1-picokine-trade-elisa-kit-ek1586-boster.html to see all 1 publications. Submit a Product Review to Biocompare.com
+
+Submit a review of this product to Biocompare.com to receive a $20 Amazon.com gift card! Your reviews help your fellow scientists make the right decisions. Thank you for your contribution. Mouse KLK1/Kallikrein 1 ELISA Kit ®</p>
+
+
+<div style="position:fixed; bottom:0; left:0; width:100%; text-align:center; font-family:Calibri; font-size:9pt; color:#666666; line-height:1.15;">
+  <p>© 2025 Innovative Research, Inc. | www.innov-research.com | 800-538-4400</p>
+</div>

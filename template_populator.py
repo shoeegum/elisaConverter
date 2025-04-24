@@ -155,9 +155,15 @@ class TemplatePopulator:
             if isinstance(value, str):
                 # Replace "Boster" with "Innovative Research"
                 value = re.sub(r'\bBoster\b', 'Innovative Research', value)
+                value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', value)
+                value = re.sub(r'\bboster\b', 'innovative research', value)
                 # Remove all variations of PicoKine®
                 value = re.sub(r'PicoKine\s*®', '', value)
+                value = re.sub(r'Picokine\s*®', '', value)
                 value = re.sub(r'PicoKine', '', value)
+                value = re.sub(r'Picokine', '', value)
+                # Remove references to online tool
+                value = re.sub(r'offers an easy-to-use online ELISA data analysis tool\. Try it out at.*?\.com.*?online', '', value)
                 processed_data[key] = value
             elif isinstance(value, list) and all(isinstance(item, dict) for item in value):
                 # Handle lists of dictionaries (like reagents, tables, etc.)
@@ -165,9 +171,15 @@ class TemplatePopulator:
                     for item_key, item_value in item.items():
                         if isinstance(item_value, str):
                             # Apply the same replacements to dictionary values
-                            item[item_key] = (re.sub(r'\bBoster\b', 'Innovative Research', 
-                                             re.sub(r'PicoKine\s*®', '', 
-                                             re.sub(r'PicoKine', '', item_value))))
+                            replaced_value = item_value
+                            replaced_value = re.sub(r'\bBoster\b', 'Innovative Research', replaced_value)
+                            replaced_value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', replaced_value)
+                            replaced_value = re.sub(r'\bboster\b', 'innovative research', replaced_value)
+                            replaced_value = re.sub(r'PicoKine\s*®', '', replaced_value)
+                            replaced_value = re.sub(r'Picokine\s*®', '', replaced_value)
+                            replaced_value = re.sub(r'PicoKine', '', replaced_value)
+                            replaced_value = re.sub(r'Picokine', '', replaced_value)
+                            item[item_key] = replaced_value
         
         return processed_data
         
