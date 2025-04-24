@@ -31,7 +31,40 @@ class ELISADatasheetParser:
         """
         self.file_path = file_path
         self.logger = logging.getLogger(__name__)
+        self.section_positions = {}  # Cache for section positions to avoid repeated searches
         self.doc = docx.Document(file_path)
+        
+        # Pre-compute and cache important section positions
+        self._initialize_section_cache()
+        
+    def _initialize_section_cache(self):
+        """Pre-compute and cache section positions for faster lookup."""
+        common_sections = [
+            "Intended Use", "Background", "Principle", "Assay Principle",
+            "Specifications", "Overview", "Technical Details", "Preparations Before Assay",
+            "Kit Components", "Materials Provided", "Reagents",
+            "Materials Required", "Sample Collection", "Assay Protocol", "Protocol",
+            "Data Analysis"
+        ]
+        
+        # Cache positions of common sections
+        for section in common_sections:
+            position = None
+            # Use the original _find_section without relying on the cache
+            for i in range(len(self.doc.paragraphs)):
+                if not self.doc.paragraphs[i].text:
+                    continue
+                    
+                para_text = self.doc.paragraphs[i].text.strip()
+                if not para_text:
+                    continue
+                    
+                if section.lower() in para_text.lower():
+                    position = i
+                    break
+                    
+            if position is not None:
+                self.section_positions[section] = position
         
     def extract_data(self) -> Dict[str, Any]:
         """
@@ -159,11 +192,24 @@ class ELISADatasheetParser:
         Returns:
             Index of the paragraph containing the section name, or None if not found
         """
-        for i in range(start_idx, len(self.doc.paragraphs)):
-            para_text = self.doc.paragraphs[i].text.strip()
+        # Cache the lowercase section name to avoid repeated conversion
+        section_name_lower = section_name.lower()
+        paragraphs = self.doc.paragraphs
+        
+        # Optimized search loop
+        for i in range(start_idx, len(paragraphs)):
+            # Quick check for empty paragraphs
+            if not paragraphs[i].text:
+                continue
+                
+            para_text = paragraphs[i].text.strip()
+            if not para_text:
+                continue
+                
+            # Perform the match operation
             if exact_match and para_text == section_name:
                 return i
-            elif not exact_match and section_name.lower() in para_text.lower():
+            elif not exact_match and section_name_lower in para_text.lower():
                 return i
         return None
     
