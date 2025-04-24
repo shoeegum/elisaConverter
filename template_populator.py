@@ -71,14 +71,26 @@ class TemplatePopulator:
         else:
             processed_data['lot_number'] = "LOT#_______"  # Placeholder for user to fill manually
             
-        # Extract intended use from assay principle (first paragraph)
-        if 'assay_principle' in processed_data:
-            assay_principle = processed_data['assay_principle']
-            # Split by paragraph breaks and take the first paragraph
-            paragraphs = assay_principle.split('\n\n')
-            if paragraphs:
-                processed_data['intended_use'] = paragraphs[0].strip()
-                # Use the rest of paragraphs (minus the last sentence) for principle_of_assay
+        # Extract and ensure intended use is populated
+        if not processed_data.get('intended_use') or processed_data.get('intended_use') == "For research use only. Not for use in diagnostic procedures.":
+            # First check if assay_principle exists to extract from there
+            if 'assay_principle' in processed_data and processed_data['assay_principle']:
+                assay_principle = processed_data['assay_principle']
+                
+                # Try different splitting patterns to find the first paragraph
+                # First try splitting by double newlines
+                paragraphs = assay_principle.split('\n\n')
+                
+                if paragraphs:
+                    processed_data['intended_use'] = paragraphs[0].strip()
+                    
+                    # If split didn't work (whole text in one paragraph), try to get the first sentence
+                    if len(paragraphs) == 1 and len(paragraphs[0].split('.')) > 1:
+                        first_sentence = paragraphs[0].split('.')[0].strip() + '.'
+                        if len(first_sentence) > 20:  # Make sure it's substantive
+                            processed_data['intended_use'] = first_sentence
+                
+                # Extract principle of assay from remaining paragraphs
                 if len(paragraphs) > 1:
                     principle_text = paragraphs[1].strip()
                     # Remove the last sentence if it contains Boster reference
