@@ -35,12 +35,8 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
 # Set the application password from environment variables for security
 # Fall back to a default hash only in development 
-app_password_from_env = os.environ.get("APP_PASSWORD_HASH")
-print("Password hash from environment:", app_password_from_env)
-
-# For now, use a fixed hash for the password "password123"
-APP_PASSWORD_HASH = "cbfdac6008f9cab4083784cbd1874f76618d2a97"
-print("Using password hash:", APP_PASSWORD_HASH)
+# Default hash is for the password "IRelisa2017!"
+APP_PASSWORD_HASH = os.environ.get("APP_PASSWORD_HASH", "fe6a972039480fa98cafede1c8e048e0798b0f46")
 
 # Create upload folders if they don't exist
 UPLOAD_FOLDER = Path('uploads')
