@@ -132,6 +132,17 @@ class TemplatePopulator:
         # Process technical details for the enhanced template format
         if 'technical_details' in processed_data and processed_data['technical_details']:
             technical_details = processed_data['technical_details']
+            
+            # Extract the individual values for direct access
+            if isinstance(technical_details, tuple) and len(technical_details) >= 5:
+                sensitivity, detection_range, specificity, standard, cross_reactivity = technical_details
+                processed_data['sensitivity'] = sensitivity
+                processed_data['detection_range'] = detection_range
+                processed_data['specificity'] = specificity
+                processed_data['standard'] = standard
+                processed_data['cross_reactivity'] = cross_reactivity
+            
+            # For table template processing
             if isinstance(technical_details, dict) and 'technical_table' in technical_details:
                 # Make sure values are not None
                 for item in technical_details['technical_table']:
@@ -139,13 +150,29 @@ class TemplatePopulator:
                         item['value'] = 'N/A'
                 processed_data['technical_details_table'] = technical_details['technical_table']
             else:
-                # Fallback empty table with placeholder values
-                processed_data['technical_details_table'] = [
-                    {'property': 'Capture/Detection Antibodies', 'value': 'N/A'},
-                    {'property': 'Specificity', 'value': 'N/A'},
-                    {'property': 'Standard Protein', 'value': 'N/A'},
-                    {'property': 'Cross-reactivity', 'value': 'N/A'}
-                ]
+                # Create a table format for technical details
+                processed_data['technical_details_table'] = []
+                
+                # If we have tuple data, convert it to table format
+                if isinstance(technical_details, tuple) and len(technical_details) >= 5:
+                    sensitivity, detection_range, specificity, standard, cross_reactivity = technical_details
+                    
+                    processed_data['technical_details_table'] = [
+                        {'property': 'Sensitivity', 'value': sensitivity or 'N/A'},
+                        {'property': 'Detection Range', 'value': detection_range or 'N/A'},
+                        {'property': 'Specificity', 'value': specificity or 'N/A'},
+                        {'property': 'Standard Protein', 'value': standard or 'N/A'},
+                        {'property': 'Cross-reactivity', 'value': cross_reactivity or 'N/A'}
+                    ]
+                else:
+                    # Fallback empty table with placeholder values
+                    processed_data['technical_details_table'] = [
+                        {'property': 'Sensitivity', 'value': 'N/A'},
+                        {'property': 'Detection Range', 'value': 'N/A'},
+                        {'property': 'Specificity', 'value': 'N/A'},
+                        {'property': 'Standard Protein', 'value': 'N/A'},
+                        {'property': 'Cross-reactivity', 'value': 'N/A'}
+                    ]
                 
         # Process preparations before assay
         if 'preparations_before_assay' in processed_data:
@@ -756,49 +783,52 @@ class TemplatePopulator:
             doc: The Document object to modify
             processed_data: Dictionary containing processed data
         """
-        # Find the technical details table (usually the first table in the document)
-        for table in doc.tables:
-            if len(table.rows) >= 5:  # Technical details table typically has at least 5 rows
-                # Check if this is the technical details table
-                first_row_text = ' '.join([cell.text.lower() for cell in table.rows[0].cells])
-                if 'sensitivity' in first_row_text or 'detection range' in first_row_text:
-                    # Fill in the technical details
-                    for row in table.rows:
-                        if len(row.cells) >= 2:
-                            # Check row header and populate value
-                            header = row.cells[0].text.lower().strip()
-                            
-                            # Match known technical details
-                            if 'sensitivity' in header:
-                                sensitivity = processed_data.get('sensitivity', '')
-                                if sensitivity:
-                                    row.cells[1].paragraphs[0].clear()
-                                    row.cells[1].paragraphs[0].add_run(sensitivity)
-                            
-                            elif 'detection range' in header or 'range' in header:
-                                detection_range = processed_data.get('detection_range', '')
-                                if detection_range:
-                                    row.cells[1].paragraphs[0].clear()
-                                    row.cells[1].paragraphs[0].add_run(detection_range)
-                            
-                            elif 'specificity' in header:
-                                specificity = processed_data.get('specificity', '')
-                                if specificity:
-                                    row.cells[1].paragraphs[0].clear()
-                                    row.cells[1].paragraphs[0].add_run(specificity)
-                            
-                            elif 'standard' in header:
-                                standard = processed_data.get('standard', '')
-                                if standard:
-                                    row.cells[1].paragraphs[0].clear()
-                                    row.cells[1].paragraphs[0].add_run(standard)
-                            
-                            elif 'cross-reactivity' in header or 'cross reactivity' in header:
-                                cross_reactivity = processed_data.get('cross_reactivity', '')
-                                if cross_reactivity:
-                                    row.cells[1].paragraphs[0].clear()
-                                    row.cells[1].paragraphs[0].add_run(cross_reactivity)
-                    break  # Found and processed the table
+        # Technical details table is the first table (index 0) in the document
+        if doc.tables and len(doc.tables) > 0:
+            table = doc.tables[0]  # Get the first table
+            
+            # Make sure we have rows to process
+            if len(table.rows) >= 2:  # At least header + one row
+                self.logger.info(f"Processing technical details table with {len(table.rows)} rows")
+                
+                # Fill in the technical details
+                for row in table.rows:
+                    if len(row.cells) >= 2:
+                        # Check row header and populate value
+                        header = row.cells[0].text.lower().strip()
+                        
+                        # Match known technical details
+                        if 'sensitivity' in header:
+                            sensitivity = processed_data.get('sensitivity', '')
+                            if sensitivity:
+                                row.cells[1].paragraphs[0].clear()
+                                row.cells[1].paragraphs[0].add_run(sensitivity)
+                        
+                        elif 'detection range' in header or 'range' in header:
+                            detection_range = processed_data.get('detection_range', '')
+                            if detection_range:
+                                row.cells[1].paragraphs[0].clear()
+                                row.cells[1].paragraphs[0].add_run(detection_range)
+                        
+                        elif 'specificity' in header:
+                            specificity = processed_data.get('specificity', '')
+                            if specificity:
+                                row.cells[1].paragraphs[0].clear()
+                                row.cells[1].paragraphs[0].add_run(specificity)
+                        
+                        elif 'standard' in header or 'antibod' in header:
+                            standard = processed_data.get('standard', '')
+                            if standard:
+                                row.cells[1].paragraphs[0].clear()
+                                row.cells[1].paragraphs[0].add_run(standard)
+                        
+                        elif 'cross-reactivity' in header or 'cross reactivity' in header:
+                            cross_reactivity = processed_data.get('cross_reactivity', '')
+                            if cross_reactivity:
+                                row.cells[1].paragraphs[0].clear()
+                                row.cells[1].paragraphs[0].add_run(cross_reactivity)
+                
+                self.logger.info("Processed technical details table")
     
     def _process_overview_table(self, doc, processed_data: Dict[str, Any]) -> None:
         """
@@ -808,27 +838,15 @@ class TemplatePopulator:
             doc: The Document object to modify
             processed_data: Dictionary containing processed data
         """
-        # Find the overview section and its table
-        overview_section = None
-        for i, para in enumerate(doc.paragraphs):
-            if "OVERVIEW" in para.text.strip().upper():
-                overview_section = i
-                break
+        # Overview table is the second table (index 1) in the document
+        if doc.tables and len(doc.tables) > 1:
+            table = doc.tables[1]  # Get the overview table
+            
+            # Make sure we have rows to process
+            if len(table.rows) >= 1:  # At least one row
+                self.logger.info(f"Processing overview table with {len(table.rows)} rows")
                 
-        if overview_section is None:
-            return
-            
-        # Try to find the table after the overview section
-        for i, table in enumerate(doc.tables):
-            # Check if it appears to be an overview table
-            has_overview_headers = False
-            if len(table.rows) > 0:
-                first_row_text = ' '.join([cell.text.lower() for cell in table.rows[0].cells])
-                if 'product' in first_row_text or 'species' in first_row_text or 'reactive' in first_row_text:
-                    has_overview_headers = True
-            
-            if has_overview_headers:
-                # This is likely the overview table, process it
+                # This is the overview table, process it
                 overview_specs = processed_data.get('overview_specifications', [])
                 
                 # If we have specification data, populate the table
@@ -873,7 +891,9 @@ class TemplatePopulator:
                                 if 'detection_range' in processed_data:
                                     row.cells[1].paragraphs[0].clear()
                                     row.cells[1].paragraphs[0].add_run(processed_data['detection_range'])
-                break  # Found and processed the table
+                                    
+                                    
+                self.logger.info("Processed overview table")
     
     def _process_reproducibility_table(self, doc, processed_data: Dict[str, Any]) -> None:
         """
