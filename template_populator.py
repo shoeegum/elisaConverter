@@ -197,20 +197,37 @@ class TemplatePopulator:
         if 'standard_curve_table' in processed_data and processed_data['standard_curve_table']:
             processed_data['standard_curve_table_html'] = processed_data['standard_curve_table']
                 
-        # Replace "Boster" with "Innovative Research" in all text fields
+        # Clean up data to remove unwanted content and replace company names
         for key, value in processed_data.items():
             if isinstance(value, str):
                 # Replace "Boster" with "Innovative Research"
                 value = re.sub(r'\bBoster\b', 'Innovative Research', value)
                 value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', value)
                 value = re.sub(r'\bboster\b', 'innovative research', value)
+                
+                # Remove all trademark and registered trademark symbols
+                value = re.sub(r'®', '', value)
+                value = re.sub(r'™', '', value)
+                value = re.sub(r'©', '', value)
+                
                 # Remove all variations of PicoKine®
                 value = re.sub(r'PicoKine\s*®', '', value)
                 value = re.sub(r'Picokine\s*®', '', value)
                 value = re.sub(r'PicoKine', '', value)
                 value = re.sub(r'Picokine', '', value)
+                
                 # Remove references to online tool
                 value = re.sub(r'offers an easy-to-use online ELISA data analysis tool\. Try it out at.*?\.com.*?online', '', value)
+                
+                # Remove references to Biocompare product reviews
+                value = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare\.com.*?contribution\.', '', value, flags=re.IGNORECASE | re.DOTALL)
+                value = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare.*?gift card.*', '', value, flags=re.IGNORECASE | re.DOTALL)
+                value = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', value, flags=re.IGNORECASE | re.DOTALL)
+                
+                # Final cleanup
+                value = re.sub(r'\s+', ' ', value)  # Replace multiple spaces with single space
+                value = value.strip()
+                
                 processed_data[key] = value
             elif isinstance(value, list):
                 if all(isinstance(item, dict) for item in value):
@@ -223,23 +240,58 @@ class TemplatePopulator:
                                 replaced_value = re.sub(r'\bBoster\b', 'Innovative Research', replaced_value)
                                 replaced_value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', replaced_value)
                                 replaced_value = re.sub(r'\bboster\b', 'innovative research', replaced_value)
+                                
+                                # Remove all trademark and registered trademark symbols
+                                replaced_value = re.sub(r'®', '', replaced_value)
+                                replaced_value = re.sub(r'™', '', replaced_value)
+                                replaced_value = re.sub(r'©', '', replaced_value)
+                                
+                                # Remove all variations of PicoKine®
                                 replaced_value = re.sub(r'PicoKine\s*®', '', replaced_value)
                                 replaced_value = re.sub(r'Picokine\s*®', '', replaced_value)
                                 replaced_value = re.sub(r'PicoKine', '', replaced_value)
                                 replaced_value = re.sub(r'Picokine', '', replaced_value)
+                                
+                                # Remove references to Biocompare
+                                replaced_value = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare\.com.*', '', replaced_value, flags=re.IGNORECASE | re.DOTALL)
+                                replaced_value = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', replaced_value, flags=re.IGNORECASE | re.DOTALL)
+                                
+                                # Final cleanup
+                                replaced_value = re.sub(r'\s+', ' ', replaced_value)  # Replace multiple spaces with single space
+                                replaced_value = replaced_value.strip()
+                                
                                 item[item_key] = replaced_value
                 elif all(isinstance(item, str) for item in value):
                     # Handle lists of strings (like required_materials_list)
                     processed_list = []
                     for item in value:
+                        # Apply all the same replacements and cleanup to list items
                         item = re.sub(r'\bBoster\b', 'Innovative Research', item)
                         item = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', item)
                         item = re.sub(r'\bboster\b', 'innovative research', item)
+                        
+                        # Remove all trademark and registered trademark symbols
+                        item = re.sub(r'®', '', item)
+                        item = re.sub(r'™', '', item)
+                        item = re.sub(r'©', '', item)
+                        
+                        # Remove all variations of PicoKine®
                         item = re.sub(r'PicoKine\s*®', '', item)
                         item = re.sub(r'Picokine\s*®', '', item)
                         item = re.sub(r'PicoKine', '', item)
                         item = re.sub(r'Picokine', '', item)
-                        processed_list.append(item)
+                        
+                        # Remove references to Biocompare
+                        item = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare\.com.*', '', item, flags=re.IGNORECASE | re.DOTALL)
+                        item = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', item, flags=re.IGNORECASE | re.DOTALL)
+                        
+                        # Final cleanup
+                        item = re.sub(r'\s+', ' ', item)  # Replace multiple spaces with single space
+                        item = item.strip()
+                        
+                        if item:  # Only add non-empty items
+                            processed_list.append(item)
+                            
                     processed_data[key] = processed_list
         
         return processed_data

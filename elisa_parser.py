@@ -264,11 +264,19 @@ class ELISADatasheetParser:
                 text = self.doc.paragraphs[i].text.strip()
                 # Check if it's likely background text, not protocol steps
                 if ("encoded" in para_text or "gene" in para_text or "protein" in para_text) and not any(term in para_text for term in ['wash', 'discard', 'mix', 'add', 'incubate']):
-                    # Make sure it's not just a citation
-                    if not ("Publications" in text or "Citing" in text or "Submit" in text or "review" in text):
+                    # Make sure it's not just a citation or product review
+                    if not any(term in text for term in ["Publications", "Citing", "Submit", "review", "Biocompare", "Amazon", "gift card"]):
                         # Clean up by removing publication references if they appear at the end
                         if "Publications" in text:
                             text = text.split("Publications")[0].strip()
+                        
+                        # Also remove any product review text if found
+                        if "Submit a review" in text:
+                            text = text.split("Submit a review")[0].strip()
+                            
+                        # Remove ® symbols
+                        text = text.replace("®", "")
+                        
                         return text
         
         # If the above didn't work, look for specific background section with heading
@@ -965,8 +973,33 @@ class ELISADatasheetParser:
         for name in section_names:
             section_idx = self._find_section(name)
             if section_idx is not None:
-                return self._extract_section_text(name, ["Trouble", "Performance", "Specifications"])
+                # First get the raw text
+                raw_text = self._extract_section_text(name, ["Trouble", "Performance", "Specifications"])
                 
+                # Clean up the text
+                if raw_text:
+                    # Remove references to Boster online tools
+                    cleaned_text = re.sub(r'.*?offers an easy-to-use online ELISA data analysis tool\. Try it out at.*?\.com.*?online', '', raw_text, flags=re.DOTALL | re.IGNORECASE)
+                    
+                    # Remove references to product reviews
+                    cleaned_text = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare\.com.*?contribution\.', '', cleaned_text, flags=re.DOTALL | re.IGNORECASE)
+                    cleaned_text = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare.*?gift card.*', '', cleaned_text, flags=re.DOTALL | re.IGNORECASE)
+                    cleaned_text = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', cleaned_text, flags=re.DOTALL | re.IGNORECASE)
+                    
+                    # Remove references to publications
+                    cleaned_text = re.sub(r'Publications.*?using this product.*?$', '', cleaned_text, flags=re.DOTALL | re.IGNORECASE)
+                    
+                    # Remove registered trademark symbols
+                    cleaned_text = cleaned_text.replace("®", "")
+                    
+                    # Ensure paragraphs are properly separated
+                    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)  # Replace multiple spaces with single space
+                    
+                    # Remove empty lines at the beginning and end
+                    cleaned_text = cleaned_text.strip()
+                    
+                    return cleaned_text
+                    
         # Default analysis if not found
         return """
         Calculate the mean absorbance for each set of duplicate standards, controls and samples. Subtract the average zero standard optical density. Plot a standard curve by plotting the mean absorbance for each standard on the y-axis against the concentration on the x-axis and draw a best fit curve through the points on the graph.
