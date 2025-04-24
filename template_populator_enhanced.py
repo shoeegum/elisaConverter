@@ -483,6 +483,8 @@ class TemplatePopulator:
             catalog_number: Optional catalog number provided by user
             lot_number: Optional lot number provided by user
         """
+        # Direct access to manipulate tables after Jinja template rendering
+        self._post_process_doc = None
         try:
             # Clean and prepare the data
             processed_data = self._clean_data(data, kit_name, catalog_number, lot_number)
@@ -663,8 +665,110 @@ class TemplatePopulator:
             # Save the rendered template to the output path
             self.template.save(output_path)
             
+            # Post-process the document to directly modify the kit components table
+            self._post_process_kit_components(output_path, processed_data)
+            
             self.logger.info(f"Template successfully populated and saved to {output_path}")
             
         except Exception as e:
             self.logger.error(f"Error populating template: {e}")
             raise
+            
+    def _post_process_kit_components(self, output_path: Path, processed_data: Dict[str, Any]) -> None:
+        """
+        Perform post-processing on the populated template to handle the kit components table.
+        This directly modifies the DOCX after the Jinja2 template rendering is complete.
+        
+        Args:
+            output_path: Path to the populated template file
+            processed_data: Dictionary containing the processed data used for template population
+        """
+        try:
+            if 'reagents' not in processed_data:
+                self.logger.warning("No reagents data found for post-processing")
+                return
+                
+            # Load the document to modify tables directly
+            doc = Document(output_path)
+            
+            # Find the kit components section
+            kit_components_section_idx = None
+            for i, para in enumerate(doc.paragraphs):
+                text = para.text.strip().lower()
+                if "kit components" in text or "materials provided" in text:
+                    self.logger.info(f"Found Kit Components section at paragraph {i}: {para.text}")
+                    kit_components_section_idx = i
+                    break
+            
+            if kit_components_section_idx is None:
+                self.logger.warning("Kit Components section not found, cannot update table")
+                return
+            
+            # Identify the correct kit components table
+            kit_components_table_idx = None
+            
+            # First check if there's a 4-column table (preferred format)
+            for i, table in enumerate(doc.tables):
+                if len(table.columns) == 4:
+                    # Check headers
+                    try:
+                        header_row = [cell.text.strip().lower() for cell in table.rows[0].cells]
+                        if len(header_row) == 4 and any(keyword in " ".join(header_row) for keyword in 
+                                                      ["description", "quantity", "volume", "storage"]):
+                            self.logger.info(f"Found 4-column kit components table at index {i}")
+                            kit_components_table_idx = i
+                            break
+                    except:
+                        pass
+            
+            # If 4-column table not found, use the first table after the kit components section
+            if kit_components_table_idx is None:
+                # Just take the first table after the section (usually Table 3)
+                kit_components_table_idx = 2
+                self.logger.info(f"Using table at index {kit_components_table_idx} for kit components")
+            
+            if kit_components_table_idx >= len(doc.tables):
+                self.logger.warning(f"Table index {kit_components_table_idx} is out of bounds")
+                return
+                
+            # Get the kit components table
+            kit_table = doc.tables[kit_components_table_idx]
+            
+            # Clear out existing content in kit components table (keep header row)
+            for row_idx in range(1, len(kit_table.rows)):
+                for cell in kit_table.rows[row_idx].cells:
+                    for paragraph in cell.paragraphs:
+                        paragraph.clear()
+            
+            # Fill in the table with the reagent data
+            reagents = processed_data['reagents']
+            
+            # If we need more rows, add them
+            while len(kit_table.rows) < len(reagents) + 1:  # +1 for header row
+                kit_table.add_row()
+            
+            # Populate reagent rows
+            for i, reagent in enumerate(reagents):
+                if i >= len(kit_table.rows) - 1:  # Skip header row
+                    break
+                    
+                row_idx = i + 1  # Skip header row
+                
+                # Check if enough cells in row
+                if len(kit_table.rows[row_idx].cells) >= 4:
+                    if 'name' in reagent:
+                        kit_table.rows[row_idx].cells[0].text = reagent['name']
+                    if 'quantity' in reagent:
+                        kit_table.rows[row_idx].cells[1].text = reagent['quantity']
+                    if 'volume' in reagent:
+                        kit_table.rows[row_idx].cells[2].text = reagent['volume']
+                    if 'storage' in reagent:
+                        kit_table.rows[row_idx].cells[3].text = reagent['storage']
+            
+            # Save the modified document
+            doc.save(output_path)
+            self.logger.info(f"Updated kit components table with {len(reagents)} reagents")
+            
+        except Exception as e:
+            self.logger.error(f"Error in post-processing kit components: {e}")
+            # Continue anyway - this is just an enhancement
