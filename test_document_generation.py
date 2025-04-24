@@ -61,8 +61,9 @@ def main():
     # Check if reagents were extracted
     if 'reagents' in data and data['reagents']:
         print(f"\nReagents (first 3):")
-        for i, reagent in enumerate(data['reagents'][:3]):
-            print(f"  - {reagent.get('name', 'Unknown')}: {reagent.get('quantity', 'N/A')}")
+        for i, reagent in enumerate(data['reagents'][:3] if len(data['reagents']) >= 3 else data['reagents']):
+            if 'name' in reagent and 'quantity' in reagent:
+                print(f"  - {reagent.get('name', 'Unknown')}: {reagent.get('quantity', 'N/A')}")
     
     # Populate template with data
     logger.info(f"Populating template: {template_path}")

@@ -721,7 +721,7 @@ To measure the target protein, add standards and samples to the wells, then add 
                 
         if section_idx is None:
             self.logger.warning("Reagents/kit components section not found")
-            # Provide a standard set of reagents
+            # Provide a standard set of reagents for ELISA kits
             return [
                 {"name": "Pre-coated Microplate", "quantity": "1"},
                 {"name": "Standard", "quantity": "2"},
@@ -741,7 +741,8 @@ To measure the target protein, add standards and samples to the wells, then add 
                         name = row.cells[0].text.strip()
                         quantity = row.cells[1].text.strip()
                         
-                        if name and name not in ["Description", "Component", "Reagent"]:
+                        # Skip items that are likely technical details, not reagents
+                        if name and name not in ["Description", "Component", "Reagent", "Specificity", "Standard Protein", "Cross-reactivity", "Sensitivity", "Detection Range"]:
                             reagents.append({"name": name, "quantity": quantity})
                 
                 # If we found reagents, return them
@@ -768,7 +769,8 @@ To measure the target protein, add standards and samples to the wells, then add 
                             quantity = parts[1].strip()
                             
                             # Skip items that are likely not reagents
-                            if not re.search(r"(instruction|note|method|procedure|criteria)", name.lower()):
+                            if not re.search(r"(instruction|note|method|procedure|criteria)", name.lower()) and \
+                               name.lower() not in ["specificity", "standard protein", "cross-reactivity", "sensitivity", "detection range"]:
                                 reagents.append({"name": name, "quantity": quantity})
                 
         return reagents if reagents else [{"name": "N/A", "quantity": "N/A"}]
