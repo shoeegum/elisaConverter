@@ -765,7 +765,7 @@ To measure the target protein, add standards and samples to the wells, then add 
             - 'reagents': List of dictionaries with component information
         """
         reagents = []
-        header_row = ["Description", "Quantity"]  # Default header
+        header_row = ["Description", "Quantity", "Volume", "Storage"]  # Default header
         
         # Find the kit components section
         section_names = ["Kit Components", "Materials Provided", "Reagents", "Kit Components/Materials Provided", 
