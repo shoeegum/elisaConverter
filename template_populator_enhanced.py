@@ -4,18 +4,17 @@ Template Populator Enhanced
 Enhanced version of the template populator to handle the new technical details table format.
 """
 
-import logging
 import re
+import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, List, Any, Optional
+
 import docx
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-from docx.shared import Pt, Inches
+from docx.shared import Pt, RGBColor
 
 from docxtpl import DocxTemplate
-
-logger = logging.getLogger(__name__)
 
 class TemplatePopulator:
     """
@@ -33,9 +32,9 @@ class TemplatePopulator:
             template_path: Path to the DOCX template file
         """
         self.template_path = template_path
-        self.logger = logging.getLogger(__name__)
         self.template = DocxTemplate(template_path)
-        
+        self.logger = logging.getLogger(__name__)
+    
     def _clean_data(self, data: Dict[str, Any], kit_name: Optional[str] = None, 
                    catalog_number: Optional[str] = None, lot_number: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -50,178 +49,46 @@ class TemplatePopulator:
         Returns:
             Processed data dictionary ready for template population
         """
-        # Create a copy of the data to avoid modifying the original
-        processed_data = data.copy()
+        # Start with a copy of the data to avoid modifying the original
+        processed_data = dict(data)
         
         # Override with user-provided values if available
         if kit_name:
             processed_data['kit_name'] = kit_name
-        elif 'product_name' in processed_data and processed_data['product_name']:
-            processed_data['kit_name'] = processed_data['product_name']
-        elif 'title' in processed_data and processed_data['title']:
-            processed_data['kit_name'] = processed_data['title']
         elif 'catalog_number' in processed_data:
-            # Try to construct a kit name from existing data
-            catalog = processed_data.get('catalog_number', '')
-            if 'description' in processed_data:
-                description = processed_data.get('description', '')
-                kit_name_match = re.search(r'(Mouse|Rat|Human|Canine|Bovine|Porcine)\s+([A-Za-z0-9]+)', description)
-                if kit_name_match:
-                    processed_data['kit_name'] = f"{kit_name_match.group(0)} ELISA Kit"
-                else:
-                    # Try to extract from the filename
-                    match = re.search(r'(Mouse|Rat|Human|Canine|Bovine|Porcine)\s+([A-Za-z0-9]+)', str(self.template_path))
-                    if match:
-                        processed_data['kit_name'] = f"{match.group(0)} ELISA Kit"
-                    else:
-                        processed_data['kit_name'] = f"ELISA Kit ({catalog})"
-            else:
-                processed_data['kit_name'] = f"ELISA Kit ({catalog})"
-        
-        # Ensure kit_name is never empty
-        if 'kit_name' not in processed_data or not processed_data['kit_name']:
-            # Default fallback
-            if 'catalog_number' in processed_data:
-                catalog = processed_data.get('catalog_number', 'EK0000')
-                processed_data['kit_name'] = f"Mouse KLK1 Kallikrein 1 ELISA Kit ({catalog})"
-            else:
-                processed_data['kit_name'] = "Mouse KLK1 Kallikrein 1 ELISA Kit"
+            # Default kit name based on catalog number
+            catalog = processed_data['catalog_number']
+            processed_data['kit_name'] = f"Mouse KLK1/Kallikrein 1 ELISA Kit ({catalog})"
         
         if catalog_number:
             processed_data['catalog_number'] = catalog_number
             
         if lot_number:
             processed_data['lot_number'] = lot_number
-        else:
-            processed_data['lot_number'] = "LOT#_______"  # Placeholder for user to fill manually
-            
-        # Extract and ensure intended use is populated
-        if not processed_data.get('intended_use') or processed_data.get('intended_use') == "For research use only. Not for use in diagnostic procedures.":
-            # First check if assay_principle exists to extract from there
-            if 'assay_principle' in processed_data and processed_data['assay_principle']:
-                assay_principle = processed_data['assay_principle']
-                
-                # Try different splitting patterns to find the first paragraph
-                # First try splitting by double newlines
-                paragraphs = assay_principle.split('\n\n')
-                
-                if paragraphs:
-                    processed_data['intended_use'] = paragraphs[0].strip()
-                    
-                    # If split didn't work (whole text in one paragraph), try to get the first sentence
-                    if len(paragraphs) == 1 and len(paragraphs[0].split('.')) > 1:
-                        first_sentence = paragraphs[0].split('.')[0].strip() + '.'
-                        if len(first_sentence) > 20:  # Make sure it's substantive
-                            processed_data['intended_use'] = first_sentence
-                
-                # Extract principle of assay from remaining paragraphs
-                if len(paragraphs) > 1:
-                    principle_text = paragraphs[1].strip()
-                    # Remove the last sentence if it contains Boster reference
-                    sentences = re.split(r'(?<=[.!?])\s+', principle_text)
-                    if sentences and any(word in sentences[-1].lower() for word in ['boster', 'picokine']):
-                        principle_text = ' '.join(sentences[:-1])
-                    processed_data['principle_of_assay'] = principle_text
         
-        # Process background section
+        # Process background text for the template
         if 'background' in processed_data:
-            background_text = processed_data['background']
-            # If user provided a kit name, use it to create a background title
-            if kit_name:
-                # Extract key identifier from kit name (e.g., "KLK1" from "Mouse KLK1 ELISA Kit")
-                identifier_match = re.search(r'(Mouse|Rat|Human|Canine|Bovine|Porcine)\s+([A-Za-z0-9]+)', kit_name)
-                if identifier_match:
-                    identifier = identifier_match.group(2)
-                    processed_data['background_title'] = f"Background on {identifier}"
-            else:
-                processed_data['background_title'] = "Background"
-            
-            processed_data['background_text'] = background_text
-            
-        # Process standard curve section
-        if 'standard_curve' in processed_data:
-            standard_curve = processed_data['standard_curve']
-            
-            # Extract product name for standard curve title
-            if kit_name:
-                # Extract product identifier (e.g., "Mouse KLK1" from "Mouse KLK1 ELISA Kit")
-                product_match = re.search(r'(Mouse|Rat|Human|Canine|Bovine|Porcine)\s+([A-Za-z0-9]+)', kit_name)
-                if product_match:
-                    product_id = product_match.group(0)
-                    processed_data['standard_curve_title'] = f"{product_id} ELISA Standard Curve Example"
-                else:
-                    processed_data['standard_curve_title'] = "ELISA Standard Curve Example"
-            else:
-                processed_data['standard_curve_title'] = "ELISA Standard Curve Example"
-                
-            # Ensure standard curve concentrations and OD values are properly formatted
-            if 'concentrations' in standard_curve and 'od_values' in standard_curve:
-                # Create a formatted table for the template
-                std_curve_table = []
-                for i, (conc, od) in enumerate(zip(
-                    standard_curve['concentrations'], 
-                    standard_curve['od_values']
-                )):
-                    # Make sure first concentration is 0.0
-                    if i == 0 and conc != "0.0":
-                        std_curve_table.append({
-                            'concentration': "0.0",
-                            'od_value': od
-                        })
-                    else:
-                        std_curve_table.append({
-                            'concentration': conc,
-                            'od_value': od
-                        })
-                
-                processed_data['standard_curve_table'] = std_curve_table
+            processed_data['background_text'] = processed_data['background']
         
-        # Process data analysis section - remove Boster reference and unwanted sections
-        if 'data_analysis' in processed_data:
-            data_analysis = processed_data['data_analysis']
+        # Process intended use with additional information if needed
+        if 'intended_use' in processed_data:
+            processed_data['intended_use'] = processed_data['intended_use']
             
-            # Remove first two sentences if they contain Boster references
-            sentences = re.split(r'(?<=[.!?])\s+', data_analysis)
-            if len(sentences) > 2 and any(word in ' '.join(sentences[:2]).lower() for word in ['boster', 'biocompare', 'online']):
-                processed_data['data_analysis'] = ' '.join(sentences[2:])
-            else:
-                processed_data['data_analysis'] = data_analysis
-                
-            # Remove the Publications and Submit a Product Review sections
-            processed_data['data_analysis'] = re.sub(r'Publications.*?using this product.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
-            processed_data['data_analysis'] = re.sub(r'Submit a Product Review to Biocompare.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
-        
-        # Handle required materials which should already be a list from the parser
+        # Process required materials list
         if 'required_materials' in processed_data:
-            # This is now returned directly as a list from the parser - just copy to materials_list
-            processed_data['required_materials_list'] = processed_data['required_materials']
-            # Also keep original format for compatibility
-            processed_data['required_materials_text'] = "\n".join(processed_data['required_materials'])
-            
-            # Prepare materials as a simple list with bullet points
             materials = processed_data['required_materials']
-            if materials:
-                # Clean up the items and add bullet points
-                clean_materials = []
-                for item in materials:
-                    if item.strip():
-                        # Add a bullet point if it doesn't already have one
-                        material_text = item.strip()
-                        if not material_text.startswith('•') and not material_text.startswith('-'):
-                            material_text = f"• {material_text}"
-                        clean_materials.append(material_text)
-                processed_data['required_materials_list_items'] = clean_materials
-                
-                # Create a single text block with all materials with bullet points
-                # This will replace the template's placeholder bullets
-                # Convert the list of materials into a properly formatted Word paragraph with line breaks
+            if isinstance(materials, list):
+                # Format as a bulleted list with proper bullet points
                 formatted_materials = []
-                for item in clean_materials:
-                    # Add paragraph break after each item
-                    formatted_materials.append(f"{item}\n")
-                processed_data['required_materials_with_bullets'] = "".join(formatted_materials)
+                for item in materials:
+                    formatted_materials.append(f"• {item}")
                 
-        # Format assay protocol as numbered steps
+                processed_data['required_materials_with_bullets'] = "\n".join(formatted_materials)
+            else:
+                # Single string with each item on a new line, prefixed with bullet
+                processed_data['required_materials_with_bullets'] = f"• {materials}"
+                
+        # Process assay protocol steps
         if 'assay_protocol' in processed_data and processed_data['assay_protocol']:
             protocol = processed_data['assay_protocol']
             if protocol:
@@ -250,53 +117,23 @@ class TemplatePopulator:
                     value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', value)
                     value = re.sub(r'\bboster\b', 'innovative research', value)
                     
-                    # Remove trademark symbols
+                    # Remove all trademark and registered trademark symbols
                     value = re.sub(r'®', '', value)
                     value = re.sub(r'™', '', value)
+                    value = re.sub(r'©', '', value)
                     
-                    # Remove any "PicoKine" references
-                    value = re.sub(r'PicoKine\s*®', '', value)
-                    value = re.sub(r'Picokine\s*®', '', value)
-                    value = re.sub(r'PicoKine', '', value)
-                    value = re.sub(r'Picokine', '', value)
+                    # Clean up the value
+                    value = value.strip()
                     
-                    # Skip empty values
-                    if value.strip():
-                        cleaned_specs.append({
-                            'property': spec['property'],
-                            'value': value.strip()
-                        })
+                    cleaned_specs.append({'property': spec['property'], 'value': value})
             
-            processed_data['overview_specifications_table'] = cleaned_specs
-                
-        # Process technical details (now it's a dictionary with 'text' and 'technical_table')
-        if 'technical_details' in processed_data:
+            processed_data['overview_specifications'] = cleaned_specs
+            
+        # Process technical details for the enhanced template format
+        if 'technical_details' in processed_data and processed_data['technical_details']:
             technical_details = processed_data['technical_details']
-            
-            # Handle the text part
-            if isinstance(technical_details, dict) and 'text' in technical_details:
-                text_content = technical_details['text']
-                # Clean up any extraneous text like "Cross-reactivity:" or empty lines
-                tech_lines = []
-                for line in text_content.split('\n'):
-                    line = line.strip()
-                    if line:
-                        # If it's just a header line with no data, skip it
-                        if line.endswith(':') and len(line) < 30:
-                            continue
-                        # Remove specific supplier references
-                        line = re.sub(r'from (Boster|PicoKine|EK[0-9]+)', '', line)
-                        tech_lines.append(line)
-                processed_data['technical_details'] = '\n\n'.join(tech_lines)
-            elif isinstance(technical_details, str):
-                # If technical_details is already a string, keep it as is
-                processed_data['technical_details'] = technical_details
-            else:
-                processed_data['technical_details'] = ''
-            
-            # Handle the table part
             if isinstance(technical_details, dict) and 'technical_table' in technical_details:
-                # Ensure all fields have values
+                # Make sure values are not None
                 for item in technical_details['technical_table']:
                     if not item['value']:
                         item['value'] = 'N/A'
@@ -467,6 +304,84 @@ class TemplatePopulator:
                     
                     processed_data[key] = processed_list
         
+        # Add structured variability data for the new template format
+        processed_data['variability'] = {
+            'intra_assay': {
+                'sample_1': {
+                    'n': processed_data.get('intra_var_sample1_n', '24'),
+                    'mean': processed_data.get('intra_var_sample1_mean', '145'),
+                    'sd': processed_data.get('intra_var_sample1_sd', '10.15'),
+                    'cv': processed_data.get('intra_var_sample1_cv', '7.0%')
+                },
+                'sample_2': {
+                    'n': processed_data.get('intra_var_sample2_n', '24'),
+                    'mean': processed_data.get('intra_var_sample2_mean', '329'),
+                    'sd': processed_data.get('intra_var_sample2_sd', '23.03'),
+                    'cv': processed_data.get('intra_var_sample2_cv', '7.0%')
+                },
+                'sample_3': {
+                    'n': processed_data.get('intra_var_sample3_n', '24'),
+                    'mean': processed_data.get('intra_var_sample3_mean', '1062'),
+                    'sd': processed_data.get('intra_var_sample3_sd', '65.84'),
+                    'cv': processed_data.get('intra_var_sample3_cv', '6.2%')
+                }
+            },
+            'inter_assay': {
+                'sample_1': {
+                    'n': processed_data.get('inter_var_sample1_n', '24'),
+                    'mean': processed_data.get('inter_var_sample1_mean', '145'),
+                    'sd': processed_data.get('inter_var_sample1_sd', '13.05'),
+                    'cv': processed_data.get('inter_var_sample1_cv', '9.0%')
+                },
+                'sample_2': {
+                    'n': processed_data.get('inter_var_sample2_n', '24'),
+                    'mean': processed_data.get('inter_var_sample2_mean', '329'),
+                    'sd': processed_data.get('inter_var_sample2_sd', '29.61'),
+                    'cv': processed_data.get('inter_var_sample2_cv', '9.0%')
+                },
+                'sample_3': {
+                    'n': processed_data.get('inter_var_sample3_n', '24'),
+                    'mean': processed_data.get('inter_var_sample3_mean', '1062'),
+                    'sd': processed_data.get('inter_var_sample3_sd', '95.58'),
+                    'cv': processed_data.get('inter_var_sample3_cv', '9.0%')
+                }
+            }
+        }
+        
+        # Set up reproducibility data with standard deviation
+        processed_data['reproducibility'] = [
+            {
+                'sample': 'Sample 1',
+                'lot1': processed_data.get('repro_sample1_lot1', '150'),
+                'lot2': processed_data.get('repro_sample1_lot2', '154'),
+                'lot3': processed_data.get('repro_sample1_lot3', '170'),
+                'lot4': processed_data.get('repro_sample1_lot4', '150'),
+                'sd': processed_data.get('repro_sample1_sd', '9.4'),
+                'mean': processed_data.get('repro_sample1_mean', '156'),
+                'cv': processed_data.get('repro_sample1_cv', '5.2%')
+            },
+            {
+                'sample': 'Sample 2',
+                'lot1': processed_data.get('repro_sample2_lot1', '600'),
+                'lot2': processed_data.get('repro_sample2_lot2', '580'),
+                'lot3': processed_data.get('repro_sample2_lot3', '595'),
+                'lot4': processed_data.get('repro_sample2_lot4', '605'),
+                'sd': processed_data.get('repro_sample2_sd', '11.3'),
+                'mean': processed_data.get('repro_sample2_mean', '595'),
+                'cv': processed_data.get('repro_sample2_cv', '1.9%')
+            },
+            {
+                'sample': 'Sample 3',
+                'lot1': processed_data.get('repro_sample3_lot1', '1010'),
+                'lot2': processed_data.get('repro_sample3_lot2', '970'),
+                'lot3': processed_data.get('repro_sample3_lot3', '990'),
+                'lot4': processed_data.get('repro_sample3_lot4', '1030'),
+                'sd': processed_data.get('repro_sample3_sd', '25.7'),
+                'mean': processed_data.get('repro_sample3_mean', '1000'),
+                'cv': processed_data.get('repro_sample3_cv', '2.6%')
+            }
+        ]
+        
         return processed_data
         
     def populate(self, data: Dict[str, Any], output_path: Path, 
@@ -498,157 +413,29 @@ class TemplatePopulator:
                 for i in range(min(len(reagents), 12)):
                     reagent = reagents[i]
                     # Fill in each column for this reagent
-                    if isinstance(reagent, dict):
-                        processed_data[f'reagent_{i+1}_name'] = reagent.get('name', '')
-                        processed_data[f'reagent_{i+1}_quantity'] = reagent.get('quantity', '')
-                        processed_data[f'reagent_{i+1}_volume'] = reagent.get('volume', '')
-                        processed_data[f'reagent_{i+1}_storage'] = reagent.get('storage', '')
-                
-                # Clear any unused reagent slots
-                for i in range(len(reagents) + 1, 13):  # Increased to 13
-                    processed_data[f'reagent_{i}_name'] = ''
-                    processed_data[f'reagent_{i}_quantity'] = ''
-                    processed_data[f'reagent_{i}_volume'] = ''
-                    processed_data[f'reagent_{i}_storage'] = ''
+                    processed_data[f'reagent_{i+1}_name'] = reagent.get('name', '')
+                    processed_data[f'reagent_{i+1}_quantity'] = reagent.get('quantity', '')
+                    processed_data[f'reagent_{i+1}_volume'] = reagent.get('volume', '')
+                    processed_data[f'reagent_{i+1}_storage'] = reagent.get('storage', '')
             
-            
-            # Map required materials to individual bullet points
+            # Process required materials for the template
             if 'required_materials' in processed_data:
-                req_materials = processed_data['required_materials']
-                self.logger.info(f"Processing {len(req_materials)} required materials for template")
+                materials = processed_data['required_materials']
+                self.logger.info(f"Processing {len(materials)} required materials for template")
                 
-                # Ensure we have enough materials
-                if len(req_materials) < 5:
-                    # Add default items if needed
-                    default_items = [
-                        "Microplate reader capable of measuring absorbance at 450 nm",
-                        "Automated plate washer (optional)",
-                        "Adjustable pipettes and pipette tips capable of precisely dispensing volumes",
-                        "Tubes for sample preparation",
-                        "Deionized or distilled water"
-                    ]
-                    
-                    for item in default_items:
-                        if item not in req_materials:
-                            req_materials.append(item)
-                            if len(req_materials) >= 5:
-                                break
-                
-                # Clean up the material items (only keep the text, no bullets)
-                clean_materials = []
-                for material in req_materials:
-                    # Remove any existing bullet points
-                    material_text = material.strip()
-                    if material_text.startswith('•') or material_text.startswith('-'):
-                        material_text = material_text[1:].strip()
-                    elif material_text.startswith('\u2022'):  # Unicode bullet
-                        material_text = material_text[1:].strip()
-                    
-                    # Only add non-empty materials
-                    if material_text:
-                        clean_materials.append(material_text)
-                
-                # Add individual material entries (WITHOUT bullets, template already has them)
-                for i in range(min(len(clean_materials), 10)):
-                    processed_data[f'req_material_{i+1}'] = clean_materials[i]
-                
-                # Clear any unused material slots
-                for i in range(len(clean_materials) + 1, 11):
-                    processed_data[f'req_material_{i}'] = ''
-            
-            # Map standard curve data to individual fields
-            if 'standard_curve' in processed_data:
-                # Check format of standard curve data
-                if 'concentration' in processed_data['standard_curve'] and 'od' in processed_data['standard_curve']:
-                    conc_values = processed_data['standard_curve']['concentration']
-                    od_values = processed_data['standard_curve']['od']
-                elif 'concentrations' in processed_data['standard_curve'] and 'od_values' in processed_data['standard_curve']:
-                    conc_values = processed_data['standard_curve']['concentrations']
-                    od_values = processed_data['standard_curve']['od_values']
+                # Format as a bulleted list for display in the template
+                if isinstance(materials, list):
+                    processed_data['required_materials_with_bullets'] = "• " + "\n• ".join(materials)
                 else:
-                    conc_values = []
-                    od_values = []
-                
-                self.logger.info(f"Processing standard curve data: {len(conc_values)} concentrations, {len(od_values)} OD values")
-                
-                # Ensure we have 8 values for standard curve
-                if len(conc_values) < 8:
-                    default_conc = ["0", "62.5", "125", "250", "500", "1000", "2000", "4000"]
-                    for i in range(len(conc_values), 8):
-                        if i < len(default_conc):
-                            conc_values.append(default_conc[i])
-                        else:
-                            conc_values.append("")
-                
-                if len(od_values) < 8:
-                    default_od = ["0.028", "0.061", "0.143", "0.227", "0.405", "0.631", "1.118", "1.902"]
-                    for i in range(len(od_values), 8):
-                        if i < len(default_od):
-                            od_values.append(default_od[i])
-                        else:
-                            od_values.append("")
-                
-                # Map to individual fields in template
-                for i in range(8):
-                    processed_data[f'std_conc_{i+1}'] = conc_values[i] if i < len(conc_values) else ""
-                    processed_data[f'std_od_{i+1}'] = od_values[i] if i < len(od_values) else ""
-                    
-            # Add variability tables data
-            # First, intra-assay variability
-            processed_data['intra_var_sample1_n'] = "16"
-            processed_data['intra_var_sample1_mean'] = "150"
-            processed_data['intra_var_sample1_sd'] = "9.15"
-            processed_data['intra_var_sample1_cv'] = "6.1%"
+                    processed_data['required_materials_with_bullets'] = f"• {materials}"
             
-            processed_data['intra_var_sample2_n'] = "16"
-            processed_data['intra_var_sample2_mean'] = "602"
-            processed_data['intra_var_sample2_sd'] = "43.94"
-            processed_data['intra_var_sample2_cv'] = "7.3%"
+            # Process standard curve data for the template
+            if 'standard_curve' in processed_data:
+                standard_curve = processed_data['standard_curve']
+                if isinstance(standard_curve, dict) and 'concentrations' in standard_curve and 'od_values' in standard_curve:
+                    self.logger.info(f"Processing standard curve data: {len(standard_curve['concentrations'])} concentrations, {len(standard_curve['od_values'])} OD values")
             
-            processed_data['intra_var_sample3_n'] = "16"
-            processed_data['intra_var_sample3_mean'] = "1476"
-            processed_data['intra_var_sample3_sd'] = "116.6"
-            processed_data['intra_var_sample3_cv'] = "7.9%"
-            
-            # Inter-assay variability
-            processed_data['inter_var_sample1_n'] = "24"
-            processed_data['inter_var_sample1_mean'] = "145"
-            processed_data['inter_var_sample1_sd'] = "10.15"
-            processed_data['inter_var_sample1_cv'] = "7.0%"
-            
-            processed_data['inter_var_sample2_n'] = "24"
-            processed_data['inter_var_sample2_mean'] = "618"
-            processed_data['inter_var_sample2_sd'] = "49.44"
-            processed_data['inter_var_sample2_cv'] = "8.0%"
-            
-            processed_data['inter_var_sample3_n'] = "24"
-            processed_data['inter_var_sample3_mean'] = "1426"
-            processed_data['inter_var_sample3_sd'] = "128.34"
-            processed_data['inter_var_sample3_cv'] = "9.0%"
-            
-            # Reproducibility data
-            processed_data['repro_sample1_lot1'] = "150"
-            processed_data['repro_sample1_lot2'] = "154"
-            processed_data['repro_sample1_lot3'] = "170"
-            processed_data['repro_sample1_lot4'] = "150"
-            processed_data['repro_sample1_mean'] = "156"
-            processed_data['repro_sample1_cv'] = "5.2%"
-            
-            processed_data['repro_sample2_lot1'] = "602"
-            processed_data['repro_sample2_lot2'] = "649"
-            processed_data['repro_sample2_lot3'] = "645"
-            processed_data['repro_sample2_lot4'] = "637"
-            processed_data['repro_sample2_mean'] = "633"
-            processed_data['repro_sample2_cv'] = "2.9%"
-            
-            processed_data['repro_sample3_lot1'] = "1476"
-            processed_data['repro_sample3_lot2'] = "1672"
-            processed_data['repro_sample3_lot3'] = "1722"
-            processed_data['repro_sample3_lot4'] = "1744"
-            processed_data['repro_sample3_mean'] = "1654"
-            processed_data['repro_sample3_cv'] = "7.2%"
-            
-            # Map assay protocol steps to numbered list items
+            # Process assay protocol steps for the template and individual step fields
             if 'assay_protocol' in processed_data:
                 protocol_steps = processed_data['assay_protocol']
                 # Add individual protocol step entries
