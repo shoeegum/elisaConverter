@@ -214,7 +214,12 @@ class TemplatePopulator:
                 
                 # Create a single text block with all materials with bullet points
                 # This will replace the template's placeholder bullets
-                processed_data['required_materials_with_bullets'] = "\n".join(clean_materials)
+                # Convert the list of materials into a properly formatted Word paragraph with line breaks
+                formatted_materials = []
+                for item in clean_materials:
+                    # Add paragraph break after each item
+                    formatted_materials.append(f"{item}\n")
+                processed_data['required_materials_with_bullets'] = "".join(formatted_materials)
                 
         # Format assay protocol as numbered steps
         if 'assay_protocol' in processed_data and processed_data['assay_protocol']:
