@@ -17,7 +17,7 @@ import logging
 from pathlib import Path
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING, WD_TAB_ALIGNMENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -102,35 +102,21 @@ def create_enhanced_template():
     # Add the kit name title
     title_para = doc.add_paragraph("{{ kit_name }}", style='Heading 1')
     
-    # Add catalog/lot row using a 2-column table for proper alignment
-    catalog_lot_table = doc.add_table(rows=1, cols=2)
-    # Don't set a style, use the default
-    catalog_lot_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    # First approach: Two separate paragraphs with different alignments
     
-    # Set table to use available width
-    catalog_lot_table.autofit = True
-    
-    # Add catalog number (left-aligned cell)
-    catalog_cell = catalog_lot_table.cell(0, 0)
-    catalog_para = catalog_cell.paragraphs[0]
-    catalog_para.style = 'Heading 2'
+    # Add catalog number (left-aligned)
+    catalog_para = doc.add_paragraph(style='Heading 2')
     catalog_para.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
     catalog_run = catalog_para.add_run("CATALOG NO: ")
     catalog_run.font.color.rgb = RGBColor(0, 70, 180)  # Ensure blue color
     catalog_para.add_run("{{ catalog_number }}")
     
-    # Add lot number (right-aligned cell)
-    lot_cell = catalog_lot_table.cell(0, 1)
-    lot_para = lot_cell.paragraphs[0]
-    lot_para.style = 'Heading 2'
+    # Add lot number (right-aligned)
+    lot_para = doc.add_paragraph(style='Heading 2')
     lot_para.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
     lot_run = lot_para.add_run("LOT NO: ")
     lot_run.font.color.rgb = RGBColor(0, 70, 180)  # Ensure blue color
     lot_para.add_run("{{ lot_number }}")
-    
-    # Set equal width for cells
-    catalog_cell.width = Inches(3.75)
-    lot_cell.width = Inches(3.75)
     
     # Add INTENDED USE section
     intended_use_header = doc.add_paragraph("INTENDED USE", style='Heading 2')
