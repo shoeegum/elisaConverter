@@ -42,6 +42,15 @@ def create_enhanced_template():
     font.name = 'Calibri'
     font.size = Pt(11)
     
+    # Create a hidden text style for template variables
+    hidden_style = styles.add_style('Hidden Text', WD_STYLE_TYPE.PARAGRAPH)
+    hidden_style.base_style = styles['Normal']
+    hidden_style.hidden = True
+    hidden_style.priority = 99
+    hidden_font = hidden_style.font
+    hidden_font.color.rgb = RGBColor(200, 200, 200)
+    hidden_font.size = Pt(8)
+    
     # Set narrow margins for the entire document
     for section in doc.sections:
         section.top_margin = Inches(0.5)
@@ -82,6 +91,18 @@ def create_enhanced_template():
     bullet_style.font.size = Pt(11)
     bullet_style.paragraph_format.left_indent = Inches(0.25)
     bullet_style.paragraph_format.first_line_indent = Inches(-0.25)
+    
+    # Create numbered list style with proper formatting
+    if 'List Number' not in styles:
+        number_style = styles.add_style('List Number', WD_STYLE_TYPE.PARAGRAPH)
+    else:
+        number_style = styles['List Number']
+    
+    number_style.base_style = styles['Normal']
+    number_style.font.name = 'Calibri'
+    number_style.font.size = Pt(11)
+    number_style.paragraph_format.left_indent = Inches(0.25)
+    number_style.paragraph_format.first_line_indent = Inches(-0.25)
     
     # Create footer styles
     footer_company_style = styles.add_style('Footer Company Style', WD_STYLE_TYPE.PARAGRAPH)
@@ -235,7 +256,7 @@ def create_enhanced_template():
     
     # Make headers bold and center-aligned
     for cell in reagents_headers:
-        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
         for run in cell.paragraphs[0].runs:
             run.font.bold = True
     
