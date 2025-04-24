@@ -778,6 +778,73 @@ To measure the target protein, add standards and samples to the wells, then add 
                 section_idx = idx
                 self.logger.info(f"Found '{name}' section at paragraph {idx}: {self.doc.paragraphs[idx].text}")
                 break
+        
+        # First, try to find the specific 4-column table with actual kit components
+        # This is a direct approach that looks for the exact table structure we want
+        for i, table in enumerate(self.doc.tables):
+            try:
+                # Check if this table has the right number of columns and rows
+                if len(table.rows) >= 7 and len(table.rows[0].cells) == 4:
+                    # Check if the header matches what we expect
+                    header_texts = [cell.text.strip().lower() for cell in table.rows[0].cells]
+                    
+                    # Define the expected header patterns
+                    expected_patterns = [
+                        ["description", "quantity", "volume", "storage"],
+                        ["component", "amount", "size", "condition"],
+                        ["reagent", "qty", "vol", "storage"]
+                    ]
+                    
+                    # Check if this matches any of our expected header patterns
+                    for pattern in expected_patterns:
+                        matches = sum(1 for i, cell in enumerate(header_texts) if any(keyword in cell for keyword in [pattern[i]]))
+                        if matches >= 3:  # If at least 3 column headers match what we expect
+                            self.logger.info(f"Found reagent table (Table {i+1}) with headers: {header_texts}")
+                            
+                            # Map columns to our standard names
+                            header_map = {}
+                            for i, header in enumerate(header_texts):
+                                if "description" in header or "component" in header or "reagent" in header or "name" in header:
+                                    header_map[i] = 'name'
+                                elif "quantity" in header or "amount" in header or "qty" in header:
+                                    header_map[i] = 'quantity'
+                                elif "volume" in header or "vol" in header or "size" in header:
+                                    header_map[i] = 'volume'
+                                elif "storage" in header or "condition" in header or "store" in header:
+                                    header_map[i] = 'storage'
+                                else:
+                                    header_map[i] = header.replace(' ', '_')
+                            
+                            # Process rows (skip header row)
+                            for row_idx in range(1, len(table.rows)):
+                                row = table.rows[row_idx]
+                                
+                                # Skip empty rows
+                                if not any(cell.text.strip() for cell in row.cells):
+                                    continue
+                                
+                                # Create a reagent entry
+                                reagent = {}
+                                for col_idx, cell in enumerate(row.cells):
+                                    if col_idx in header_map:
+                                        field_name = header_map[col_idx]
+                                        reagent[field_name] = cell.text.strip()
+                                
+                                # Add required fields if missing
+                                for field in ['name', 'quantity', 'volume', 'storage']:
+                                    if field not in reagent:
+                                        reagent[field] = ''
+                                        
+                                # If we have a name (first column), add this reagent
+                                if 'name' in reagent and reagent['name']:
+                                    reagents.append(reagent)
+                            
+                            # If we found reagents in this table, return them
+                            if reagents:
+                                self.logger.info(f"Extracted {len(reagents)} reagents from table {i+1}")
+                                return {'header_row': header_row, 'reagents': reagents}
+            except Exception as e:
+                self.logger.warning(f"Error processing table {i+1}: {e}")
                 
         if section_idx is None:
             self.logger.warning("Reagents/kit components section not found")
@@ -900,9 +967,13 @@ To measure the target protein, add standards and samples to the wells, then add 
         # Improved check to find tables related to sections
         # Extract some content from the table
         table_content = ""
+        rows = len(table.rows)
+        cols = 0
+        
         try:
             # Get text from the first row cells
             if len(table.rows) > 0:
+                cols = len(table.rows[0].cells)
                 for cell in table.rows[0].cells:
                     table_content += cell.text.strip() + " "
                     
@@ -918,14 +989,40 @@ To measure the target protein, add standards and samples to the wells, then add 
         reagent_keywords = ["microplate", "standard", "antibody", "conjugate", "diluent", 
                           "buffer", "substrate", "solution", "reagent", "stop", "wash",
                           "plate", "bottle", "vial", "coated"]
-                          
+        
+        component_headers = ["description", "quantity", "volume", "storage"]
+        
+        # Check if this is the expected 4-column component table
+        has_component_headers = False
+        if cols == 4 and rows > 5:  # Must have at least 4 columns and several rows
+            if len(table.rows) > 0:
+                header_row = table.rows[0]
+                header_texts = [cell.text.lower().strip() for cell in header_row.cells]
+                
+                # Check if headers match expected component headers
+                matches = sum(any(h in header_text for h in component_headers) for header_text in header_texts)
+                has_component_headers = matches >= 3  # Must match at least 3 of 4 expected headers
+                
+                if has_component_headers:
+                    self.logger.info(f"Found table with component headers: {header_texts}")
+                    
+                    # Check second row to confirm it's a reagent row
+                    if len(table.rows) > 1:
+                        second_row = table.rows[1]
+                        second_row_text = " ".join([cell.text.lower() for cell in second_row.cells])
+                        
+                        if any(keyword in second_row_text for keyword in reagent_keywords):
+                            self.logger.info(f"Confirmed reagent in second row: '{second_row.cells[0].text}'")
+                            return True
+        
+        # Standard check for reagent keywords                  
         has_reagent_keywords = any(keyword in table_content.lower() for keyword in reagent_keywords)
         
         # Is this table closely following our section header paragraph?
         # Assume tables within 10 paragraphs are related to the section
         close_proximity = True  # Default to true to be more inclusive
         
-        return has_reagent_keywords or close_proximity
+        return has_component_headers or has_reagent_keywords or close_proximity
     
     def _extract_required_materials(self) -> List[str]:
         """
