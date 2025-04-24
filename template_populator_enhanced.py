@@ -458,6 +458,9 @@ class TemplatePopulator:
             # Format the document header and first page
             self._format_document_header(doc)
             
+            # Add disclaimer at the end of the document
+            self._add_disclaimer(doc)
+            
             # Save the formatted document
             doc.save(output_path)
             
@@ -534,6 +537,43 @@ class TemplatePopulator:
                 else:
                     run = doc.paragraphs[3].add_run()
                     run.add_break(docx.enum.text.WD_BREAK.PAGE)
+
+    def _add_disclaimer(self, doc):
+        """
+        Add a disclaimer section at the end of the document.
+        
+        Args:
+            doc: The Document object to modify
+        """
+        # Add a page break before the disclaimer
+        if len(doc.paragraphs) > 0:
+            last_para = doc.paragraphs[-1]
+            if len(last_para.runs) > 0:
+                last_para.runs[-1].add_break(docx.enum.text.WD_BREAK.PAGE)
+            else:
+                run = last_para.add_run()
+                run.add_break(docx.enum.text.WD_BREAK.PAGE)
+        
+        # Add DISCLAIMER heading
+        disclaimer_heading = doc.add_paragraph("DISCLAIMER")
+        disclaimer_heading.style = 'Heading 2'
+        
+        # Set heading to blue color with all caps (RGB 0,70,180)
+        for run in disclaimer_heading.runs:
+            run.font.color.rgb = RGBColor(0, 70, 180)
+            run.font.all_caps = True
+            run.font.bold = True
+        
+        # Add disclaimer text
+        disclaimer_text = doc.add_paragraph()
+        disclaimer_text.add_run("This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification.")
+        
+        # Apply formatting to disclaimer text
+        for run in disclaimer_text.runs:
+            run.font.name = "Calibri"
+            run.font.size = Pt(11)
+        
+        self.logger.info("Added disclaimer to the end of the document")
 
     def _post_process_kit_components(self, output_path: Path, processed_data: Dict[str, Any]) -> None:
         """
