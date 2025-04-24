@@ -167,7 +167,32 @@ def create_enhanced_template():
     
     # TECHNICAL DETAILS
     tech_details_header = doc.add_paragraph("TECHNICAL DETAILS", style='Heading 2')
-    tech_details_para = doc.add_paragraph("{{ technical_details }}")
+    
+    # Create a table for the technical details
+    tech_table = doc.add_table(rows=4, cols=2)  # 4 standard fields
+    tech_table.style = 'Table Grid'
+    
+    # Set column widths for better readability
+    for cell in tech_table.columns[0].cells:
+        cell.width = Inches(3.0)
+    for cell in tech_table.columns[1].cells:
+        cell.width = Inches(3.0)
+    
+    # Add the technical details rows with Jinja2 variables
+    technical_properties = [
+        "Capture/Detection Antibodies", 
+        "Specificity", 
+        "Standard Protein", 
+        "Cross-reactivity"
+    ]
+    
+    for i, prop in enumerate(technical_properties):
+        row = tech_table.rows[i].cells
+        row[0].text = prop
+        row[1].text = "{{ technical_details_table[" + str(i) + "].value }}"
+    
+    # Add paragraph for any additional technical details text
+    doc.add_paragraph("{{ technical_details }}")
     
     # PREPARATIONS BEFORE ASSAY
     prep_header = doc.add_paragraph("PREPARATIONS BEFORE ASSAY", style='Heading 2')
