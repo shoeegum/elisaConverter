@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}ELISA Kit Datasheet Parser - About{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h4 class="my-0">About ELISA Kit Datasheet Parser</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    This application extracts structured data from ELISA kit datasheets and populates DOCX templates with the extracted information.
+                </p>
+                
+                <h5 class="mt-4">Features</h5>
+                <ul>
+                    <li>Upload ELISA kit datasheets in DOCX format</li>
+                    <li>Extract structured data from the datasheets</li>
+                    <li>Populate templates with the extracted data</li>
+                    <li>Upload custom templates with Jinja2 placeholders</li>
+                    <li>Download the populated templates</li>
+                </ul>
+                
+                <h5 class="mt-4">How It Works</h5>
+                <p>
+                    The application uses the <code>python-docx</code> library to parse DOCX files and extract information from ELISA kit datasheets.
+                    It identifies sections like catalog numbers, reagents, protocols, and more, and organizes them into a structured format.
+                </p>
+                <p>
+                    The extracted data is then used to populate DOCX templates using the <code>docxtpl</code> library, which supports Jinja2 templating.
+                    This allows for flexible template creation and customization.
+                </p>
+                
+                <h5 class="mt-4">Supported Sections</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li>Catalog Number</li>
+                            <li>Intended Use</li>
+                            <li>Background</li>
+                            <li>Assay Principle</li>
+                            <li>Reagents</li>
+                            <li>Required Materials</li>
+                            <li>Standard Curve</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li>Variability (Intra/Inter-Assay)</li>
+                            <li>Reproducibility</li>
+                            <li>Procedural Notes</li>
+                            <li>Reagent Preparation</li>
+                            <li>Sample Preparation</li>
+                            <li>Assay Protocol</li>
+                            <li>Data Analysis</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h5 class="mt-4">Technologies Used</h5>
+                <ul>
+                    <li>Python 3.11</li>
+                    <li>Flask (Web Framework)</li>
+                    <li>python-docx (DOCX Parsing)</li>
+                    <li>docxtpl (Template Population)</li>
+                    <li>Bootstrap 5 (UI Framework)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
