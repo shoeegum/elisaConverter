@@ -196,6 +196,36 @@ class TemplatePopulator:
         # Format standard curve data for table display
         if 'standard_curve_table' in processed_data and processed_data['standard_curve_table']:
             processed_data['standard_curve_table_html'] = processed_data['standard_curve_table']
+            
+        # Process overview specifications table data
+        if 'overview_specifications' in processed_data and processed_data['overview_specifications']:
+            # Clean up the specifications data for display in the template
+            cleaned_specs = []
+            for spec in processed_data['overview_specifications']:
+                if 'property' in spec and 'value' in spec:
+                    # Replace "Boster" with "Innovative Research" in values
+                    value = re.sub(r'\bBoster\b', 'Innovative Research', spec['value'])
+                    value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', value)
+                    value = re.sub(r'\bboster\b', 'innovative research', value)
+                    
+                    # Remove trademark symbols
+                    value = re.sub(r'®', '', value)
+                    value = re.sub(r'™', '', value)
+                    
+                    # Remove any "PicoKine" references
+                    value = re.sub(r'PicoKine\s*®', '', value)
+                    value = re.sub(r'Picokine\s*®', '', value)
+                    value = re.sub(r'PicoKine', '', value)
+                    value = re.sub(r'Picokine', '', value)
+                    
+                    # Skip empty values
+                    if value.strip():
+                        cleaned_specs.append({
+                            'property': spec['property'],
+                            'value': value.strip()
+                        })
+            
+            processed_data['overview_specifications_table'] = cleaned_specs
                 
         # Define patterns to remove for all text processing
         patterns_to_remove = [

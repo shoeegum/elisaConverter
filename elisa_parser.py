@@ -45,6 +45,9 @@ class ELISADatasheetParser:
         # Extract technical specifications
         sensitivity, detection_range, specificity, standard, cross_reactivity = self._extract_specifications()
         
+        # Extract overview data
+        overview_data = self._extract_overview()
+        
         # Initialize data structure
         data = {
             'catalog_number': self._extract_catalog_number(),
@@ -52,7 +55,8 @@ class ELISADatasheetParser:
             'intended_use': self._extract_intended_use(),
             'background': self._extract_background(),
             'assay_principle': self._extract_assay_principle(),
-            'overview': self._extract_overview(),
+            'overview': overview_data['text'],  # Text part of overview
+            'overview_specifications': overview_data.get('specifications_table', []),  # Table data for overview
             'technical_details': self._extract_technical_details(),
             'preparations_before_assay': self._extract_preparations_before_assay(),
             'reagents': self._extract_reagents(),
