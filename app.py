@@ -34,8 +34,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
 # Set the application password (in a real app, this would be stored securely, not hardcoded)
-# The hashed version of "elisaparser" - in production, this should come from environment variables
-APP_PASSWORD_HASH = "1f82ea75c5cc526729e2d581aeb3aeccfef4407e"
+# The hashed version of "ElisaParser2025!" - in production, this should come from environment variables
+APP_PASSWORD_HASH = "3b8fc838840530f5acee33eeef31785c41fc9502"
 
 # Create upload folders if they don't exist
 UPLOAD_FOLDER = Path('uploads')
