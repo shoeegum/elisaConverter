@@ -7,13 +7,18 @@ Web interface for extracting data from ELISA kit datasheets and populating DOCX 
 
 import os
 import uuid
+import json
+import zipfile
 import logging
+import threading
 from pathlib import Path
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, send_from_directory
+from typing import Dict, List, Any
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, send_from_directory, jsonify
 
 from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
 from docx_templates import initialize_templates, get_available_templates
+from batch_processor import BatchProcessor
 
 # Configure logging
 logging.basicConfig(
@@ -31,9 +36,13 @@ UPLOAD_FOLDER = Path('uploads')
 OUTPUT_FOLDER = Path('outputs')
 TEMPLATE_FOLDER = Path('templates_docx')
 ASSETS_FOLDER = Path('attached_assets')
+BATCH_FOLDER = Path('batch_outputs')
 DEFAULT_TEMPLATE = TEMPLATE_FOLDER / 'enhanced_template.docx'
 
-for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, TEMPLATE_FOLDER]:
+# Store batch processing tasks
+batch_tasks = {}
+
+for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, TEMPLATE_FOLDER, BATCH_FOLDER]:
     folder.mkdir(exist_ok=True)
 
 # Initialize templates
@@ -267,6 +276,169 @@ def batch_process():
 def about():
     """Show about page with information about the application"""
     return render_template('about.html')
+
+@app.route('/upload_batch', methods=['POST'])
+def upload_batch():
+    """Handle batch file upload and processing"""
+    if 'source_files' not in request.files:
+        flash('No files found', 'error')
+        return redirect(url_for('batch_process'))
+    
+    files = request.files.getlist('source_files')
+    if not files or (len(files) == 1 and files[0].filename == ''):
+        flash('No files selected', 'error')
+        return redirect(url_for('batch_process'))
+    
+    # Get selected template or use enhanced template as default
+    template_name = request.form.get('template', 'enhanced_template.docx')
+    
+    if template_name:
+        template_path = TEMPLATE_FOLDER / template_name
+        if not template_path.exists():
+            logger.warning(f"Selected template {template_name} not found, using default")
+            template_path = DEFAULT_TEMPLATE
+    else:
+        # No template selected, use enhanced template
+        template_path = DEFAULT_TEMPLATE
+    
+    # Log which template is being used
+    logger.info(f"Using template: {template_path.name} for batch processing")
+    
+    if not template_path.exists():
+        flash(f'Template not found. Please upload a template first.', 'error')
+        return redirect(url_for('batch_process'))
+    
+    # Process in parallel if requested
+    process_parallel = 'process_parallel' in request.form
+    use_metadata = 'use_metadata' in request.form
+    
+    # Create a unique task ID
+    task_id = str(uuid.uuid4())
+    batch_output_dir = BATCH_FOLDER / task_id
+    batch_output_dir.mkdir(exist_ok=True)
+    
+    # Save the files
+    file_paths = []
+    for file in files:
+        if file.filename.lower().endswith('.docx'):
+            # Save the file with a unique prefix
+            unique_id = str(uuid.uuid4())[:8]
+            filename = f"{unique_id}_{file.filename}"
+            file_path = UPLOAD_FOLDER / filename
+            file.save(file_path)
+            file_paths.append(file_path)
+    
+    # Create a batch processor
+    processor = BatchProcessor(template_path, batch_output_dir)
+    
+    # Start the batch processing in a background thread
+    def process_files_async():
+        try:
+            if process_parallel:
+                results = processor.process_batch_parallel(file_paths)
+            else:
+                results = processor.process_batch(file_paths)
+            
+            # Store the results
+            batch_tasks[task_id] = {
+                'status': 'completed',
+                'template': template_path.name,
+                'total': len(file_paths),
+                'successful': results['successful'],
+                'failed': results['failed'],
+                'files': results['files'],
+                'output_dir': str(batch_output_dir)
+            }
+            
+            # Create a ZIP file with all the outputs if there are successful results
+            if results['successful'] > 0:
+                zip_path = BATCH_FOLDER / f"{task_id}.zip"
+                with zipfile.ZipFile(zip_path, 'w') as zipf:
+                    for output_file in batch_output_dir.glob('*.docx'):
+                        zipf.write(output_file, arcname=output_file.name)
+                
+                batch_tasks[task_id]['zip_path'] = str(zip_path)
+        
+        except Exception as e:
+            logger.exception(f"Error processing batch: {e}")
+            batch_tasks[task_id]['status'] = 'failed'
+            batch_tasks[task_id]['error'] = str(e)
+    
+    # Initialize the task status
+    batch_tasks[task_id] = {
+        'status': 'processing',
+        'template': template_path.name,
+        'total': len(file_paths),
+        'successful': 0,
+        'failed': 0,
+        'files': []
+    }
+    
+    # Start processing in the background
+    thread = threading.Thread(target=process_files_async)
+    thread.daemon = True
+    thread.start()
+    
+    # Return the task ID for status checking
+    return jsonify({'task_id': task_id})
+
+@app.route('/batch_status/<task_id>')
+def batch_status(task_id):
+    """Get the status of a batch processing task"""
+    if task_id not in batch_tasks:
+        return jsonify({'status': 'not_found'})
+    
+    task = batch_tasks[task_id]
+    
+    # Add progress information from the processor if available
+    processor_progress = batch_tasks.get(task_id, {}).get('processor', None)
+    if processor_progress:
+        task['progress'] = processor_progress.get_progress()
+    
+    return jsonify(task)
+
+@app.route('/download_batch/<task_id>')
+def download_batch(task_id):
+    """Download a ZIP file containing all batch outputs"""
+    if task_id not in batch_tasks:
+        flash('Batch task not found', 'error')
+        return redirect(url_for('batch_process'))
+    
+    task = batch_tasks[task_id]
+    if 'zip_path' not in task:
+        flash('No ZIP file found for this batch', 'error')
+        return redirect(url_for('batch_process'))
+    
+    try:
+        zip_path = Path(task['zip_path'])
+        if not zip_path.exists():
+            flash('ZIP file not found', 'error')
+            return redirect(url_for('batch_process'))
+        
+        return send_file(
+            zip_path,
+            as_attachment=True,
+            download_name=f"ELISA_Kit_Datasheets_Batch_{task_id[:8]}.zip"
+        )
+    
+    except Exception as e:
+        logger.exception(f"Error downloading batch: {e}")
+        flash(f"Error downloading batch: {str(e)}", 'error')
+        return redirect(url_for('batch_process'))
+
+@app.route('/api/templates')
+def api_templates():
+    """API to get available templates"""
+    templates = get_available_templates(TEMPLATE_FOLDER)
+    return jsonify({'templates': templates})
+
+@app.route('/api/recent_outputs')
+def api_recent_outputs():
+    """API to get recent outputs"""
+    recent_outputs = list(OUTPUT_FOLDER.glob('*.docx'))
+    recent_outputs = sorted(recent_outputs, key=lambda x: x.stat().st_mtime, reverse=True)[:10]
+    output_list = [{'name': output.name, 'size': output.stat().st_size, 'date': output.stat().st_mtime} for output in recent_outputs]
+    return jsonify({'outputs': output_list})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
