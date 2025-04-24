@@ -423,8 +423,18 @@ class ELISADatasheetParser:
 
 To measure the target protein, add standards and samples to the wells, then add the biotinylated detection antibody. Wash the wells with PBS or TBS buffer, and add Avidin-Biotin-Peroxidase Complex (ABC-HRP). Wash away the unbounded ABC-HRP with PBS or TBS buffer and add TMB. TMB is substrate for HRP and will be catalyzed to produce a blue color product, which changes into yellow after adding acidic stop solution. The absorbance of the yellow product at 450nm is linearly proportional to the target protein in the sample."""
         
-    def _extract_overview(self) -> str:
-        """Extract the overview section from the datasheet."""
+    def _extract_overview(self) -> Dict[str, Any]:
+        """
+        Extract the overview section from the datasheet, including specification tables.
+        
+        Returns:
+            Dictionary containing overview text and table data
+        """
+        overview_data = {
+            'text': '',
+            'specifications_table': []
+        }
+        
         # Try to find the overview section
         overview_idx = self._find_section("Overview")
         if overview_idx is not None:
@@ -440,10 +450,46 @@ To measure the target protein, add standards and samples to the wells, then add 
                     if "TECHNICAL DETAILS" in paragraph.text.upper():
                         break
                 current_idx += 1
-            return "\n\n".join(text)
+            overview_data['text'] = "\n\n".join(text)
+        else:
+            overview_data['text'] = "Overview of the complete kit components and storage conditions."
         
-        # If not found, return an empty string
-        return "Overview of the complete kit components and storage conditions."
+        # Extract specification table data from the first two tables in the document
+        specifications = []
+        
+        # Look for tables with product specifications (usually the first 1-2 tables)
+        product_tables_examined = 0
+        for table in self.doc.tables:
+            if product_tables_examined >= 2:  # Only check the first two tables
+                break
+                
+            product_tables_examined += 1
+            
+            # Check if this looks like a specifications table
+            if len(table.rows) >= 2 and len(table.rows[0].cells) >= 2:
+                for row in table.rows:
+                    if len(row.cells) >= 2:
+                        label = row.cells[0].text.strip()
+                        value = row.cells[1].text.strip()
+                        
+                        # Skip empty values
+                        if not label or not value:
+                            continue
+                            
+                        # Clean up the label and value
+                        label = label.rstrip(':')
+                        
+                        # Add to our list of specifications
+                        specifications.append({
+                            'property': label,
+                            'value': value
+                        })
+        
+        # Only add the specs if we found any
+        if specifications:
+            overview_data['specifications_table'] = specifications
+        
+        return overview_data
         
     def _extract_technical_details(self) -> str:
         """Extract the technical details section from the datasheet."""
