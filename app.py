@@ -11,9 +11,11 @@ import json
 import zipfile
 import logging
 import threading
+import hashlib
 from pathlib import Path
+from functools import wraps
 from typing import Dict, List, Any
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, send_from_directory, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, send_from_directory, jsonify, session
 
 from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
@@ -30,6 +32,10 @@ logger = logging.getLogger(__name__)
 # Create the Flask application
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
+
+# Set the application password (in a real app, this would be stored securely, not hardcoded)
+# The hashed version of "elisaparser" - in production, this should come from environment variables
+APP_PASSWORD_HASH = "1f82ea75c5cc526729e2d581aeb3aeccfef4407e"
 
 # Create upload folders if they don't exist
 UPLOAD_FOLDER = Path('uploads')
@@ -60,7 +66,56 @@ if not DEFAULT_TEMPLATE.exists():
     else:
         logger.warning("No templates found. The application may not work correctly.")
 
+# Define a simple login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('authenticated'):
+            flash('Please log in to access this page.', 'info')
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Handle password protection"""
+    if session.get('authenticated'):
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        remember_me = 'remember_me' in request.form
+        
+        # Hash the input password using SHA-1 for comparison
+        password_hash = hashlib.sha1(password.encode()).hexdigest()
+        
+        if password_hash == APP_PASSWORD_HASH:
+            session['authenticated'] = True
+            if remember_me:
+                # Set a longer session lifetime (30 days)
+                session.permanent = True
+            
+            next_page = request.args.get('next')
+            if not next_page or not next_page.startswith('/'):
+                next_page = url_for('index')
+                
+            flash('Login successful!', 'success')
+            return redirect(next_page)
+        else:
+            flash('Invalid password. Please try again.', 'error')
+            return redirect(url_for('login'))
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    """Handle logout"""
+    session.pop('authenticated', None)
+    flash('Logged out successfully.', 'success')
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     """Render the home page"""
     # Get available templates with descriptions
@@ -83,6 +138,7 @@ def index():
     return render_template('index.html', templates=templates, recent_outputs=recent_output_names, default_template=default_template_name)
 
 @app.route('/upload', methods=['POST'])
+@login_required
 def upload_file():
     """Handle file upload and processing"""
     if 'source_file' not in request.files:
@@ -165,6 +221,7 @@ def upload_file():
         return redirect(url_for('index'))
 
 @app.route('/download/<filename>')
+@login_required
 def download_file(filename):
     """Download a processed file"""
     try:
@@ -193,6 +250,7 @@ def download_file(filename):
         return redirect(url_for('index'))
 
 @app.route('/upload_template', methods=['POST'])
+@login_required
 def upload_template():
     """Handle template upload"""
     if 'template_file' not in request.files:
@@ -220,6 +278,7 @@ def upload_template():
     return redirect(url_for('index'))
 
 @app.route('/view_source')
+@login_required
 def view_source():
     """View the source structure page"""
     # Extract structure from default source file to show as an example
@@ -252,6 +311,7 @@ def view_source():
         return redirect(url_for('index'))
 
 @app.route('/batch_process')
+@login_required
 def batch_process():
     """Show batch processing page"""
     # Get available templates with descriptions
