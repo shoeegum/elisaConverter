@@ -154,6 +154,17 @@ class TemplatePopulator:
             # Remove the Publications and Submit a Product Review sections
             processed_data['data_analysis'] = re.sub(r'Publications.*?using this product.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
             processed_data['data_analysis'] = re.sub(r'Submit a Product Review to Biocompare.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
+        
+        # Convert required materials to a list for bullet points
+        if 'required_materials' in processed_data:
+            required_text = processed_data['required_materials']
+            # Clean up the text first
+            required_text = required_text.replace('Materials required', '').replace('Required but not provided', '').strip()
+            # Split by newlines or bullet-like characters
+            materials_list = re.split(r'[\n•\-*]+', required_text)
+            # Clean up and filter empty items
+            materials_list = [item.strip() for item in materials_list if item.strip()]
+            processed_data['required_materials_list'] = materials_list
                 
         # Replace "Boster" with "Innovative Research" in all text fields
         for key, value in processed_data.items():

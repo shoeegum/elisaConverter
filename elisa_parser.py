@@ -52,6 +52,9 @@ class ELISADatasheetParser:
             'intended_use': self._extract_intended_use(),
             'background': self._extract_background(),
             'assay_principle': self._extract_assay_principle(),
+            'overview': self._extract_overview(),
+            'technical_details': self._extract_technical_details(),
+            'preparations_before_assay': self._extract_preparations_before_assay(),
             'reagents': self._extract_reagents(),
             'required_materials': self._extract_required_materials(),
             'standard_curve': self._extract_standard_curve(),
@@ -261,23 +264,106 @@ class ELISADatasheetParser:
         for heading in ["Assay Principle", "Principle of the Assay", "Principle"]:
             section_idx = self._find_section(heading)
             if section_idx is not None:
-                return self._extract_section_text(heading, ["Materials", "Reagents", "Kit Components"])
+                # Get only the first paragraph or two, not everything until the next section
+                text = self.doc.paragraphs[section_idx + 1].text.strip()
+                if section_idx + 2 < len(self.doc.paragraphs):
+                    next_text = self.doc.paragraphs[section_idx + 2].text.strip()
+                    if next_text and "overview" not in next_text.lower() and "technical" not in next_text.lower():
+                        text += "\n\n" + next_text
+                return text
         
         # Look for paragraphs describing the assay type
         for i, para in enumerate(self.doc.paragraphs):
             if "ELISA" in para.text and "antibody" in para.text.lower():
-                # Extract this paragraph and possibly the next few
-                text = [para.text]
-                for j in range(1, 4):  # Get up to 3 more paragraphs
-                    if i+j < len(self.doc.paragraphs):
-                        next_text = self.doc.paragraphs[i+j].text.strip()
-                        if next_text and "SECTION" not in next_text.upper():
-                            text.append(next_text)
-                        else:
-                            break
-                return "\n\n".join(text)
+                # Extract this paragraph only
+                return para.text
                 
         return "This kit uses a sandwich ELISA technique for the quantitative measurement of the target protein."
+        
+    def _extract_overview(self) -> str:
+        """Extract the overview section from the datasheet."""
+        # Try to find the overview section
+        overview_idx = self._find_section("Overview")
+        if overview_idx is not None:
+            # Get the content of the overview section
+            text = []
+            current_idx = overview_idx + 1
+            while current_idx < len(self.doc.paragraphs):
+                paragraph = self.doc.paragraphs[current_idx]
+                if paragraph.text.strip() and "TECHNICAL DETAILS" not in paragraph.text.upper():
+                    text.append(paragraph.text.strip())
+                else:
+                    # Stop if we hit another major section
+                    if "TECHNICAL DETAILS" in paragraph.text.upper():
+                        break
+                current_idx += 1
+            return "\n\n".join(text)
+        
+        # If not found, return an empty string
+        return "Overview of the complete kit components and storage conditions."
+        
+    def _extract_technical_details(self) -> str:
+        """Extract the technical details section from the datasheet."""
+        # Try to find the technical details section
+        tech_idx = self._find_section("Technical Details")
+        if tech_idx is not None:
+            # Get the content of the technical details section
+            text = []
+            current_idx = tech_idx + 1
+            while current_idx < len(self.doc.paragraphs):
+                paragraph = self.doc.paragraphs[current_idx]
+                if paragraph.text.strip() and "PREPARATION" not in paragraph.text.upper():
+                    text.append(paragraph.text.strip())
+                else:
+                    # Stop if we hit another major section
+                    if "PREPARATION" in paragraph.text.upper():
+                        break
+                current_idx += 1
+            return "\n\n".join(text)
+        
+        # If not found, extract from specifications section
+        specs_idx = self._find_section("Specifications")
+        if specs_idx is not None:
+            # Extract a few paragraphs
+            text = []
+            current_idx = specs_idx + 1
+            for i in range(5):  # Get up to 5 paragraphs
+                if current_idx + i < len(self.doc.paragraphs):
+                    para_text = self.doc.paragraphs[current_idx + i].text.strip()
+                    if para_text:
+                        text.append(para_text)
+            return "\n\n".join(text)
+            
+        # If still not found, construct from specifications
+        sensitivity, detection_range, specificity, standard, cross_reactivity = self._extract_specifications()
+        return f"Sensitivity: {sensitivity}\nDetection Range: {detection_range}\nSpecificity: {specificity}\nStandard: {standard}\nCross-reactivity: {cross_reactivity}"
+        
+    def _extract_preparations_before_assay(self) -> str:
+        """Extract the preparations before assay section from the datasheet."""
+        # Try to find the preparations section
+        prep_idx = self._find_section("Preparations Before Assay")
+        if prep_idx is not None:
+            # Get the content of the preparations section
+            text = []
+            current_idx = prep_idx + 1
+            while current_idx < len(self.doc.paragraphs):
+                paragraph = self.doc.paragraphs[current_idx]
+                if paragraph.text.strip() and "KIT COMPONENTS" not in paragraph.text.upper():
+                    text.append(paragraph.text.strip())
+                else:
+                    # Stop if we hit another major section
+                    if "KIT COMPONENTS" in paragraph.text.upper():
+                        break
+                current_idx += 1
+            return "\n\n".join(text)
+        
+        # If not found, try reagent preparation
+        reagent_prep = self._extract_reagent_preparation()
+        if reagent_prep:
+            return "Please prepare all reagents before starting the assay.\n\n" + reagent_prep
+            
+        # If still not found, return standard instructions
+        return "Please prepare all reagents and samples before starting the assay. Allow all kit components to reach room temperature before use."
     
     def _extract_reagents(self) -> List[Dict[str, str]]:
         """Extract the reagents/kit components from the datasheet."""
