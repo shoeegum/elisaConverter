@@ -97,7 +97,8 @@ def add_technical_details_table(doc):
     
     for i, prop in enumerate(properties):
         table.rows[i].cells[0].text = prop
-        table.rows[i].cells[1].text = f"{{{{ technical_details_table[{i}].value }}}}"
+        # Use safer access with default fallback if index doesn't exist
+        table.rows[i].cells[1].text = "{{ technical_details_table[" + str(i) + "].value if technical_details_table and " + str(i) + " < technical_details_table|length else 'N/A' }}"
         
         # Make property names bold
         for paragraph in table.rows[i].cells[0].paragraphs:
@@ -146,9 +147,9 @@ def fix_variability_tables(doc):
     # Add sample rows
     for i in range(1, 4):
         intra_table.rows[i].cells[0].text = f"Sample {i}"
-        intra_table.rows[i].cells[1].text = f"{{{{ variability.intra_assay.sample_{i}.n }}}}"
-        intra_table.rows[i].cells[2].text = f"{{{{ variability.intra_assay.sample_{i}.mean }}}}"
-        intra_table.rows[i].cells[3].text = f"{{{{ variability.intra_assay.sample_{i}.sd }}}}"
+        intra_table.rows[i].cells[1].text = "{{ variability.intra_assay.sample_" + str(i) + ".n if variability and variability.intra_assay else 'N/A' }}"
+        intra_table.rows[i].cells[2].text = "{{ variability.intra_assay.sample_" + str(i) + ".mean if variability and variability.intra_assay else 'N/A' }}"
+        intra_table.rows[i].cells[3].text = "{{ variability.intra_assay.sample_" + str(i) + ".sd if variability and variability.intra_assay else 'N/A' }}"
     
     # Add a paragraph with inter-assay text
     para = doc.add_paragraph("Three samples of known concentration were tested in separate assays to assess inter-assay precision.")
@@ -173,9 +174,9 @@ def fix_variability_tables(doc):
     # Add sample rows
     for i in range(1, 4):
         inter_table.rows[i].cells[0].text = f"Sample {i}"
-        inter_table.rows[i].cells[1].text = f"{{{{ variability.inter_assay.sample_{i}.n }}}}"
-        inter_table.rows[i].cells[2].text = f"{{{{ variability.inter_assay.sample_{i}.mean }}}}"
-        inter_table.rows[i].cells[3].text = f"{{{{ variability.inter_assay.sample_{i}.sd }}}}"
+        inter_table.rows[i].cells[1].text = "{{ variability.inter_assay.sample_" + str(i) + ".n if variability and variability.inter_assay else 'N/A' }}"
+        inter_table.rows[i].cells[2].text = "{{ variability.inter_assay.sample_" + str(i) + ".mean if variability and variability.inter_assay else 'N/A' }}"
+        inter_table.rows[i].cells[3].text = "{{ variability.inter_assay.sample_" + str(i) + ".sd if variability and variability.inter_assay else 'N/A' }}"
     
     return intra_table, inter_table
 
@@ -218,13 +219,14 @@ def fix_reproducibility_table(doc):
     # Add sample rows
     for i in range(1, 4):
         idx = i - 1  # 0-indexed for template access
-        repro_table.rows[i].cells[0].text = f"{{{{ reproducibility[{idx}].sample }}}}"
-        repro_table.rows[i].cells[1].text = f"{{{{ reproducibility[{idx}].lot1 }}}}"
-        repro_table.rows[i].cells[2].text = f"{{{{ reproducibility[{idx}].lot2 }}}}"
-        repro_table.rows[i].cells[3].text = f"{{{{ reproducibility[{idx}].lot3 }}}}"
-        repro_table.rows[i].cells[4].text = f"{{{{ reproducibility[{idx}].lot4 }}}}"
-        repro_table.rows[i].cells[5].text = f"{{{{ reproducibility[{idx}].sd }}}}"
-        repro_table.rows[i].cells[6].text = f"{{{{ reproducibility[{idx}].cv }}}}"
+        # Use safe indexing with defaults
+        repro_table.rows[i].cells[0].text = "{{ reproducibility[" + str(idx) + "].sample if reproducibility and " + str(idx) + " < reproducibility|length else 'Sample " + str(i) + "' }}"
+        repro_table.rows[i].cells[1].text = "{{ reproducibility[" + str(idx) + "].lot1 if reproducibility and " + str(idx) + " < reproducibility|length else 'N/A' }}"
+        repro_table.rows[i].cells[2].text = "{{ reproducibility[" + str(idx) + "].lot2 if reproducibility and " + str(idx) + " < reproducibility|length else 'N/A' }}"
+        repro_table.rows[i].cells[3].text = "{{ reproducibility[" + str(idx) + "].lot3 if reproducibility and " + str(idx) + " < reproducibility|length else 'N/A' }}"
+        repro_table.rows[i].cells[4].text = "{{ reproducibility[" + str(idx) + "].lot4 if reproducibility and " + str(idx) + " < reproducibility|length else 'N/A' }}"
+        repro_table.rows[i].cells[5].text = "{{ reproducibility[" + str(idx) + "].sd if reproducibility and " + str(idx) + " < reproducibility|length else 'N/A' }}"
+        repro_table.rows[i].cells[6].text = "{{ reproducibility[" + str(idx) + "].cv if reproducibility and " + str(idx) + " < reproducibility|length else 'N/A' }}"
     
     return repro_table
 
@@ -245,8 +247,9 @@ def fix_all_tables():
     if technical_table:
         logger.info("Added technical details table")
     
-    intra_table, inter_table = fix_variability_tables(doc)
-    if intra_table and inter_table:
+    result = fix_variability_tables(doc)
+    if result:
+        intra_table, inter_table = result
         logger.info("Fixed variability tables")
     
     repro_table = fix_reproducibility_table(doc)
