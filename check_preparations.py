@@ -17,7 +17,7 @@ def check_preparations_section(document_path):
     in_section = False
     
     for para in doc.paragraphs:
-        if 'PREPARATIONS BEFORE ASSAY' in para.text:
+        if 'PREPARATIONS BEFORE ASSAY' in para.text.upper():
             in_section = True
             print("\nFound section!")
         elif in_section and any(s in para.text.upper() for s in ['KIT COMPONENTS', 'MATERIALS PROVIDED']):
@@ -40,4 +40,8 @@ def check_preparations_section(document_path):
     return found_numbered_lists
 
 if __name__ == "__main__":
-    check_preparations_section("output_populated_template.docx")
+    import sys
+    if len(sys.argv) > 1:
+        check_preparations_section(sys.argv[1])
+    else:
+        check_preparations_section("output_populated_template.docx")
