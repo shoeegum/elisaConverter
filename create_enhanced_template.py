@@ -43,10 +43,10 @@ def create_enhanced_template():
     
     # Set narrow margins for the entire document
     for section in doc.sections:
-        section.top_margin = Inches(0.75)
-        section.bottom_margin = Inches(0.75)
-        section.left_margin = Inches(0.75)
-        section.right_margin = Inches(0.75)
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
+        section.left_margin = Inches(0.5)
+        section.right_margin = Inches(0.5)
     
     # Create heading styles
     # Heading 1 for kit name
