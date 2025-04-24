@@ -349,37 +349,60 @@ class ELISADatasheetParser:
                             paragraphs.append(paragraph_text)
                 
                 if paragraphs:
-                    # Join all found paragraphs
-                    text = "\n\n".join(paragraphs)
+                    # Make sure each paragraph is treated separately
+                    # Format the text with proper paragraph breaks
+                    formatted_paragraphs = []
                     
-                    # For the principle section, keep the full text as requested by the user
-                    # This includes any "this kit uses" sentences
+                    # Process each paragraph to clean and format it
+                    for para in paragraphs:
+                        # Clean up any formatting issues
+                        cleaned_para = para.replace("..", ".").replace(". .", ".").strip()
+                        
+                        # Make sure it ends with a period
+                        if not cleaned_para.endswith(".") and cleaned_para:
+                            cleaned_para += "."
+                            
+                        formatted_paragraphs.append(cleaned_para)
                     
-                    # Just clean up any formatting issues
-                    text = text.replace("..", ".").replace(". .", ".").strip()
-                    
-                    # Make sure it ends with a period
-                    if not text.endswith(".") and text:
-                        text += "."
+                    # Join paragraphs with double newlines to ensure they render as separate paragraphs
+                    text = "\n\n".join(formatted_paragraphs)
                     
                     return text
         
         # Look for paragraphs describing the assay type
+        fallback_paragraphs = []
         for i, para in enumerate(self.doc.paragraphs):
             if "ELISA" in para.text and "antibody" in para.text.lower():
-                # Extract this paragraph and keep the full text as requested by the user
-                text = para.text
+                # Add this paragraph to our collection
+                fallback_paragraphs.append(para.text)
                 
-                # Just clean up formatting
-                text = text.replace("..", ".").replace(". .", ".").strip()
+                # If there's another paragraph after this one, add that too
+                if i + 1 < len(self.doc.paragraphs) and len(self.doc.paragraphs[i+1].text) > 50:
+                    # Make sure it's related to the assay principle
+                    next_para = self.doc.paragraphs[i+1].text
+                    if any(term in next_para.lower() for term in ["sample", "standard", "substrate", "measure", "detect", "absorbance"]):
+                        fallback_paragraphs.append(next_para)
                 
-                # Make sure it ends with a period
-                if not text.endswith(".") and text:
-                    text += "."
+                # Format all found paragraphs
+                formatted_paragraphs = []
+                for p in fallback_paragraphs:
+                    # Clean up any formatting issues
+                    cleaned_para = p.replace("..", ".").replace(". .", ".").strip()
+                    
+                    # Make sure it ends with a period
+                    if not cleaned_para.endswith(".") and cleaned_para:
+                        cleaned_para += "."
+                        
+                    formatted_paragraphs.append(cleaned_para)
                 
+                # Join paragraphs with double newlines to ensure they render as separate paragraphs
+                text = "\n\n".join(formatted_paragraphs)
                 return text
                 
-        return "This ELISA employs a specific antibody against the target protein coated on a 96-well plate. Standards and samples are added to the wells, and the target protein binds to the immobilized antibody. After washing, biotinylated detection antibody is added, followed by Avidin-HRP conjugate. TMB substrate is then added, producing a blue color in proportion to the bound target protein."
+        # Return a default principle with two paragraphs as requested
+        return """This ELISA employs a specific antibody against the target protein coated on a 96-well strip plate. The detection antibody is a biotinylated antibody specific for the target protein. The capture antibody is monoclonal antibody and the detection antibody is polyclonal antibody.
+
+To measure the target protein, add standards and samples to the wells, then add the biotinylated detection antibody. Wash the wells with PBS or TBS buffer, and add Avidin-Biotin-Peroxidase Complex (ABC-HRP). Wash away the unbounded ABC-HRP with PBS or TBS buffer and add TMB. TMB is substrate for HRP and will be catalyzed to produce a blue color product, which changes into yellow after adding acidic stop solution. The absorbance of the yellow product at 450nm is linearly proportional to the target protein in the sample."""
         
     def _extract_overview(self) -> str:
         """Extract the overview section from the datasheet."""
