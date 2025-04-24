@@ -279,6 +279,9 @@ def fix_sample_sections(document_path: Path) -> None:
         # 7. Calculate total tables added
         total_tables_added = table_idx_in_new_doc + tables_added
         
+        # Apply Calibri font and 1.15 line spacing to the entire document
+        apply_document_formatting(temp_doc)
+        
         # Save the temporary document
         temp_doc.save(temp_path)
         
@@ -294,6 +297,35 @@ def fix_sample_sections(document_path: Path) -> None:
     except Exception as e:
         logger.error(f"Error fixing sample sections: {e}")
         # Don't raise, continue as best we can
+
+def apply_document_formatting(doc):
+    """
+    Apply Calibri font and 1.15 line spacing to all paragraphs in the document.
+    
+    Args:
+        doc: The Document object to modify
+    """
+    for para in doc.paragraphs:
+        # Set paragraph spacing to 1.15
+        para.paragraph_format.line_spacing = 1.15
+        para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+        
+        # Set font to Calibri for all runs in the paragraph
+        for run in para.runs:
+            run.font.name = "Calibri"
+    
+    # Also apply to table content
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    # Set paragraph spacing to 1.15
+                    para.paragraph_format.line_spacing = 1.15
+                    para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+                    
+                    # Set font to Calibri for all runs
+                    for run in para.runs:
+                        run.font.name = "Calibri"
 
 if __name__ == "__main__":
     # Example usage
