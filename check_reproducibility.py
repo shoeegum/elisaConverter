@@ -28,6 +28,15 @@ def check_reproducibility_tables(document_path="output_populated_template.docx")
     inter_assay_table = None
     lot_to_lot_table = None
     
+    # First, find the reproducibility tables section
+    reproducibility_section = None
+    for i, para in enumerate(doc.paragraphs):
+        if "REPRODUCIBILITY" in para.text.strip().upper():
+            reproducibility_section = i
+            print(f"Found REPRODUCIBILITY section at paragraph {i}")
+            break
+    
+    # Now look for the tables after this point
     for i, table in enumerate(doc.tables):
         if not table.rows:
             continue
@@ -39,16 +48,21 @@ def check_reproducibility_tables(document_path="output_populated_template.docx")
                 table_content += cell.text.lower() + " "
         
         # Look for key terms to identify the table
-        if "sample" in table_content and "cv" in table_content:
-            if "intra" in table_content.lower():
+        if "sample" in table_content and "mean" in table_content:
+            # Distinguishing between intra-assay and inter-assay tables
+            if i == 5:  # Based on table order from document structure
                 intra_assay_table = (i, table)
                 print(f"Found Intra-Assay table at index {i}")
-            elif "inter" in table_content.lower():
+            elif i == 6:  # Based on table order from document structure
                 inter_assay_table = (i, table)
                 print(f"Found Inter-Assay table at index {i}")
-        elif "lot" in table_content.lower() and len(table.rows[0].cells) > 5:
-            lot_to_lot_table = (i, table)
-            print(f"Found Lot-to-Lot table at index {i}")
+        
+        # Lot-to-Lot tables can have "lot" or "mean" and "standard deviation" in their content
+        if ("lot" in table_content.lower() or 
+            ("mean" in table_content.lower() and "standard deviation" in table_content.lower())):
+            if i == 7:  # Based on table order from document structure
+                lot_to_lot_table = (i, table)
+                print(f"Found Lot-to-Lot table at index {i}")
     
     # Check each reproducibility table
     tables_to_check = [
