@@ -429,14 +429,49 @@ class TemplatePopulator:
             # Clean and prepare the data
             processed_data = self._clean_data(data, kit_name, catalog_number, lot_number)
             
-            # Prepare reagents as a list for the template instead of trying to generate HTML
-            if 'reagents' in processed_data:
-                # Ensure we have proper reagent data
+            # Prepare reagents as a list for the template with all columns
+            if 'reagents' in processed_data and 'reagents_header' in processed_data:
+                # Ensure we have proper reagent data with all columns
+                reagents_list = []
+                
+                # Get the header row for column mapping
+                header_row = processed_data.get('reagents_header', ['Description', 'Quantity'])
+                
+                # Create a simplified header name that will be used in the template
+                processed_data['reagents_header_simple'] = []
+                for header in header_row:
+                    # Convert header to a simplified format
+                    simple_header = header.lower().replace(' ', '_').replace('/', '_')
+                    processed_data['reagents_header_simple'].append(simple_header)
+                
+                # Create a full reagent table with all columns
+                for reagent in processed_data['reagents']:
+                    if isinstance(reagent, dict) and 'name' in reagent:
+                        # Process each reagent entry
+                        reagent_entry = {
+                            'name': reagent.get('name', ''),
+                            'quantity': reagent.get('quantity', ''),
+                            'volume': reagent.get('volume', ''),
+                            'storage': reagent.get('storage', '')
+                        }
+                        
+                        # Add any other columns from the original data
+                        for key, value in reagent.items():
+                            if key not in ['name', 'quantity', 'volume', 'storage']:
+                                reagent_entry[key] = value
+                                
+                        reagents_list.append(reagent_entry)
+                
+                processed_data['reagents_list'] = reagents_list
+                processed_data['has_full_reagents_table'] = True
+            elif 'reagents' in processed_data:
+                # Fallback for old format
                 reagents_list = []
                 for reagent in processed_data['reagents']:
                     if isinstance(reagent, dict) and 'name' in reagent and 'quantity' in reagent:
                         reagents_list.append(reagent)
                 processed_data['reagents_list'] = reagents_list
+                processed_data['has_full_reagents_table'] = False
             
             # Render the template with the context data
             self.template.render(processed_data)

@@ -196,33 +196,59 @@ def create_enhanced_template():
     
     # PREPARATIONS BEFORE ASSAY
     prep_header = doc.add_paragraph("PREPARATIONS BEFORE ASSAY", style='Heading 2')
-    prep_para = doc.add_paragraph("{{ preparations_numbered }}")
+    
+    # Add a placeholder for the preparation text (non-numbered portion)
+    doc.add_paragraph("{{ preparations_text }}")
+    
+    # Add numbered preparation steps using Jinja2 loop
+    doc.add_paragraph("{% if preparations_steps %}", style="Hidden Text")
+    
+    # Placeholder for a numbered step
+    num_para = doc.add_paragraph()
+    num_para.style = 'List Number'
+    num_para.add_run("{{ step.text }}")
+    
+    # Add the loop control
+    doc.add_paragraph("{% for step in preparations_steps %}", style="Hidden Text")
+    doc.add_paragraph("{% endfor %}", style="Hidden Text")
+    doc.add_paragraph("{% endif %}", style="Hidden Text")
     
     # KIT COMPONENTS/MATERIALS PROVIDED
     kit_components_header = doc.add_paragraph("KIT COMPONENTS/MATERIALS PROVIDED", style='Heading 2')
-    # Add reagents table
-    reagents_table = doc.add_table(rows=1, cols=2)
+    
+    # Add 4-column reagents table
+    reagents_table = doc.add_table(rows=1, cols=4)
     reagents_table.style = 'Table Grid'
-    reagents_table.autofit = True
+    
     # Set column widths
-    for cell in reagents_table.columns[0].cells:
-        cell.width = Inches(4.0)
-    for cell in reagents_table.columns[1].cells:
-        cell.width = Inches(2.0)
+    col_widths = [3.0, 1.0, 1.5, 2.5]  # inches for each column
+    for i, width in enumerate(col_widths):
+        for cell in reagents_table.columns[i].cells:
+            cell.width = Inches(width)
     
     # Add headers to reagents table
     reagents_headers = reagents_table.rows[0].cells
-    reagents_headers[0].text = "Component"
+    reagents_headers[0].text = "Description"
     reagents_headers[1].text = "Quantity"
+    reagents_headers[2].text = "Volume"
+    reagents_headers[3].text = "Storage of opened/reconstituted material"
     
-    # Make headers bold
+    # Make headers bold and center-aligned
     for cell in reagents_headers:
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.bold = True
+        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for run in cell.paragraphs[0].runs:
+            run.font.bold = True
     
-    # Add placeholder for dynamic content - using jinja-style templating
-    doc.add_paragraph("{{ reagents_table_html|safe }}")
+    # Add a sample row with template variables
+    row = reagents_table.add_row()
+    row.cells[0].text = "{{ reagent.name }}"
+    row.cells[1].text = "{{ reagent.quantity }}"
+    row.cells[2].text = "{{ reagent.volume }}"
+    row.cells[3].text = "{{ reagent.storage }}"
+    
+    # Add jinja2 for-loop for the reagents
+    doc.add_paragraph("{% for reagent in reagents_list %}", style="Hidden Text")
+    doc.add_paragraph("{% endfor %}", style="Hidden Text")
     
     # MATERIALS REQUIRED BUT NOT PROVIDED
     materials_header = doc.add_paragraph("MATERIALS REQUIRED BUT NOT PROVIDED", style='Heading 2')
