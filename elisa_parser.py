@@ -323,21 +323,69 @@ class ELISADatasheetParser:
         for heading in ["Assay Principle", "Principle of the Assay", "Principle"]:
             section_idx = self._find_section(heading)
             if section_idx is not None:
-                # Get only the first paragraph or two, not everything until the next section
-                text = self.doc.paragraphs[section_idx + 1].text.strip()
-                if section_idx + 2 < len(self.doc.paragraphs):
-                    next_text = self.doc.paragraphs[section_idx + 2].text.strip()
-                    if next_text and "overview" not in next_text.lower() and "technical" not in next_text.lower():
-                        text += "\n\n" + next_text
-                return text
+                # Get the section text
+                text = ""
+                current_idx = section_idx + 1
+                
+                # Collect paragraphs until we hit one that seems like a different section
+                # or until we've collected enough content
+                paragraphs = []
+                while current_idx < len(self.doc.paragraphs) and len(paragraphs) < 4:
+                    paragraph_text = self.doc.paragraphs[current_idx].text.strip()
+                    
+                    # Stop if we hit a new section
+                    if paragraph_text and (paragraph_text.isupper() or 
+                                          any(term in paragraph_text.upper() for term in ["OVERVIEW", "TECHNICAL", "REAGENT"])):
+                        break
+                    
+                    # Add non-empty paragraphs to our collection
+                    if paragraph_text and len(paragraph_text) > 5:
+                        # Skip sentences about "submit a product review" or "gift card"
+                        if not any(term in paragraph_text.lower() for term in ["submit a review", "gift card", "amazon", "biocompare"]):
+                            paragraphs.append(paragraph_text)
+                    
+                    current_idx += 1
+                
+                if paragraphs:
+                    # Join all found paragraphs
+                    text = "\n\n".join(paragraphs)
+                    
+                    # Remove any final sentences mentioning "this kit uses" as they may be redundant
+                    text_parts = text.split(".")
+                    filtered_parts = []
+                    for part in text_parts:
+                        if "this kit uses" not in part.lower() and "kit is based on" not in part.lower():
+                            filtered_parts.append(part)
+                    
+                    # Rejoin with periods
+                    text = ".".join(filtered_parts)
+                    if not text.endswith(".") and text:
+                        text += "."
+                    
+                    # Clean up any double periods or formatting issues
+                    text = text.replace("..", ".").replace(". .", ".").strip()
+                    
+                    return text
         
         # Look for paragraphs describing the assay type
         for i, para in enumerate(self.doc.paragraphs):
             if "ELISA" in para.text and "antibody" in para.text.lower():
-                # Extract this paragraph only
-                return para.text
+                # Extract this paragraph and remove any final sentence about kit usage
+                text = para.text
+                text_parts = text.split(".")
+                filtered_parts = []
+                for part in text_parts:
+                    if "this kit uses" not in part.lower() and "kit is based on" not in part.lower():
+                        filtered_parts.append(part)
                 
-        return "This kit uses a sandwich ELISA technique for the quantitative measurement of the target protein."
+                # Rejoin with periods
+                text = ".".join(filtered_parts)
+                if not text.endswith(".") and text:
+                    text += "."
+                
+                return text
+                
+        return "This ELISA employs a specific antibody against the target protein coated on a 96-well plate. Standards and samples are added to the wells, and the target protein binds to the immobilized antibody. After washing, biotinylated detection antibody is added, followed by Avidin-HRP conjugate. TMB substrate is then added, producing a blue color in proportion to the bound target protein."
         
     def _extract_overview(self) -> str:
         """Extract the overview section from the datasheet."""
