@@ -82,8 +82,17 @@ def upload_file():
         source_path = UPLOAD_FOLDER / source_filename
         source_file.save(source_path)
         
-        # Generate output filename
-        output_filename = f"output_{unique_id}.docx"
+        # Get catalog number and lot number for filename
+        catalog_number = request.form.get('catalog_number', '').strip()
+        lot_number = request.form.get('lot_number', '').strip()
+        
+        # Generate output filename based on catalog and lot numbers if provided
+        if catalog_number and lot_number:
+            output_filename = f"{catalog_number}-{lot_number}.docx"
+        else:
+            # Fall back to default naming if either is missing
+            output_filename = f"output_{unique_id}.docx"
+            
         output_path = OUTPUT_FOLDER / output_filename
         
         # Get optional user-provided values

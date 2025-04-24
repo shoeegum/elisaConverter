@@ -110,6 +110,18 @@ def main():
         parser = ELISADatasheetParser(source_path)
         data = parser.extract_data()
         
+        # Check if we should use catalog/lot number for output filename
+        catalog_number = args.catalog_number if hasattr(args, 'catalog_number') and args.catalog_number else None
+        lot_number = args.lot_number if hasattr(args, 'lot_number') and args.lot_number else None
+        
+        # If both catalog and lot number are provided, rename the output file
+        if catalog_number and lot_number and str(output_path) == str(args.output):
+            # Create new output path with catalog-lot format
+            output_dir = output_path.parent
+            new_filename = f"{catalog_number}-{lot_number}.docx"
+            output_path = output_dir / new_filename
+            logger.info(f"Using catalog/lot number format for output: {output_path}")
+        
         # Populate the template with extracted data
         logger.info(f"Populating template: {template_path}")
         populator = TemplatePopulator(template_path)
@@ -119,8 +131,8 @@ def main():
             data, 
             output_path,
             kit_name=args.kit_name if hasattr(args, 'kit_name') else None,
-            catalog_number=args.catalog_number if hasattr(args, 'catalog_number') else None,
-            lot_number=args.lot_number if hasattr(args, 'lot_number') else None
+            catalog_number=catalog_number,
+            lot_number=lot_number
         )
         
         logger.info(f"Successfully generated populated template at: {output_path}")
