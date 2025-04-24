@@ -9,7 +9,7 @@ import os
 import uuid
 import logging
 from pathlib import Path
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, send_from_directory
 
 from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
@@ -155,13 +155,30 @@ def upload_file():
 @app.route('/download/<filename>')
 def download_file(filename):
     """Download a processed file"""
-    output_path = OUTPUT_FOLDER / filename
-    
-    if not output_path.exists():
-        flash(f'File {filename} not found', 'error')
+    try:
+        # Make sure the file name only contains safe characters
+        safe_filename = os.path.basename(filename)
+        output_path = OUTPUT_FOLDER / safe_filename
+        
+        # Additional check to ensure file exists and is accessible
+        if not output_path.exists():
+            logger.error(f'File {safe_filename} not found at {output_path}')
+            flash(f'File {safe_filename} not found', 'error')
+            return redirect(url_for('index'))
+        
+        logger.info(f'Sending file: {output_path}, size: {output_path.stat().st_size} bytes')
+        
+        # Use send_from_directory with more explicit parameters
+        return send_from_directory(
+            directory=str(OUTPUT_FOLDER),
+            path=safe_filename,
+            as_attachment=True,
+            download_name=f"ELISA_Kit_Datasheet_{safe_filename}"
+        )
+    except Exception as e:
+        logger.exception(f"Error downloading file: {e}")
+        flash(f"Error downloading file: {str(e)}", 'error')
         return redirect(url_for('index'))
-    
-    return send_file(output_path, as_attachment=True)
 
 @app.route('/upload_template', methods=['POST'])
 def upload_template():
