@@ -95,12 +95,15 @@ def check_kit_components(output_path="output_populated_template.docx"):
             cells = [cell.text.strip() for cell in table.rows[row_idx].cells]
             print(f"Row {row_idx+1}: {cells}")
     
+    # Check Table 3 - which is the 4-column kit components table
+    table_idx = 2  # Force to check Table 3 which is at index 2
+    
     # Now examine the selected kit components table
-    kit_table = doc.tables[kit_components_table_idx]
+    kit_table = doc.tables[table_idx]
     rows = len(kit_table.rows)
     cols = len(kit_table.columns)
     
-    print(f"\nSelected Kit Components Table (Table {kit_components_table_idx+1}):")
+    print(f"\nKit Components Table (Table 3):")
     print("-" * 50)
     print(f"Dimensions: {rows} rows x {cols} columns")
     
