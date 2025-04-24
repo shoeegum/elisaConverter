@@ -161,6 +161,29 @@ class TemplatePopulator:
             processed_data['required_materials_list'] = processed_data['required_materials']
             # Also keep original format for compatibility
             processed_data['required_materials_text'] = "\n".join(processed_data['required_materials'])
+            
+            # Format as HTML for the enhanced template
+            required_materials_html = ""
+            materials = processed_data['required_materials']
+            if materials:
+                bullet_items = []
+                for item in materials:
+                    if item.strip():
+                        bullet_items.append(f"• {item.strip()}")
+                processed_data['required_materials_list_html'] = "\n".join(bullet_items)
+                
+        # Format assay protocol as numbered steps for HTML display
+        if 'assay_protocol' in processed_data and processed_data['assay_protocol']:
+            protocol = processed_data['assay_protocol']
+            if protocol:
+                numbered_steps = []
+                for i, step in enumerate(protocol, 1):
+                    numbered_steps.append(f"{i}. {step}")
+                processed_data['assay_protocol_html'] = "\n".join(numbered_steps)
+                
+        # Format standard curve data for table display
+        if 'standard_curve_table' in processed_data and processed_data['standard_curve_table']:
+            processed_data['standard_curve_table_html'] = processed_data['standard_curve_table']
                 
         # Replace "Boster" with "Innovative Research" in all text fields
         for key, value in processed_data.items():
