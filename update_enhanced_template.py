@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Update the enhanced template to include missing sections:
+Update the enhanced template to include all required sections:
 - ASSAY PRINCIPLE
 - SAMPLE PREPARATION AND STORAGE
 - SAMPLE COLLECTION NOTES
 - SAMPLE DILUTION GUIDELINE
 - DATA ANALYSIS
+
+This will create a new enhanced template file that includes all the required sections.
 """
 
 import logging
@@ -13,204 +15,168 @@ from pathlib import Path
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Pt, RGBColor
-from docx.oxml import parse_xml
-from docx.oxml.ns import nsdecls
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def create_heading(doc, text, level=2):
+    """Create a heading with the specified text and level."""
+    heading = doc.add_paragraph(text)
+    heading.style = f'Heading {level}'
+    
+    # Set heading to all caps and blue color
+    for run in heading.runs:
+        run.bold = True
+        run.font.color.rgb = RGBColor(0, 70, 180)  # RGB for blue
+        run.text = run.text.upper()
+
+def create_paragraph(doc, text="", style="Normal"):
+    """Create a paragraph with the specified text and style."""
+    paragraph = doc.add_paragraph()
+    paragraph.style = style
+    if text:
+        paragraph.add_run(text)
+    return paragraph
 
 def update_enhanced_template():
     """
-    Update the enhanced template by adding the missing sections.
+    Update the enhanced template to include all required sections.
     """
-    template_path = Path('templates_docx/enhanced_template.docx')
-    new_template_path = Path('templates_docx/enhanced_template_updated.docx')
+    # Create a new document
+    output_path = Path('templates_docx/enhanced_template_complete.docx')
     
-    # Load the template
-    doc = Document(template_path)
+    # Start by copying the existing enhanced template
+    doc = Document('templates_docx/enhanced_template.docx')
     
-    # Find the correct paragraph indices to insert new sections
-    background_idx = None
-    kit_components_idx = None
-    assay_protocol_idx = None
-    data_analysis_idx = None
-    reproducibility_idx = None
-    
+    # Find where to insert new sections
+    insert_position = None
     for i, para in enumerate(doc.paragraphs):
-        if para.text.strip() == 'BACKGROUND':
-            background_idx = i
-        elif para.text.strip() == 'KIT COMPONENTS':
-            kit_components_idx = i
-        elif para.text.strip() == 'ASSAY PROTOCOL':
-            assay_protocol_idx = i
-        elif para.text.strip() == 'REPRODUCIBILITY':
-            reproducibility_idx = i
+        if "ASSAY PROTOCOL" in para.text.upper():
+            insert_position = i
+            break
     
-    if background_idx is None or kit_components_idx is None or assay_protocol_idx is None:
-        logger.error("Could not find required sections in the template document")
-        return
+    if insert_position is None:
+        logger.warning("Could not find ASSAY PROTOCOL section to insert before")
+        insert_position = len(doc.paragraphs) - 1  # Default to end of document
     
-    # Add ASSAY PRINCIPLE section after BACKGROUND
-    # Find the paragraph with BACKGROUND text plus 2 to get to the background content
-    insert_after = background_idx + 2
+    # Save the current document content up to the insert point
+    content_before = []
+    for i in range(insert_position):
+        content_before.append(doc.paragraphs[i])
     
-    # Insert ASSAY PRINCIPLE heading
-    assay_principle_heading = doc.paragraphs[insert_after-1]._element.addnext(
-        doc.paragraphs[background_idx]._element.deepcopy()
-    )
-    assay_principle_para = doc.add_paragraph()  # Create an empty paragraph for reference, will be removed later
+    # Save the content after the insert point
+    content_after = []
+    for i in range(insert_position, len(doc.paragraphs)):
+        content_after.append(doc.paragraphs[i])
     
-    # Insert ASSAY PRINCIPLE content placeholder
-    assay_principle_content = doc.paragraphs[insert_after]._element.addnext(
-        doc.paragraphs[background_idx + 1]._element.deepcopy()
-    )
+    # Create a new document
+    new_doc = Document()
     
-    # Add SAMPLE PREPARATION section before ASSAY PROTOCOL
-    # Insert SAMPLE PREPARATION AND STORAGE heading
-    sample_prep_heading = doc.paragraphs[assay_protocol_idx-1]._element.addnext(
-        doc.paragraphs[background_idx]._element.deepcopy()
-    )
-    sample_prep_para = doc.add_paragraph()  # Create an empty paragraph for reference, will be removed later
+    # Copy styles from original document
+    for style in doc.styles:
+        if style.name not in new_doc.styles:
+            try:
+                new_style = new_doc.styles.add_style(style.name, style.type)
+                # Copy any other style attributes as needed
+            except:
+                # Style might already exist
+                pass
     
-    # Insert SAMPLE PREPARATION content placeholder
-    sample_prep_content = doc.paragraphs[assay_protocol_idx]._element.addnext(
-        doc.paragraphs[background_idx + 1]._element.deepcopy()
-    )
+    # Copy content before insert point
+    for para in content_before:
+        new_para = new_doc.add_paragraph()
+        new_para.style = para.style
+        for run in para.runs:
+            new_run = new_para.add_run(run.text)
+            new_run.bold = run.bold
+            new_run.italic = run.italic
+            if hasattr(run.font, 'color') and run.font.color.rgb:
+                new_run.font.color.rgb = run.font.color.rgb
     
-    # Add SAMPLE COLLECTION NOTES section
-    # Insert SAMPLE COLLECTION NOTES heading
-    sample_notes_heading = doc.paragraphs[assay_protocol_idx+1]._element.addnext(
-        doc.paragraphs[background_idx]._element.deepcopy()
-    )
-    sample_notes_para = doc.add_paragraph()  # Create an empty paragraph for reference, will be removed later
+    # Add new sections
+    # 1. ASSAY PRINCIPLE
+    create_heading(new_doc, "ASSAY PRINCIPLE")
+    create_paragraph(new_doc, "{{ assay_principle }}")
     
-    # Insert SAMPLE COLLECTION NOTES content placeholder
-    sample_notes_content = doc.paragraphs[assay_protocol_idx+2]._element.addnext(
-        doc.paragraphs[background_idx + 1]._element.deepcopy()
-    )
+    # 2. SAMPLE PREPARATION AND STORAGE
+    create_heading(new_doc, "SAMPLE PREPARATION AND STORAGE")
+    create_paragraph(new_doc, "{{ sample_preparation_and_storage }}")
     
-    # Add SAMPLE DILUTION GUIDELINE section
-    # Insert SAMPLE DILUTION GUIDELINE heading
-    sample_dilution_heading = doc.paragraphs[assay_protocol_idx+3]._element.addnext(
-        doc.paragraphs[background_idx]._element.deepcopy()
-    )
-    sample_dilution_para = doc.add_paragraph()  # Create an empty paragraph for reference, will be removed later
+    # 3. SAMPLE COLLECTION NOTES
+    create_heading(new_doc, "SAMPLE COLLECTION NOTES")
+    create_paragraph(new_doc, "{{ sample_collection_notes }}")
     
-    # Insert SAMPLE DILUTION GUIDELINE content placeholder
-    sample_dilution_content = doc.paragraphs[assay_protocol_idx+4]._element.addnext(
-        doc.paragraphs[background_idx + 1]._element.deepcopy()
-    )
+    # 4. SAMPLE DILUTION GUIDELINE
+    create_heading(new_doc, "SAMPLE DILUTION GUIDELINE")
+    create_paragraph(new_doc, "{{ sample_dilution_guideline }}")
     
-    # Add DATA ANALYSIS section after REPRODUCIBILITY
-    # Insert DATA ANALYSIS heading
-    data_analysis_heading = doc.paragraphs[reproducibility_idx+2]._element.addnext(
-        doc.paragraphs[background_idx]._element.deepcopy()
-    )
-    data_analysis_para = doc.add_paragraph()  # Create an empty paragraph for reference, will be removed later
+    # Copy content after insert point
+    for para in content_after:
+        new_para = new_doc.add_paragraph()
+        new_para.style = para.style
+        for run in para.runs:
+            new_run = new_para.add_run(run.text)
+            new_run.bold = run.bold
+            new_run.italic = run.italic
+            if hasattr(run.font, 'color') and run.font.color.rgb:
+                new_run.font.color.rgb = run.font.color.rgb
     
-    # Insert DATA ANALYSIS content placeholder
-    data_analysis_content = doc.paragraphs[reproducibility_idx+3]._element.addnext(
-        doc.paragraphs[background_idx + 1]._element.deepcopy()
-    )
+    # 5. Add DATA ANALYSIS section after TYPICAL DATA section
+    data_analysis_position = None
+    for i, para in enumerate(new_doc.paragraphs):
+        if "TYPICAL DATA" in para.text.upper():
+            # Find the next heading after TYPICAL DATA
+            for j in range(i+1, len(new_doc.paragraphs)):
+                if new_doc.paragraphs[j].style.name.startswith('Heading'):
+                    data_analysis_position = j
+                    break
+            if data_analysis_position is None:
+                # If no next heading, put at the end
+                data_analysis_position = len(new_doc.paragraphs)
+            break
     
-    # Now fix the reproducibility table to add a standard deviation column
-    if len(doc.tables) >= 7:  # Make sure we have enough tables
-        repro_table = doc.tables[6]  # Reproducibility table is the 7th table (index 6)
+    if data_analysis_position is not None:
+        # Insert DATA ANALYSIS section
+        paragraphs_after_data_analysis = []
+        for i in range(data_analysis_position, len(new_doc.paragraphs)):
+            paragraphs_after_data_analysis.append(new_doc.paragraphs[i])
         
-        # Check if it already has a standard deviation column
-        if len(repro_table.columns) < 7:
-            # Insert a new column before the "Mean" column (which is the 5th column, index 4)
-            for i, row in enumerate(repro_table.rows):
-                cell = row.cells[4]  # Cell before which to insert the new column
-                new_cell = row._tr.add_tc_before(cell._tc)
-                
-                # Add content to the new header cell
-                if i == 0:
-                    new_cell.text = "Standard Deviation"
-                    
-                    # Apply the same style as other header cells
-                    for paragraph in new_cell.paragraphs:
-                        for run in paragraph.runs:
-                            run.font.bold = True
-    
-    # Update ASSAY PROTOCOL section to use a numbered list template instead of paragraphs
-    if assay_protocol_idx is not None:
-        # Find the paragraph containing the assay protocol content
-        protocol_para_idx = assay_protocol_idx + 1
-        if protocol_para_idx < len(doc.paragraphs):
-            protocol_para = doc.paragraphs[protocol_para_idx]
-            protocol_para.text = "{{ assay_protocol_numbered|default('') }}"
-    
-    # Save the document with proper paragraph text
-    for i, para in enumerate(doc.paragraphs):
-        if i == background_idx + 3:  # Assay Principle heading
-            para.text = "ASSAY PRINCIPLE"
-            para.style = 'Heading 2'
+        # Remove paragraphs after data analysis position
+        for _ in range(len(new_doc.paragraphs) - data_analysis_position):
+            new_doc._element.body.remove(new_doc.paragraphs[-1]._element)
+        
+        # Add DATA ANALYSIS section
+        create_heading(new_doc, "DATA ANALYSIS")
+        create_paragraph(new_doc, "{{ data_analysis }}")
+        
+        # Add back the paragraphs after data analysis
+        for para in paragraphs_after_data_analysis:
+            new_para = new_doc.add_paragraph()
+            new_para.style = para.style
             for run in para.runs:
-                run.font.name = 'Calibri'
-                run.font.size = Pt(11)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0, 70, 180)
-        elif i == background_idx + 4:  # Assay Principle content
-            para.text = "{{ assay_principle|default('') }}"
-            para.style = 'Normal'
-        elif i == assay_protocol_idx + 2:  # Sample preparation heading
-            para.text = "SAMPLE PREPARATION AND STORAGE"
-            para.style = 'Heading 2'
-            for run in para.runs:
-                run.font.name = 'Calibri'
-                run.font.size = Pt(11)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0, 70, 180)
-        elif i == assay_protocol_idx + 3:  # Sample preparation content
-            para.text = "{{ sample_preparation_and_storage|default('') }}"
-            para.style = 'Normal'
-        elif i == assay_protocol_idx + 5:  # Sample collection heading
-            para.text = "SAMPLE COLLECTION NOTES"
-            para.style = 'Heading 2'
-            for run in para.runs:
-                run.font.name = 'Calibri'
-                run.font.size = Pt(11)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0, 70, 180)
-        elif i == assay_protocol_idx + 6:  # Sample collection content
-            para.text = "{{ sample_collection_notes|default('') }}"
-            para.style = 'Normal'
-        elif i == assay_protocol_idx + 8:  # Sample dilution heading
-            para.text = "SAMPLE DILUTION GUIDELINE"
-            para.style = 'Heading 2'
-            for run in para.runs:
-                run.font.name = 'Calibri'
-                run.font.size = Pt(11)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0, 70, 180)
-        elif i == assay_protocol_idx + 9:  # Sample dilution content
-            para.text = "{{ sample_dilution_guideline|default('') }}"
-            para.style = 'Normal'
-        elif i == reproducibility_idx + 4:  # Data analysis heading
-            para.text = "DATA ANALYSIS"
-            para.style = 'Heading 2'
-            for run in para.runs:
-                run.font.name = 'Calibri'
-                run.font.size = Pt(11)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0, 70, 180)
-        elif i == reproducibility_idx + 5:  # Data analysis content
-            para.text = "{{ data_analysis|default('') }}"
-            para.style = 'Normal'
+                new_run = new_para.add_run(run.text)
+                new_run.bold = run.bold
+                new_run.italic = run.italic
+                if hasattr(run.font, 'color') and run.font.color.rgb:
+                    new_run.font.color.rgb = run.font.color.rgb
     
     # Save the updated template
-    doc.save(new_template_path)
-    logger.info(f"Updated template saved to {new_template_path}")
+    new_doc.save(output_path)
+    logger.info(f"Updated enhanced template saved to {output_path}")
     
-    # Create a copy of the template in the templates_docx folder
-    import shutil
-    shutil.copy(new_template_path, template_path)
-    logger.info(f"Replaced original template at {template_path}")
+    return output_path
 
 if __name__ == "__main__":
-    update_enhanced_template()
+    template_path = update_enhanced_template()
+    logger.info(f"Updated template created at: {template_path}")
+    
+    # Verify that all sections are in the template
+    print("\nVerify that these sections are in the template:")
+    print("- ASSAY PRINCIPLE")
+    print("- SAMPLE PREPARATION AND STORAGE")
+    print("- SAMPLE COLLECTION NOTES")
+    print("- SAMPLE DILUTION GUIDELINE") 
+    print("- DATA ANALYSIS")

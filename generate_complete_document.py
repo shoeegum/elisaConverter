@@ -19,10 +19,15 @@ logger = logging.getLogger(__name__)
 
 def generate_complete_document(
     source_path='attached_assets/EK1586_Mouse_KLK1Kallikrein_1_ELISA_Kit_PicoKine_Datasheet.docx',
-    template_path='templates_docx/enhanced_template.docx',
+    template_path='templates_docx/enhanced_template_fixed.docx',
     output_path='output_complete.docx'
 ):
     """Generate a complete document with all required sections."""
+    # Convert string paths to Path objects
+    source_path = Path(source_path)
+    template_path = Path(template_path)
+    output_path = Path(output_path)
+    
     logger.info(f"Parsing ELISA datasheet: {source_path}")
     
     # Parse the source document
