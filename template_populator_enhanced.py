@@ -452,6 +452,15 @@ class TemplatePopulator:
             # Save the rendered template to the output path
             self.template.save(output_path)
             
+            # Load the document for post-processing
+            doc = Document(output_path)
+            
+            # Format the document header and first page
+            self._format_document_header(doc)
+            
+            # Save the formatted document
+            doc.save(output_path)
+            
             # Post-process the document to directly modify the kit components table
             self._post_process_kit_components(output_path, processed_data)
             
@@ -461,6 +470,71 @@ class TemplatePopulator:
             self.logger.error(f"Error populating template: {e}")
             raise
             
+    def _format_document_header(self, doc):
+        """
+        Format the document header to be size 36pt with Title style.
+        Also ensure the first page only contains title, catalog number, lot number, 
+        and intended use by adding page breaks.
+        
+        Args:
+            doc: The Document object to modify
+        """
+        # Format the document title (first paragraph should be the title)
+        if len(doc.paragraphs) > 0:
+            title_para = doc.paragraphs[0]
+            title_para.style = 'Title'
+            
+            # Set font size to 36pt for the title
+            for run in title_para.runs:
+                run.font.size = Pt(36)
+                run.font.bold = True
+            
+            # Make sure the title is centered
+            title_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        
+        # Find the intended use section (should be within first few paragraphs)
+        intended_use_idx = None
+        for i, para in enumerate(doc.paragraphs[:10]):  # Check the first 10 paragraphs
+            if 'intended use' in para.text.lower() or 'purpose' in para.text.lower():
+                intended_use_idx = i
+                break
+        
+        # If found, add page break after the intended use section
+        if intended_use_idx is not None:
+            # Look for the end of the intended use section (usually a paragraph or two)
+            # We'll look for the next section heading as the end marker
+            end_idx = intended_use_idx
+            for i in range(intended_use_idx + 1, min(intended_use_idx + 5, len(doc.paragraphs))):
+                # Look for the next heading or all-caps paragraph 
+                # (common formatting for section headings)
+                if (doc.paragraphs[i].style.name.startswith('Heading') or 
+                    doc.paragraphs[i].text.isupper() or
+                    'TECHNICAL' in doc.paragraphs[i].text or
+                    'OVERVIEW' in doc.paragraphs[i].text):
+                    # Found the next section, so put page break at previous paragraph
+                    end_idx = i - 1
+                    break
+                
+                # Include this paragraph as part of intended use
+                end_idx = i
+            
+            # If there are runs in the paragraph
+            if len(doc.paragraphs[end_idx].runs) > 0:
+                # Add page break after the intended use section
+                doc.paragraphs[end_idx].runs[-1].add_break(docx.enum.text.WD_BREAK.PAGE)
+            else:
+                # No runs, add a run with page break
+                run = doc.paragraphs[end_idx].add_run()
+                run.add_break(docx.enum.text.WD_BREAK.PAGE)
+        else:
+            # If intended use not found, just add page break after first few paragraphs
+            if len(doc.paragraphs) > 5:
+                if len(doc.paragraphs[3].runs) > 0:  # After intended use description (usually paragraph 3)
+                    doc.paragraphs[3].runs[-1].add_break(docx.enum.text.WD_BREAK.PAGE)
+                else:
+                    run = doc.paragraphs[3].add_run()
+                    run.add_break(docx.enum.text.WD_BREAK.PAGE)
+
     def _post_process_kit_components(self, output_path: Path, processed_data: Dict[str, Any]) -> None:
         """
         Perform post-processing on the populated template to handle the kit components table.
