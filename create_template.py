@@ -64,30 +64,30 @@ def create_innovative_template():
     intended_use_header = doc.add_paragraph("INTENDED USE", style='Header Style')
     intended_use_para = doc.add_paragraph("{{ intended_use }}")
     
-    # Background
-    background_header = doc.add_paragraph("Background", style='Header Style')
+    # BACKGROUND - all caps, blue, bold
+    background_header = doc.add_paragraph("BACKGROUND", style='Header Style')
     background_para = doc.add_paragraph("{{ background }}")
     
-    # Principle of the assay
-    principle_header = doc.add_paragraph("Principle of the assay", style='Header Style')
+    # PRINCIPLE OF THE ASSAY - all caps, blue, bold
+    principle_header = doc.add_paragraph("PRINCIPLE OF THE ASSAY", style='Header Style')
     principle_para = doc.add_paragraph("{{ assay_principle }}")
     
-    # SPECIFICATION - this is a section header in the sample
-    specification_header = doc.add_paragraph("specification", style='Header Style')
+    # SPECIFICATION - all caps, blue, bold
+    specification_header = doc.add_paragraph("SPECIFICATION", style='Header Style')
     
-    # Reagents section 
-    reagents_header = doc.add_paragraph("Reagents", style='Header Style')
+    # REAGENTS - all caps, blue, bold
+    reagents_header = doc.add_paragraph("REAGENTS", style='Header Style')
     # Add reagents table here if needed
     
-    # Materials Required But Not Provided
-    materials_header = doc.add_paragraph("Materials Required But Not Provided", style='Header Style')
+    # MATERIALS REQUIRED BUT NOT PROVIDED - all caps, blue, bold
+    materials_header = doc.add_paragraph("MATERIALS REQUIRED BUT NOT PROVIDED", style='Header Style')
     materials_para = doc.add_paragraph("{{ required_materials }}")
     
-    # Typical Data
-    typical_data_header = doc.add_paragraph("Typical Data", style='Header Style')
+    # TYPICAL DATA - all caps, blue, bold
+    typical_data_header = doc.add_paragraph("TYPICAL DATA", style='Header Style')
     
-    # Standard Curve
-    curve_header = doc.add_paragraph("Typical Standard Curve", style='Header Style')
+    # TYPICAL STANDARD CURVE - all caps, blue, bold
+    curve_header = doc.add_paragraph("TYPICAL STANDARD CURVE", style='Header Style')
     curve_para = doc.add_paragraph("This standard curve was generated for demonstration purpose only. A standard curve must be run with each assay.")
     
     # Add a table for standard curve data if needed
@@ -120,40 +120,58 @@ def create_innovative_template():
     # Inter-Assay Precision
     inter_para = doc.add_paragraph("Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter- assay precision.")
     
-    # Reproducibility
-    repro_header = doc.add_paragraph("Reproducibility", style='Header Style')
+    # REPRODUCIBILITY - all caps, blue, bold
+    repro_header = doc.add_paragraph("REPRODUCIBILITY", style='Header Style')
     repro_para = doc.add_paragraph("*number of samples for each test n=16.")
     
-    # Procedural Notes
-    procedural_header = doc.add_paragraph("Procedural Notes", style='Header Style')
+    # PROCEDURAL NOTES - all caps, blue, bold
+    procedural_header = doc.add_paragraph("PROCEDURAL NOTES", style='Header Style')
     procedural_para = doc.add_paragraph("{{ procedural_notes }}")
     
-    # Reagent Preparation and Storage
-    prep_header = doc.add_paragraph("Reagent Preparation and Storage", style='Header Style')
+    # REAGENT PREPARATION AND STORAGE - all caps, blue, bold
+    prep_header = doc.add_paragraph("REAGENT PREPARATION AND STORAGE", style='Header Style')
     
-    # Dilution of Standard
-    dilution_header = doc.add_paragraph("Dilution of standard", style='Header Style')
+    # DILUTION OF STANDARD - all caps, blue, bold
+    dilution_header = doc.add_paragraph("DILUTION OF STANDARD", style='Header Style')
     dilution_para = doc.add_paragraph("{{ dilution_of_standard }}")
     
-    # Sample Collection & Storage
-    sample_header = doc.add_paragraph("Sample Collection & Storage", style='Header Style')
+    # SAMPLE COLLECTION & STORAGE - all caps, blue, bold
+    sample_header = doc.add_paragraph("SAMPLE COLLECTION & STORAGE", style='Header Style')
     sample_para = doc.add_paragraph("{{ sample_collection_notes }}")
     
-    # Assay Procedure
-    assay_procedure_header = doc.add_paragraph("Assay Procedure", style='Header Style')
+    # ASSAY PROCEDURE - all caps, blue, bold
+    assay_procedure_header = doc.add_paragraph("ASSAY PROCEDURE", style='Header Style')
     
     # Instead of fixed number of steps, render the protocol dynamically
     assay_para = doc.add_paragraph("{{ '{% for step in assay_protocol %}' }}")
     assay_para = doc.add_paragraph("{{ '{{ step }}' }}")
     assay_para = doc.add_paragraph("{{ '{% endfor %}' }}")
     
-    # Data Analysis
-    data_analysis_header = doc.add_paragraph("data analysis", style='Header Style')
+    # DATA ANALYSIS - all caps, blue, bold
+    data_analysis_header = doc.add_paragraph("DATA ANALYSIS", style='Header Style')
     data_analysis_para = doc.add_paragraph("{{ data_analysis }}")
     
-    # Disclaimer
+    # DISCLAIMER - all caps, blue, bold
     disclaimer_header = doc.add_paragraph("DISCLAIMER", style='Header Style')
     disclaimer_para = doc.add_paragraph("This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification.")
+    
+    # Add footer
+    footer_section = doc.sections[0]
+    footer = footer_section.footer
+    
+    # Add footer paragraphs
+    footer_website = footer.paragraphs[0]
+    footer_website.text = "www.innov-research.com"
+    footer_website.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    footer_website.style = 'Header Style'
+    
+    # Create a new paragraph for contact info
+    footer_contact = footer.add_paragraph("Ph: 248.896.0145 | Fx: 248.896.0149")
+    footer_contact.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    
+    # Add company name to the right side
+    footer_company = footer.add_paragraph("Innovative Research, Inc.")
+    footer_company.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
     
     # Save the template
     template_path = Path('templates_docx/innovative_exact_template.docx')

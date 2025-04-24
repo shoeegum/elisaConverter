@@ -243,7 +243,17 @@ class ELISADatasheetParser:
     
     def _extract_background(self) -> str:
         """Extract the background section from the datasheet."""
-        return self._extract_section_text("Background", ["Principle", "Assay Principle", "Materials", "Reagents"])
+        # First try the normal location
+        background_text = self._extract_section_text("Background", ["Principle", "Assay Principle", "Materials", "Reagents"])
+        
+        # If not found or too short, check at the end of document (some datasheets have it there)
+        if not background_text or len(background_text) < 100:
+            background_text_alt = self._extract_section_text("Background Information", 
+                                                       ["References", "Disclaimer", "Terms and Conditions"])
+            if background_text_alt and len(background_text_alt) > len(background_text):
+                return background_text_alt
+                
+        return background_text
     
     def _extract_assay_principle(self) -> str:
         """Extract the assay principle section from the datasheet."""
