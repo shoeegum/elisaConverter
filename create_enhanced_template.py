@@ -221,16 +221,16 @@ def create_enhanced_template():
     # Add a placeholder for the preparation text (non-numbered portion)
     doc.add_paragraph("{{ preparations_text }}")
     
-    # Add numbered preparation steps using Jinja2 loop
+    # Add numbered preparation steps using Jinja2 loop - proper nesting
     doc.add_paragraph("{% if preparations_steps %}", style="Hidden Text")
+    doc.add_paragraph("{% for step in preparations_steps %}", style="Hidden Text")
     
-    # Placeholder for a numbered step
+    # Placeholder for a numbered step - must be inside the for loop
     num_para = doc.add_paragraph()
     num_para.style = 'List Number'
     num_para.add_run("{{ step.text }}")
     
-    # Add the loop control
-    doc.add_paragraph("{% for step in preparations_steps %}", style="Hidden Text")
+    # Close the loops in the correct order
     doc.add_paragraph("{% endfor %}", style="Hidden Text")
     doc.add_paragraph("{% endif %}", style="Hidden Text")
     
@@ -260,15 +260,17 @@ def create_enhanced_template():
         for run in cell.paragraphs[0].runs:
             run.font.bold = True
     
-    # Add a sample row with template variables
+    # Add jinja2 for-loop for the reagents - place it before any rows that use reagent data
+    doc.add_paragraph("{% for reagent in reagents_list %}", style="Hidden Text")
+    
+    # Add a sample row with template variables *inside* the loop
     row = reagents_table.add_row()
     row.cells[0].text = "{{ reagent.name }}"
     row.cells[1].text = "{{ reagent.quantity }}"
     row.cells[2].text = "{{ reagent.volume }}"
     row.cells[3].text = "{{ reagent.storage }}"
     
-    # Add jinja2 for-loop for the reagents
-    doc.add_paragraph("{% for reagent in reagents_list %}", style="Hidden Text")
+    # End the for loop
     doc.add_paragraph("{% endfor %}", style="Hidden Text")
     
     # MATERIALS REQUIRED BUT NOT PROVIDED
