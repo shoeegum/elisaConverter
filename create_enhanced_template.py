@@ -160,11 +160,37 @@ def create_enhanced_template():
             for run in paragraph.runs:
                 run.font.bold = True
     
-    # Placeholder for specifications data (using dynamically created table rows in docx)
-    # Leave the placeholder paragraph for table rows - they'll be added programmatically
-    doc.add_paragraph("{% for spec in overview_specifications_table %}")
-    doc.add_paragraph("{{ spec.property }}: {{ spec.value }}")
-    doc.add_paragraph("{% endfor %}")
+    # Create a table for the specifications
+    spec_table = doc.add_table(rows=9, cols=2)  # 8 standard specs + header row
+    spec_table.style = 'Table Grid'
+    
+    # Add headers
+    header_cells = spec_table.rows[0].cells
+    header_cells[0].text = "Property"
+    header_cells[1].text = "Value"
+    
+    # Make headers bold
+    for cell in header_cells:
+        for paragraph in cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.bold = True
+    
+    # Add the standard specifications rows with Jinja2 variables
+    standard_specs = [
+        "Product Name", 
+        "Reactive Species", 
+        "Size", 
+        "Description", 
+        "Sensitivity", 
+        "Detection Range", 
+        "Storage Instructions", 
+        "Uniprot ID"
+    ]
+    
+    for i, prop in enumerate(standard_specs, 1):
+        row = spec_table.rows[i].cells
+        row[0].text = prop
+        row[1].text = "{{ overview_specifications_table[" + str(i-1) + "].value }}"
     
     # TECHNICAL DETAILS
     tech_details_header = doc.add_paragraph("TECHNICAL DETAILS", style='Heading 2')

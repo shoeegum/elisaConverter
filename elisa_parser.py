@@ -458,8 +458,46 @@ To measure the target protein, add standards and samples to the wells, then add 
         else:
             overview_data['text'] = "Overview of the complete kit components and storage conditions."
         
+        # Create a list of standard specification properties we want to extract
+        standard_properties = [
+            "Product Name", 
+            "Reactive Species", 
+            "Size", 
+            "Description", 
+            "Sensitivity", 
+            "Detection Range", 
+            "Storage Instructions", 
+            "Uniprot ID"
+        ]
+        
+        # Initialize specifications with empty values
+        specifications = [
+            {'property': prop, 'value': ''} for prop in standard_properties
+        ]
+        
+        # Create a mapping of potential property names to our standard names
+        property_mapping = {
+            'product name': 'Product Name',
+            'name': 'Product Name',
+            'kit name': 'Product Name',
+            'species': 'Reactive Species',
+            'reactive species': 'Reactive Species',
+            'reactivity': 'Reactive Species',
+            'size': 'Size',
+            'kit size': 'Size',
+            'description': 'Description',
+            'kit description': 'Description',
+            'sensitivity': 'Sensitivity',
+            'detection range': 'Detection Range',
+            'range': 'Detection Range',
+            'storage': 'Storage Instructions',
+            'storage instructions': 'Storage Instructions',
+            'uniprot': 'Uniprot ID',
+            'uniprot id': 'Uniprot ID'
+        }
+        
         # Extract specification table data from the first two tables in the document
-        specifications = []
+        properties_found = set()
         
         # Look for tables with product specifications (usually the first 1-2 tables)
         product_tables_examined = 0
@@ -483,11 +521,28 @@ To measure the target protein, add standards and samples to the wells, then add 
                         # Clean up the label and value
                         label = label.rstrip(':')
                         
-                        # Add to our list of specifications
-                        specifications.append({
-                            'property': label,
-                            'value': value
-                        })
+                        # Try to map this property to one of our standard properties
+                        mapped_property = None
+                        for key, standard_prop in property_mapping.items():
+                            if key in label.lower():
+                                mapped_property = standard_prop
+                                break
+                        
+                        # If we found a mapping, use it
+                        if mapped_property:
+                            # Find the corresponding specification in our list
+                            for spec in specifications:
+                                if spec['property'] == mapped_property:
+                                    spec['value'] = value
+                                    properties_found.add(mapped_property)
+                                    break
+                        else:
+                            # For properties not in our standard list, add them at the end
+                            if label not in [spec['property'] for spec in specifications]:
+                                specifications.append({
+                                    'property': label,
+                                    'value': value
+                                })
         
         # Only add the specs if we found any
         if specifications:
