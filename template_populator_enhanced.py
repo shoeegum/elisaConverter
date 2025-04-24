@@ -968,104 +968,146 @@ class TemplatePopulator:
             doc: The Document object to modify
             processed_data: Dictionary containing processed data
         """
-        # Reproducibility tables are at indices 4 and 5
-        # Table 4: Intra-Assay, Table 5: Inter-Assay
-        if doc.tables and len(doc.tables) >= 6:
-            self.logger.info("Processing reproducibility tables (intra-assay and inter-assay)")
-            
-            # Get reproducibility tables by index
-            intra_table = doc.tables[4]  # Intra-Assay table
-            inter_table = doc.tables[5]  # Inter-Assay table
-            
-            # Process Intra-assay table (first reproducibility table)
+        # Reproducibility tables are at indices 4 (Intra-Assay), 5 (Inter-Assay), and 6 (Lot-to-Lot)
+        try:
+            if doc.tables and len(doc.tables) >= 6:
+                self.logger.info("Processing reproducibility tables (intra-assay and inter-assay)")
+                
+                # Process Intra-Assay Table (Table 4)
+                if len(doc.tables) > 4:
+                    intra_table = doc.tables[4]
+                    self._process_intra_assay_table(intra_table)
+                
+                # Process Inter-Assay Table (Table 5)
+                if len(doc.tables) > 5:
+                    inter_table = doc.tables[5]
+                    self._process_inter_assay_table(inter_table)
+                
+                # Process Lot-to-Lot Table (Table 6) if it exists
+                if len(doc.tables) > 6:
+                    lot_table = doc.tables[6]
+                    self._process_lot_to_lot_table(lot_table)
+            else:
+                self.logger.warning("Not enough tables in document to process reproducibility tables")
+        except Exception as e:
+            self.logger.error(f"Error processing reproducibility tables: {e}")
+    
+    def _process_intra_assay_table(self, table):
+        """Process the Intra-Assay Precision table."""
+        try:
             # Make sure we have enough rows (header + at least 3 samples)
-            while len(intra_table.rows) < 4:
-                intra_table.add_row()
-                
-            # Populate with standard data for intra-assay
-            if len(intra_table.rows) > 1 and len(intra_table.rows[1].cells) >= 5:
-                # Sample 1
-                intra_table.rows[1].cells[0].paragraphs[0].clear()
-                intra_table.rows[1].cells[0].paragraphs[0].add_run("Sample 1")
-                intra_table.rows[1].cells[1].paragraphs[0].clear()
-                intra_table.rows[1].cells[1].paragraphs[0].add_run("16")
-                intra_table.rows[1].cells[2].paragraphs[0].clear()
-                intra_table.rows[1].cells[2].paragraphs[0].add_run("4.6%")
-                intra_table.rows[1].cells[3].paragraphs[0].clear()
-                intra_table.rows[1].cells[3].paragraphs[0].add_run("10.15")
-                intra_table.rows[1].cells[4].paragraphs[0].clear()
-                intra_table.rows[1].cells[4].paragraphs[0].add_run("7.0%")
-                
-                # Sample 2
-                if len(intra_table.rows) > 2 and len(intra_table.rows[2].cells) >= 5:
-                    intra_table.rows[2].cells[0].paragraphs[0].clear()
-                    intra_table.rows[2].cells[0].paragraphs[0].add_run("Sample 2")
-                    intra_table.rows[2].cells[1].paragraphs[0].clear()
-                    intra_table.rows[2].cells[1].paragraphs[0].add_run("16")
-                    intra_table.rows[2].cells[2].paragraphs[0].clear()
-                    intra_table.rows[2].cells[2].paragraphs[0].add_run("5.1%")
-                    intra_table.rows[2].cells[3].paragraphs[0].clear()
-                    intra_table.rows[2].cells[3].paragraphs[0].add_run("11.23")
-                    intra_table.rows[2].cells[4].paragraphs[0].clear()
-                    intra_table.rows[2].cells[4].paragraphs[0].add_run("7.5%")
-                
-                # Sample 3
-                if len(intra_table.rows) > 3 and len(intra_table.rows[3].cells) >= 5:
-                    intra_table.rows[3].cells[0].paragraphs[0].clear()
-                    intra_table.rows[3].cells[0].paragraphs[0].add_run("Sample 3")
-                    intra_table.rows[3].cells[1].paragraphs[0].clear()
-                    intra_table.rows[3].cells[1].paragraphs[0].add_run("16")
-                    intra_table.rows[3].cells[2].paragraphs[0].clear()
-                    intra_table.rows[3].cells[2].paragraphs[0].add_run("4.8%")
-                    intra_table.rows[3].cells[3].paragraphs[0].clear()
-                    intra_table.rows[3].cells[3].paragraphs[0].add_run("9.88")
-                    intra_table.rows[3].cells[4].paragraphs[0].clear()
-                    intra_table.rows[3].cells[4].paragraphs[0].add_run("6.7%")
+            while len(table.rows) < 4:
+                table.add_row()
+            
+            # Make sure each row has enough cells (5)
+            for row in table.rows:
+                while len(row.cells) < 5:
+                    row.add_cell()
+            
+            # Define standard intra-assay data
+            intra_data = [
+                ["Sample 1", "16", "4.6%", "10.15", "7.0%"],
+                ["Sample 2", "16", "5.1%", "11.23", "7.5%"],
+                ["Sample 3", "16", "4.8%", "9.88", "6.7%"]
+            ]
+            
+            # Fill in each sample row, ensuring paragraphs exist
+            for i, sample_data in enumerate(intra_data):
+                row_idx = i + 1  # Skip header row
+                if row_idx < len(table.rows):
+                    row = table.rows[row_idx]
+                    for j, text in enumerate(sample_data):
+                        if j < len(row.cells):
+                            cell = row.cells[j]
+                            
+                            # Ensure there's at least one paragraph
+                            if not cell.paragraphs:
+                                cell.add_paragraph()
+                            
+                            # Clear and set content
+                            cell.paragraphs[0].clear()
+                            cell.paragraphs[0].add_run(text)
             
             self.logger.info("Processed intra-assay precision table")
+        except Exception as e:
+            self.logger.error(f"Error processing intra-assay table: {e}")
+    
+    def _process_inter_assay_table(self, table):
+        """Process the Inter-Assay Precision table."""
+        try:
+            # Make sure we have enough rows (header + at least 3 samples)
+            while len(table.rows) < 4:
+                table.add_row()
             
-            # Make sure we have enough rows (header + at least 3 samples) for inter-assay
-            while len(inter_table.rows) < 4:
-                inter_table.add_row()
-                
-            # Populate with standard data for inter-assay
-            if len(inter_table.rows) > 1 and len(inter_table.rows[1].cells) >= 5:
-                # Sample 1
-                inter_table.rows[1].cells[0].paragraphs[0].clear()
-                inter_table.rows[1].cells[0].paragraphs[0].add_run("Sample 1")
-                inter_table.rows[1].cells[1].paragraphs[0].clear()
-                inter_table.rows[1].cells[1].paragraphs[0].add_run("24")
-                inter_table.rows[1].cells[2].paragraphs[0].clear()
-                inter_table.rows[1].cells[2].paragraphs[0].add_run("7.8%")
-                inter_table.rows[1].cells[3].paragraphs[0].clear()
-                inter_table.rows[1].cells[3].paragraphs[0].add_run("13.05")
-                inter_table.rows[1].cells[4].paragraphs[0].clear()
-                inter_table.rows[1].cells[4].paragraphs[0].add_run("9.0%")
-                
-                # Sample 2
-                if len(inter_table.rows) > 2 and len(inter_table.rows[2].cells) >= 5:
-                    inter_table.rows[2].cells[0].paragraphs[0].clear()
-                    inter_table.rows[2].cells[0].paragraphs[0].add_run("Sample 2")
-                    inter_table.rows[2].cells[1].paragraphs[0].clear()
-                    inter_table.rows[2].cells[1].paragraphs[0].add_run("24")
-                    inter_table.rows[2].cells[2].paragraphs[0].clear()
-                    inter_table.rows[2].cells[2].paragraphs[0].add_run("8.2%")
-                    inter_table.rows[2].cells[3].paragraphs[0].clear()
-                    inter_table.rows[2].cells[3].paragraphs[0].add_run("14.27")
-                    inter_table.rows[2].cells[4].paragraphs[0].clear()
-                    inter_table.rows[2].cells[4].paragraphs[0].add_run("9.6%")
-                
-                # Sample 3
-                if len(inter_table.rows) > 3 and len(inter_table.rows[3].cells) >= 5:
-                    inter_table.rows[3].cells[0].paragraphs[0].clear()
-                    inter_table.rows[3].cells[0].paragraphs[0].add_run("Sample 3")
-                    inter_table.rows[3].cells[1].paragraphs[0].clear()
-                    inter_table.rows[3].cells[1].paragraphs[0].add_run("24")
-                    inter_table.rows[3].cells[2].paragraphs[0].clear()
-                    inter_table.rows[3].cells[2].paragraphs[0].add_run("8.4%")
-                    inter_table.rows[3].cells[3].paragraphs[0].clear()
-                    inter_table.rows[3].cells[3].paragraphs[0].add_run("12.69")
-                    inter_table.rows[3].cells[4].paragraphs[0].clear()
-                    inter_table.rows[3].cells[4].paragraphs[0].add_run("8.8%")
-                    
+            # Make sure each row has enough cells (5)
+            for row in table.rows:
+                while len(row.cells) < 5:
+                    row.add_cell()
+            
+            # Define standard inter-assay data
+            inter_data = [
+                ["Sample 1", "24", "7.8%", "13.05", "9.0%"],
+                ["Sample 2", "24", "8.2%", "14.27", "9.6%"],
+                ["Sample 3", "24", "8.4%", "12.69", "8.8%"]
+            ]
+            
+            # Fill in each sample row, ensuring paragraphs exist
+            for i, sample_data in enumerate(inter_data):
+                row_idx = i + 1  # Skip header row
+                if row_idx < len(table.rows):
+                    row = table.rows[row_idx]
+                    for j, text in enumerate(sample_data):
+                        if j < len(row.cells):
+                            cell = row.cells[j]
+                            
+                            # Ensure there's at least one paragraph
+                            if not cell.paragraphs:
+                                cell.add_paragraph()
+                            
+                            # Clear and set content
+                            cell.paragraphs[0].clear()
+                            cell.paragraphs[0].add_run(text)
+            
             self.logger.info("Processed inter-assay precision table")
+        except Exception as e:
+            self.logger.error(f"Error processing inter-assay table: {e}")
+    
+    def _process_lot_to_lot_table(self, table):
+        """Process the Lot-to-Lot reproducibility table."""
+        try:
+            # Make sure we have enough rows (header + at least 3 samples)
+            while len(table.rows) < 4:
+                table.add_row()
+            
+            # Make sure each row has enough cells (7 - sample, 4 lots, mean, CV)
+            for row in table.rows:
+                while len(row.cells) < 7:
+                    row.add_cell()
+            
+            # Define standard lot-to-lot data
+            lot_data = [
+                ["Sample 1", "150", "154", "170", "150", "156", "5.2%"],
+                ["Sample 2", "602", "649", "645", "637", "633", "2.9%"],
+                ["Sample 3", "1476", "1672", "1722", "1744", "1654", "7.2%"]
+            ]
+            
+            # Fill in each sample row, ensuring paragraphs exist
+            for i, sample_data in enumerate(lot_data):
+                row_idx = i + 1  # Skip header row
+                if row_idx < len(table.rows):
+                    row = table.rows[row_idx]
+                    for j, text in enumerate(sample_data):
+                        if j < len(row.cells):
+                            cell = row.cells[j]
+                            
+                            # Ensure there's at least one paragraph
+                            if not cell.paragraphs:
+                                cell.add_paragraph()
+                            
+                            # Clear and set content
+                            cell.paragraphs[0].clear()
+                            cell.paragraphs[0].add_run(text)
+            
+            self.logger.info("Processed lot-to-lot reproducibility table")
+        except Exception as e:
+            self.logger.error(f"Error processing lot-to-lot table: {e}")

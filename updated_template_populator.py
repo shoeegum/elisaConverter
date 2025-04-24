@@ -43,16 +43,16 @@ def update_template_populator(
         lot_number: Optional lot number provided by user
     """
     # Import here to avoid circular imports
-    from elisa_parser import ElisaParser
-    from template_populator_enhanced import EnhancedTemplatePopulator
+    from elisa_parser import ELISADatasheetParser
+    from template_populator_enhanced import TemplatePopulator
     
     # Create parser and template populator instances
-    parser = ElisaParser()
-    populator = EnhancedTemplatePopulator(template_path)
+    parser = ELISADatasheetParser(input_document)
+    populator = TemplatePopulator(template_path)
     
     try:
         # Parse the ELISA datasheet
-        extracted_data = parser.extract(input_document)
+        extracted_data = parser.extract_data()
         
         # Populate the template with extracted data
         populator.populate(
