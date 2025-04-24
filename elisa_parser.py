@@ -321,42 +321,32 @@ class ELISADatasheetParser:
         """Extract the assay principle section from the datasheet."""
         # Try different possible section headings
         for heading in ["Assay Principle", "Principle of the Assay", "Principle"]:
-            section_idx = self._find_section(heading)
-            if section_idx is not None:
-                # Get the section text
-                text = ""
-                current_idx = section_idx + 1
+            principle_idx = self._find_section(heading)
+            if principle_idx is not None:
+                # Find the Overview section that follows
+                overview_idx = None
+                for i in range(principle_idx + 1, min(principle_idx + 30, len(self.doc.paragraphs))):
+                    if "OVERVIEW" in self.doc.paragraphs[i].text.upper():
+                        overview_idx = i
+                        break
                 
-                # Gather all paragraphs in the principle section
+                # If we didn't find the Overview section, just look at the next 10 paragraphs
+                if not overview_idx:
+                    overview_idx = principle_idx + 10
+                
+                # Get all paragraphs between Principle and Overview
                 paragraphs = []
                 
-                # First, add paragraph immediately after the section header
-                paragraph_text = self.doc.paragraphs[current_idx].text.strip()
-                if paragraph_text and len(paragraph_text) > 5:
-                    paragraphs.append(paragraph_text)
-                current_idx += 1
-                
-                # Then, check for additional paragraphs that could belong to this section
-                # Specifically look for the second paragraph that may be separated
-                while current_idx < len(self.doc.paragraphs) and len(paragraphs) < 5:
-                    paragraph_text = self.doc.paragraphs[current_idx].text.strip()
-                    
-                    # Stop if we hit a new section
-                    if paragraph_text and (paragraph_text.isupper() or 
-                                          any(term in paragraph_text.upper() for term in ["OVERVIEW", "TECHNICAL", "REAGENT", "KIT COMPONENTS"])):
-                        break
+                # Iterate through paragraphs between Principle and Overview
+                for i in range(principle_idx + 1, overview_idx):
+                    paragraph_text = self.doc.paragraphs[i].text.strip()
                     
                     # Add non-empty paragraphs to our collection
                     if paragraph_text and len(paragraph_text) > 5:
                         # Skip sentences about "submit a product review" or "gift card"
                         if not any(term in paragraph_text.lower() for term in ["submit a review", "gift card", "amazon", "biocompare"]):
-                            # For the first few paragraphs after the principle header, include all paragraphs
-                            # This ensures we get the full principle text even if it doesn't contain specific keywords
-                            if len(paragraphs) < 2 or any(term in paragraph_text.lower() for term in ["elisa", "antibody", "incubate", "substrate", "detection", 
-                                                                                                     "conjugate", "sample", "standard", "avidin", "hrp", "tmb"]):
-                                paragraphs.append(paragraph_text)
-                    
-                    current_idx += 1
+                            # Add all paragraphs in this section
+                            paragraphs.append(paragraph_text)
                 
                 if paragraphs:
                     # Join all found paragraphs
