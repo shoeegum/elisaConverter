@@ -490,8 +490,10 @@ class TemplatePopulator:
             # Map reagent data to static individual fields in the template
             if 'reagents' in processed_data:
                 reagents = processed_data['reagents']
-                # Add individual reagent entries for up to 7 rows
-                for i in range(min(len(reagents), 7)):
+                self.logger.info(f"Processing {len(reagents)} reagents for template")
+                
+                # Add individual reagent entries for up to 12 rows (increased from 7)
+                for i in range(min(len(reagents), 12)):
                     reagent = reagents[i]
                     # Fill in each column for this reagent
                     if isinstance(reagent, dict):
@@ -501,7 +503,7 @@ class TemplatePopulator:
                         processed_data[f'reagent_{i+1}_storage'] = reagent.get('storage', '')
                 
                 # Clear any unused reagent slots
-                for i in range(len(reagents) + 1, 8):
+                for i in range(len(reagents) + 1, 13):  # Increased to 13
                     processed_data[f'reagent_{i}_name'] = ''
                     processed_data[f'reagent_{i}_quantity'] = ''
                     processed_data[f'reagent_{i}_volume'] = ''

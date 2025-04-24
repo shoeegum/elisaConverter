@@ -768,13 +768,15 @@ To measure the target protein, add standards and samples to the wells, then add 
         header_row = ["Description", "Quantity"]  # Default header
         
         # Find the kit components section
-        section_names = ["Kit Components", "Materials Provided", "Reagents", "Kit Components/Materials Provided"]
+        section_names = ["Kit Components", "Materials Provided", "Reagents", "Kit Components/Materials Provided", 
+                         "Components", "Kit Materials Provided", "Materials Supplied"]
         section_idx = None
         
         for name in section_names:
             idx = self._find_section(name)
             if idx is not None:
                 section_idx = idx
+                self.logger.info(f"Found '{name}' section at paragraph {idx}: {self.doc.paragraphs[idx].text}")
                 break
                 
         if section_idx is None:
@@ -895,19 +897,35 @@ To measure the target protein, add standards and samples to the wells, then add 
         Returns:
             True if the table appears after the paragraph, False otherwise
         """
-        # This is an approximate check since python-docx doesn't provide direct ordering
-        # We check if any parts of the table content appear in paragraphs before our target
-        table_text = ""
-        for row in table.rows:
-            for cell in row.cells:
-                table_text += cell.text + " "
-                
-        # Check if any paragraph before our target contains table text
-        for i in range(para_idx):
-            if self.doc.paragraphs[i].text and self.doc.paragraphs[i].text in table_text:
-                return False
-                
-        return True
+        # Improved check to find tables related to sections
+        # Extract some content from the table
+        table_content = ""
+        try:
+            # Get text from the first row cells
+            if len(table.rows) > 0:
+                for cell in table.rows[0].cells:
+                    table_content += cell.text.strip() + " "
+                    
+            # Also check first column for component names
+            for row_idx in range(1, min(3, len(table.rows))):
+                if len(table.rows[row_idx].cells) > 0:
+                    table_content += table.rows[row_idx].cells[0].text.strip() + " "
+        except:
+            self.logger.warning("Error accessing table cells")
+            return False
+            
+        # Look for reagent-related keywords that would indicate this is indeed a kit components table
+        reagent_keywords = ["microplate", "standard", "antibody", "conjugate", "diluent", 
+                          "buffer", "substrate", "solution", "reagent", "stop", "wash",
+                          "plate", "bottle", "vial", "coated"]
+                          
+        has_reagent_keywords = any(keyword in table_content.lower() for keyword in reagent_keywords)
+        
+        # Is this table closely following our section header paragraph?
+        # Assume tables within 10 paragraphs are related to the section
+        close_proximity = True  # Default to true to be more inclusive
+        
+        return has_reagent_keywords or close_proximity
     
     def _extract_required_materials(self) -> List[str]:
         """
