@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}ELISA Kit Datasheet Parser - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h4 class="my-0">Upload ELISA Datasheet</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Upload an ELISA kit datasheet in DOCX format to extract structured data and populate a template.
+                </p>
+                <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" class="mt-4">
+                    <div class="mb-3">
+                        <label for="source_file" class="form-label">Source ELISA Datasheet (DOCX)</label>
+                        <input type="file" class="form-control" id="source_file" name="source_file" required accept=".docx">
+                        <div class="form-text">Only DOCX files are supported.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="template" class="form-label">Select Template</label>
+                        <select class="form-select" id="template" name="template">
+                            {% for template in templates %}
+                                <option value="{{ template }}">{{ template }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Process Datasheet</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h4 class="my-0">Upload Template</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Upload a custom DOCX template with Jinja2 placeholders.
+                </p>
+                <form action="{{ url_for('upload_template') }}" method="POST" enctype="multipart/form-data" class="mt-4">
+                    <div class="mb-3">
+                        <label for="template_file" class="form-label">Template File (DOCX)</label>
+                        <input type="file" class="form-control" id="template_file" name="template_file" required accept=".docx">
+                        <div class="form-text">Only DOCX files are supported.</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-secondary">Upload Template</button>
+                </form>
+            </div>
+        </div>
+        
+        {% if recent_outputs %}
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0">Recent Outputs</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for output in recent_outputs %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-dark">
+                        {{ output }}
+                        <a href="{{ url_for('download_file', filename=output) }}" class="btn btn-sm btn-outline-primary">
+                            Download
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h4 class="my-0">How It Works</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <h5>Step 1</h5>
+                            <p>Upload your ELISA kit datasheet in DOCX format</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <h5>Step 2</h5>
+                            <p>Our parser extracts structured data from the datasheet</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <h5>Step 3</h5>
+                            <p>Download the populated template with extracted data</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

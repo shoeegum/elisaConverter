@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}ELISA Kit Datasheet - Batch Processing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h4 class="my-0">Batch Processing</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    This feature is coming soon! You'll be able to batch process multiple ELISA datasheets at once.
+                </p>
+                <div class="alert alert-info">
+                    <h5>Features in Development:</h5>
+                    <ul>
+                        <li>Upload multiple datasheets at once</li>
+                        <li>Apply the same template to all datasheets</li>
+                        <li>Download results as a zip file</li>
+                    </ul>
+                </div>
+                
+                <h5 class="mt-4">Current Upload Options:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Available Templates</h5>
+                                <ul class="list-group list-group-flush">
+                                    {% for template in templates %}
+                                    <li class="list-group-item bg-dark">{{ template }}</li>
+                                    {% else %}
+                                    <li class="list-group-item bg-dark">No templates available</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Uploaded Source Files</h5>
+                                <ul class="list-group list-group-flush">
+                                    {% for source_file in source_files %}
+                                    <li class="list-group-item bg-dark">{{ source_file }}</li>
+                                    {% else %}
+                                    <li class="list-group-item bg-dark">No source files uploaded</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
