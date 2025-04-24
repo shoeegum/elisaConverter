@@ -197,6 +197,21 @@ class TemplatePopulator:
         if 'standard_curve_table' in processed_data and processed_data['standard_curve_table']:
             processed_data['standard_curve_table_html'] = processed_data['standard_curve_table']
                 
+        # Define patterns to remove for all text processing
+        patterns_to_remove = [
+            r'For more information on.*?\.', 
+            r'For additional information.*?\.', 
+            r'Visit (?:our|the) (?:website|resource center).*?\.', 
+            r'Please refer to (?:our|the) (?:website|resource center).*?\.', 
+            r'More details can be found at.*?\.', 
+            r'Technical support (?:is|can be) available.*?\.', 
+            r'Visit.*?\.(?:com|org|net).*?\.', 
+            r'.*?resource center at.*?\.',
+            r'.*?ELISA Resource Center.*?\.',
+            r'.*?technical resource center.*?\.',
+            r'For more information on assay principle, protocols, and troubleshooting tips, see.*'
+        ]
+
         # Clean up data to remove unwanted content and replace company names
         for key, value in processed_data.items():
             if isinstance(value, str):
@@ -223,19 +238,6 @@ class TemplatePopulator:
                 value = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', value, flags=re.IGNORECASE | re.DOTALL)
                 
                 # Remove references to resource centers and external URLs
-                patterns_to_remove = [
-                    r'For more information on.*?\.', 
-                    r'For additional information.*?\.', 
-                    r'Visit (?:our|the) (?:website|resource center).*?\.', 
-                    r'Please refer to (?:our|the) (?:website|resource center).*?\.', 
-                    r'More details can be found at.*?\.', 
-                    r'Technical support (?:is|can be) available.*?\.', 
-                    r'Visit.*?\.(?:com|org|net).*?\.', 
-                    r'.*?resource center at.*?\.',
-                    r'.*?ELISA Resource Center.*?\.',
-                    r'.*?technical resource center.*?\.',
-                    r'For more information on assay principle, protocols, and troubleshooting tips, see.*'
-                ]
                 
                 for pattern in patterns_to_remove:
                     value = re.sub(pattern, '', value, flags=re.IGNORECASE | re.DOTALL)
