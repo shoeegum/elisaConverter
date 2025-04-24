@@ -226,12 +226,6 @@ class TemplatePopulator:
                         })
             
             processed_data['overview_specifications_table'] = cleaned_specs
-            
-            # Format the specifications table for HTML display
-            spec_table_html = ""
-            for spec in cleaned_specs:
-                spec_table_html += f"<tr><td>{spec['property']}</td><td>{spec['value']}</td></tr>\n"
-            processed_data['overview_specifications_table_html'] = spec_table_html
                 
         # Define patterns to remove for all text processing
         patterns_to_remove = [

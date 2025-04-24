@@ -160,8 +160,11 @@ def create_enhanced_template():
             for run in paragraph.runs:
                 run.font.bold = True
     
-    # Add placeholder for dynamic specifications table content
-    doc.add_paragraph("{{ overview_specifications_table_html|safe }}")
+    # Placeholder for specifications data (using dynamically created table rows in docx)
+    # Leave the placeholder paragraph for table rows - they'll be added programmatically
+    doc.add_paragraph("{% for spec in overview_specifications_table %}")
+    doc.add_paragraph("{{ spec.property }}: {{ spec.value }}")
+    doc.add_paragraph("{% endfor %}")
     
     # TECHNICAL DETAILS
     tech_details_header = doc.add_paragraph("TECHNICAL DETAILS", style='Heading 2')
