@@ -279,21 +279,42 @@ class TemplatePopulator:
             
             # If it's a dictionary with 'text' and 'steps' keys
             if isinstance(prep_data, dict) and 'text' in prep_data and 'steps' in prep_data:
-                # Keep the original full text
-                processed_data['preparations_text'] = prep_data['text']
+                # Extract the non-step portions of the text
+                non_step_text = prep_data['text']
+                # Find all steps in the text
+                for step in prep_data['steps']:
+                    # Remove the numbered steps from the main text
+                    step_text = f"{step['number']}. {step['text']}"
+                    non_step_text = non_step_text.replace(step_text, "")
+                
+                # Clean up the non-step text by removing extra whitespace and empty lines
+                non_step_text_lines = [line.strip() for line in non_step_text.split('\n') if line.strip()]
+                processed_data['preparations_text'] = "\n\n".join(non_step_text_lines)
                 
                 # Check if we have numbered steps
                 if prep_data['steps']:
-                    # Create a numbered list
+                    # Make sure the steps are sorted by number
+                    sorted_steps = sorted(prep_data['steps'], key=lambda x: x['number'])
+                    
+                    # Make sure we have a proper sequence (1, 2, 3, 4, etc.)
+                    fixed_steps = []
+                    for i, step in enumerate(sorted_steps, 1):
+                        fixed_steps.append({
+                            'number': i,
+                            'text': step['text']
+                        })
+                    
+                    # Create a numbered list for text display (but we'll use the actual step objects for rendering)
                     numbered_steps = []
-                    for step in prep_data['steps']:
+                    for step in fixed_steps:
                         numbered_steps.append(f"{step['number']}. {step['text']}")
-                        
+                    
                     processed_data['preparations_numbered'] = "\n".join(numbered_steps)
-                    processed_data['preparations_steps'] = prep_data['steps']
+                    # Use the fixed and sorted steps for the template
+                    processed_data['preparations_steps'] = fixed_steps
                 else:
                     # No numbered steps, use the same text
-                    processed_data['preparations_numbered'] = prep_data['text']
+                    processed_data['preparations_numbered'] = processed_data['preparations_text']
                     processed_data['preparations_steps'] = []
             elif isinstance(prep_data, str):
                 # Handle the old format where prep_data is a string
