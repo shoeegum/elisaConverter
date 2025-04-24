@@ -550,69 +550,122 @@ To measure the target protein, add standards and samples to the wells, then add 
         
         return overview_data
         
-    def _extract_technical_details(self) -> str:
-        """Extract the technical details section from the datasheet."""
-        # Create a list to store all specification-related content
-        specifications = []
+    def _extract_technical_details(self) -> Dict[str, Any]:
+        """
+        Extract the technical details section from the datasheet and format as a table.
+        
+        Returns:
+            Dictionary with technical details table data
+        """
+        # Initialize the standard technical details fields
+        technical_details = {
+            'text': '',
+            'technical_table': [
+                {'property': 'Capture/Detection Antibodies', 'value': ''},
+                {'property': 'Specificity', 'value': ''},
+                {'property': 'Standard Protein', 'value': ''},
+                {'property': 'Cross-reactivity', 'value': ''}
+            ]
+        }
+        
+        # Define mappings for property names that might be found in the document
+        property_mapping = {
+            'capture': 'Capture/Detection Antibodies',
+            'detection': 'Capture/Detection Antibodies',
+            'antibod': 'Capture/Detection Antibodies',
+            'specific': 'Specificity',
+            'standard': 'Standard Protein',
+            'recombin': 'Standard Protein',
+            'protein': 'Standard Protein',
+            'cross': 'Cross-reactivity',
+            'reactivity': 'Cross-reactivity'
+        }
+        
+        # Extract general text content
+        text_content = []
         
         # First try to find the technical details section
         tech_idx = self._find_section("Technical Details")
         if tech_idx is not None:
             # Get the content of the technical details section
-            text = []
             current_idx = tech_idx + 1
             while current_idx < len(self.doc.paragraphs):
                 paragraph = self.doc.paragraphs[current_idx]
                 if paragraph.text.strip() and "PREPARATION" not in paragraph.text.upper():
-                    text.append(paragraph.text.strip())
+                    text_content.append(paragraph.text.strip())
                 else:
                     # Stop if we hit another major section
                     if "PREPARATION" in paragraph.text.upper():
                         break
                 current_idx += 1
-            if text:
-                specifications.extend(text)
         
         # Look for specifications section
         specs_idx = self._find_section("Specifications")
         if specs_idx is not None:
             # Extract a few paragraphs
-            text = []
             current_idx = specs_idx + 1
             for i in range(5):  # Get up to 5 paragraphs
                 if current_idx + i < len(self.doc.paragraphs):
                     para_text = self.doc.paragraphs[current_idx + i].text.strip()
                     if para_text:
-                        text.append(para_text)
-            if text:
-                specifications.extend(text)
+                        text_content.append(para_text)
+        
+        # Process any text content found to extract technical details
+        for text in text_content:
+            # Check if text contains any of our target fields
+            for key_term, property_name in property_mapping.items():
+                if key_term.lower() in text.lower():
+                    # Try to split the text to get the value
+                    if ':' in text:
+                        parts = text.split(':', 1)
+                        if len(parts) == 2:
+                            value = parts[1].strip()
+                            # Find the corresponding technical detail and update it
+                            for detail in technical_details['technical_table']:
+                                if detail['property'] == property_name and not detail['value']:
+                                    detail['value'] = value
+                                    break
         
         # Look for technical specifications in tables
         for table in self.doc.tables:
-            # Look for tables with specifications
-            has_specs = False
             for row in table.rows:
                 if len(row.cells) >= 2:
-                    cell_text = row.cells[0].text.lower()
-                    if any(term in cell_text for term in ['sensitivity', 'range', 'specificity', 'detection']):
-                        has_specs = True
-                        break
-            
-            if has_specs:
-                for row in table.rows:
-                    if len(row.cells) >= 2:
-                        header = row.cells[0].text.strip()
-                        value = row.cells[1].text.strip()
-                        if header and value:
-                            specifications.append(f"{header}: {value}")
+                    label = row.cells[0].text.strip()
+                    value = row.cells[1].text.strip()
+                    
+                    if not label or not value:
+                        continue
+                    
+                    # Map to our standard properties
+                    mapped_property = None
+                    for key_term, property_name in property_mapping.items():
+                        if key_term.lower() in label.lower():
+                            mapped_property = property_name
+                            break
+                    
+                    if mapped_property:
+                        # Find the corresponding technical detail and update it
+                        for detail in technical_details['technical_table']:
+                            if detail['property'] == mapped_property and not detail['value']:
+                                detail['value'] = value
+                                break
         
-        # If we found specifications, return them
-        if specifications:
-            return "\n\n".join(specifications)
-            
-        # If still not found, construct from specifications
+        # If we still don't have values, try to extract from specifications
         sensitivity, detection_range, specificity, standard, cross_reactivity = self._extract_specifications()
-        return f"Sensitivity: {sensitivity}\nDetection Range: {detection_range}\nSpecificity: {specificity}\nStandard: {standard}\nCross-reactivity: {cross_reactivity}"
+        
+        # Update technical details with any values found
+        for detail in technical_details['technical_table']:
+            if detail['property'] == 'Specificity' and not detail['value'] and specificity:
+                detail['value'] = specificity
+            elif detail['property'] == 'Standard Protein' and not detail['value'] and standard:
+                detail['value'] = standard
+            elif detail['property'] == 'Cross-reactivity' and not detail['value'] and cross_reactivity:
+                detail['value'] = cross_reactivity
+        
+        # Join text content
+        technical_details['text'] = '\n\n'.join(text_content)
+        
+        return technical_details
         
     def _extract_preparations_before_assay(self) -> str:
         """Extract the preparations before assay section from the datasheet."""
