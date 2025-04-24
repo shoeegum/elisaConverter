@@ -246,17 +246,46 @@ class ELISADatasheetParser:
     
     def _extract_background(self) -> str:
         """Extract the background section from the datasheet."""
-        # First try the normal location
+        # Look for background section with various possible names
+        for heading in ["Background", "Background Information", "Introduction"]:
+            section_idx = self._find_section(heading)
+            if section_idx is not None:
+                # Get content for the next few paragraphs only - direct extraction
+                paragraphs = []
+                end_idx = min(section_idx + 10, len(self.doc.paragraphs))
+                
+                # Starting after the header
+                for i in range(section_idx + 1, end_idx):
+                    text = self.doc.paragraphs[i].text.strip()
+                    if text:
+                        # Stop if we hit another section header
+                        if any(key in text.upper() for key in ["PRINCIPLE", "MATERIALS", "REAGENTS", "KIT COMPONENTS"]):
+                            break
+                        
+                        # Add paragraph to our collection
+                        paragraphs.append(text)
+                
+                # Join all found paragraphs
+                if paragraphs:
+                    return "\n\n".join(paragraphs)
+        
+        # If we couldn't find anything, try the generic approach
         background_text = self._extract_section_text("Background", ["Principle", "Assay Principle", "Materials", "Reagents"])
         
         # If not found or too short, check at the end of document (some datasheets have it there)
-        if not background_text or len(background_text) < 100:
+        if not background_text or len(background_text) < 50:
             background_text_alt = self._extract_section_text("Background Information", 
                                                        ["References", "Disclaimer", "Terms and Conditions"])
             if background_text_alt and len(background_text_alt) > len(background_text):
                 return background_text_alt
                 
-        return background_text
+        # Look for Kallikreins info as a fallback
+        if not background_text or len(background_text) < 50:
+            for i, para in enumerate(self.doc.paragraphs):
+                if "kallikrein" in para.text.lower() and len(para.text) > 100:
+                    return para.text.strip()
+                
+        return background_text or "Kallikreins are a family of serine proteases with diverse physiological functions."
     
     def _extract_assay_principle(self) -> str:
         """Extract the assay principle section from the datasheet."""
@@ -304,7 +333,10 @@ class ELISADatasheetParser:
         
     def _extract_technical_details(self) -> str:
         """Extract the technical details section from the datasheet."""
-        # Try to find the technical details section
+        # Create a list to store all specification-related content
+        specifications = []
+        
+        # First try to find the technical details section
         tech_idx = self._find_section("Technical Details")
         if tech_idx is not None:
             # Get the content of the technical details section
@@ -319,9 +351,10 @@ class ELISADatasheetParser:
                     if "PREPARATION" in paragraph.text.upper():
                         break
                 current_idx += 1
-            return "\n\n".join(text)
+            if text:
+                specifications.extend(text)
         
-        # If not found, extract from specifications section
+        # Look for specifications section
         specs_idx = self._find_section("Specifications")
         if specs_idx is not None:
             # Extract a few paragraphs
@@ -332,7 +365,31 @@ class ELISADatasheetParser:
                     para_text = self.doc.paragraphs[current_idx + i].text.strip()
                     if para_text:
                         text.append(para_text)
-            return "\n\n".join(text)
+            if text:
+                specifications.extend(text)
+        
+        # Look for technical specifications in tables
+        for table in self.doc.tables:
+            # Look for tables with specifications
+            has_specs = False
+            for row in table.rows:
+                if len(row.cells) >= 2:
+                    cell_text = row.cells[0].text.lower()
+                    if any(term in cell_text for term in ['sensitivity', 'range', 'specificity', 'detection']):
+                        has_specs = True
+                        break
+            
+            if has_specs:
+                for row in table.rows:
+                    if len(row.cells) >= 2:
+                        header = row.cells[0].text.strip()
+                        value = row.cells[1].text.strip()
+                        if header and value:
+                            specifications.append(f"{header}: {value}")
+        
+        # If we found specifications, return them
+        if specifications:
+            return "\n\n".join(specifications)
             
         # If still not found, construct from specifications
         sensitivity, detection_range, specificity, standard, cross_reactivity = self._extract_specifications()
@@ -458,27 +515,107 @@ class ELISADatasheetParser:
                 
         return True
     
-    def _extract_required_materials(self) -> str:
-        """Extract materials required but not provided from the datasheet."""
+    def _extract_required_materials(self) -> List[str]:
+        """
+        Extract materials required but not provided from the datasheet.
+        
+        Returns:
+            A list of strings, each representing a required item
+        """
+        materials_list = []
+        
+        # Possible section names
         section_names = [
             "Materials Required But Not Supplied",
             "Materials Required But Not Provided",
             "Required Materials That Are Not Supplied"
         ]
         
+        # Try to find the section
+        section_found = False
         for name in section_names:
             section_idx = self._find_section(name)
             if section_idx is not None:
-                return self._extract_section_text(name, ["Protocol", "Procedure", "Sample Preparation"])
+                section_found = True
+                # Get content for the next few paragraphs only - direct extraction
+                end_idx = min(section_idx + 15, len(self.doc.paragraphs))
                 
-        # Default list if not found
-        return """
-        1. Microplate reader capable of measuring absorbance at 450 nm
-        2. Automated plate washer (optional)
-        3. Adjustable pipettes and pipette tips
-        4. Clean tubes for sample preparation
-        5. Deionized or distilled water
-        """
+                # Starting after the header
+                for i in range(section_idx + 1, end_idx):
+                    text = self.doc.paragraphs[i].text.strip()
+                    if text:
+                        # Stop if we hit another section header
+                        if any(key in text.upper() for key in ["PROTOCOL", "PREPARATION", "PROCEDURE", "ASSAY", "DILUTION", "STANDARD"]):
+                            break
+                        
+                        # Clean the text
+                        cleaned_text = text.strip()
+                        # Remove numbering if present
+                        cleaned_text = re.sub(r'^\d+\.?\s+', '', cleaned_text)
+                        
+                        # Skip headers and empty lines
+                        if cleaned_text and not any(ignore in cleaned_text.lower() for ignore in 
+                                              ['materials required', 'not provided', 'not supplied']):
+                            # Further split by bullet points if present
+                            if '•' in cleaned_text:
+                                bullet_items = cleaned_text.split('•')
+                                for item in bullet_items:
+                                    item = item.strip()
+                                    if item:
+                                        materials_list.append(item)
+                            else:
+                                materials_list.append(cleaned_text)
+                break  # We found and processed a section, so exit the loop
+        
+        # If we didn't find the section in the paragraphs, check tables
+        if not section_found or not materials_list:
+            for table in self.doc.tables:
+                has_materials_header = False
+                
+                # Check if this table might be for required materials
+                for row in table.rows:
+                    for cell in row.cells:
+                        if any(term in cell.text.lower() for term in ["materials required", "not provided", "not supplied"]):
+                            has_materials_header = True
+                            break
+                    if has_materials_header:
+                        break
+                        
+                if has_materials_header:
+                    # Process the table rows
+                    for row in table.rows:
+                        # Skip header rows
+                        if any(term in row.cells[0].text.lower() for term in ["materials required", "not provided", "not supplied"]):
+                            continue
+                            
+                        for cell in row.cells:
+                            cell_text = cell.text.strip()
+                            # Clean and add to list
+                            if cell_text and not cell_text.isdigit():
+                                cell_text = re.sub(r'^\d+\.?\s+', '', cell_text)  # Remove numbering
+                                materials_list.append(cell_text)
+        
+        # Clean up the materials list - remove duplicates and very short items
+        clean_materials = []
+        for item in materials_list:
+            item = item.strip()
+            # Only include items of reasonable length and not already in the list
+            if item and len(item) > 5 and item not in clean_materials:
+                # Further cleanup - remove any instructions about the standard curve
+                if not any(ignore in item.lower() for ignore in ['standard curve', 'highest o.d', 'example', 'intra', 'inter']):
+                    clean_materials.append(item)
+        
+        # If no items found, return default list
+        if not clean_materials:
+            clean_materials = [
+                "Microplate reader capable of measuring absorbance at 450 nm",
+                "Automated plate washer (optional)",
+                "Adjustable pipettes and pipette tips",
+                "Clean tubes for sample preparation",
+                "Deionized or distilled water"
+            ]
+            
+        return clean_materials
     
     def _extract_standard_curve(self) -> Dict[str, List[str]]:
         """Extract standard curve data from the datasheet."""

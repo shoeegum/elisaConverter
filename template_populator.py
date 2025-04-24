@@ -155,16 +155,12 @@ class TemplatePopulator:
             processed_data['data_analysis'] = re.sub(r'Publications.*?using this product.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
             processed_data['data_analysis'] = re.sub(r'Submit a Product Review to Biocompare.*?$', '', processed_data['data_analysis'], flags=re.DOTALL | re.IGNORECASE)
         
-        # Convert required materials to a list for bullet points
+        # Handle required materials which should already be a list from the parser
         if 'required_materials' in processed_data:
-            required_text = processed_data['required_materials']
-            # Clean up the text first
-            required_text = required_text.replace('Materials required', '').replace('Required but not provided', '').strip()
-            # Split by newlines or bullet-like characters
-            materials_list = re.split(r'[\n•\-*]+', required_text)
-            # Clean up and filter empty items
-            materials_list = [item.strip() for item in materials_list if item.strip()]
-            processed_data['required_materials_list'] = materials_list
+            # This is now returned directly as a list from the parser - just copy to materials_list
+            processed_data['required_materials_list'] = processed_data['required_materials']
+            # Also keep original format for compatibility
+            processed_data['required_materials_text'] = "\n".join(processed_data['required_materials'])
                 
         # Replace "Boster" with "Innovative Research" in all text fields
         for key, value in processed_data.items():
@@ -181,21 +177,35 @@ class TemplatePopulator:
                 # Remove references to online tool
                 value = re.sub(r'offers an easy-to-use online ELISA data analysis tool\. Try it out at.*?\.com.*?online', '', value)
                 processed_data[key] = value
-            elif isinstance(value, list) and all(isinstance(item, dict) for item in value):
-                # Handle lists of dictionaries (like reagents, tables, etc.)
-                for item in value:
-                    for item_key, item_value in item.items():
-                        if isinstance(item_value, str):
-                            # Apply the same replacements to dictionary values
-                            replaced_value = item_value
-                            replaced_value = re.sub(r'\bBoster\b', 'Innovative Research', replaced_value)
-                            replaced_value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', replaced_value)
-                            replaced_value = re.sub(r'\bboster\b', 'innovative research', replaced_value)
-                            replaced_value = re.sub(r'PicoKine\s*®', '', replaced_value)
-                            replaced_value = re.sub(r'Picokine\s*®', '', replaced_value)
-                            replaced_value = re.sub(r'PicoKine', '', replaced_value)
-                            replaced_value = re.sub(r'Picokine', '', replaced_value)
-                            item[item_key] = replaced_value
+            elif isinstance(value, list):
+                if all(isinstance(item, dict) for item in value):
+                    # Handle lists of dictionaries (like reagents, tables, etc.)
+                    for item in value:
+                        for item_key, item_value in item.items():
+                            if isinstance(item_value, str):
+                                # Apply the same replacements to dictionary values
+                                replaced_value = item_value
+                                replaced_value = re.sub(r'\bBoster\b', 'Innovative Research', replaced_value)
+                                replaced_value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', replaced_value)
+                                replaced_value = re.sub(r'\bboster\b', 'innovative research', replaced_value)
+                                replaced_value = re.sub(r'PicoKine\s*®', '', replaced_value)
+                                replaced_value = re.sub(r'Picokine\s*®', '', replaced_value)
+                                replaced_value = re.sub(r'PicoKine', '', replaced_value)
+                                replaced_value = re.sub(r'Picokine', '', replaced_value)
+                                item[item_key] = replaced_value
+                elif all(isinstance(item, str) for item in value):
+                    # Handle lists of strings (like required_materials_list)
+                    processed_list = []
+                    for item in value:
+                        item = re.sub(r'\bBoster\b', 'Innovative Research', item)
+                        item = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', item)
+                        item = re.sub(r'\bboster\b', 'innovative research', item)
+                        item = re.sub(r'PicoKine\s*®', '', item)
+                        item = re.sub(r'Picokine\s*®', '', item)
+                        item = re.sub(r'PicoKine', '', item)
+                        item = re.sub(r'Picokine', '', item)
+                        processed_list.append(item)
+                    processed_data[key] = processed_list
         
         return processed_data
         
