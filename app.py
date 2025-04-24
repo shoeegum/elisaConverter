@@ -90,7 +90,7 @@ def upload_file():
         return redirect(request.url)
     
     # Get selected template or use enhanced template as default
-    template_name = request.form.get('template')
+    template_name = request.form.get('template', 'enhanced_template.docx')
     
     if template_name:
         template_path = TEMPLATE_FOLDER / template_name
@@ -100,6 +100,9 @@ def upload_file():
     else:
         # No template selected, use enhanced template
         template_path = DEFAULT_TEMPLATE
+    
+    # Log which template is being used
+    logger.info(f"Using template: {template_path.name}")
         
     if not template_path.exists():
         flash(f'Template not found. Please upload a template first.', 'error')

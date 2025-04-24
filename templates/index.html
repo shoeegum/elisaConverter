@@ -24,13 +24,17 @@
                         <label for="template" class="form-label">Select Template</label>
                         <select class="form-select" id="template" name="template">
                             {% for template in templates %}
-                                <option value="{{ template.name }}" {% if template.name == 'enhanced_template.docx' %}class="fw-bold"{% endif %}>
+                                <option value="{{ template.name }}" 
+                                {% if template.name == 'enhanced_template.docx' %}selected class="fw-bold"{% endif %}>
                                     {{ template.description }}
+                                    {% if template.name == 'enhanced_template.docx' %}(Recommended){% endif %}
+                                    {% if template.name == 'boster_template_ready.docx' %}(Boster){% endif %}
+                                    {% if template.name == 'innovative_exact_template.docx' %}(Innovative Research){% endif %}
                                 </option>
                             {% endfor %}
                         </select>
                         <div class="form-text text-info mt-2">
-                            <i class="bi bi-info-circle"></i> The Enhanced Template features blue section headers, proper spacing, and narrow margins.
+                            <i class="bi bi-info-circle"></i> The Enhanced Template (recommended) features fixed tables, blue section headers, proper spacing, and improved compatibility with MS Word.
                         </div>
                     </div>
                     

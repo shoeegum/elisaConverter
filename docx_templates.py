@@ -60,19 +60,21 @@ def get_available_templates(template_dir: Path) -> List[Dict[str, str]]:
     
     # Pre-define template descriptions and their order
     template_info = {
-        'enhanced_template.docx': "Enhanced Template with Blue Headings & Proper Formatting (RECOMMENDED)",
+        'enhanced_template.docx': "Enhanced Template with Fixed Tables and Native Word Formatting",
         'default_template.docx': "Default Boster Template",
+        'boster_template_ready.docx': "Boster Template with Standard Formatting",
         'innovative_template.docx': "Innovative Research Template",
         'innovative_formatted_template.docx': "Innovative Research Template (Formatted)",
         'innovative_direct_template.docx': "Innovative Research Direct Format Template",
         'innovative_proper_template.docx': "Innovative Research Proper Template",
-        'innovative_exact_template.docx': "Innovative Research Exact Template"
+        'innovative_exact_template.docx': "Innovative Research Exact Format Template"
     }
     
     # Set the order of templates to display
     template_order = [
-        'enhanced_template.docx',  # Put enhanced template first
-        'innovative_exact_template.docx',
+        'enhanced_template.docx',  # Put enhanced template first 
+        'boster_template_ready.docx',  # Second choice
+        'innovative_exact_template.docx',  # Third choice
         'default_template.docx',
         'innovative_template.docx',
         'innovative_formatted_template.docx',
