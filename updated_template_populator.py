@@ -8,6 +8,8 @@ This module extends the EnhancedTemplatePopulator to add:
 """
 
 import logging
+import os
+import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
 import re
@@ -82,7 +84,6 @@ def fix_sample_sections(document_path: Path) -> None:
     try:
         # Make a backup copy
         backup_path = document_path.with_name(f"{document_path.stem}_backup{document_path.suffix}")
-        import shutil
         shutil.copy2(document_path, backup_path)
         
         # Load the document
@@ -162,13 +163,41 @@ def fix_sample_sections(document_path: Path) -> None:
         temp_path = document_path.with_name(f"{document_path.stem}_temp{document_path.suffix}")
         temp_doc = Document()
         
-        # 1. Copy all content up to SAMPLE PREPARATION AND STORAGE
+        # Keep track of which paragraphs we've already copied to avoid duplication
+        paragraphs_copied = set()
+        
+        # 1. First, copy all tables that come before the SAMPLE PREPARATION section
+        table_idx_in_new_doc = 0
+        for table_idx, position in tables_to_preserve.items():
+            if position == "before_sample_prep":
+                # Get the table from the original document
+                orig_table = doc.tables[table_idx]
+                
+                # Create a new table with same dimensions
+                rows = len(orig_table.rows)
+                cols = len(orig_table.rows[0].cells) if rows > 0 else 0
+                
+                if rows > 0 and cols > 0:
+                    new_table = temp_doc.add_table(rows=rows, cols=cols)
+                    new_table.style = orig_table.style
+                    
+                    # Copy cell content
+                    for i, row in enumerate(orig_table.rows):
+                        for j, cell in enumerate(row.cells):
+                            if i < len(new_table.rows) and j < len(new_table.rows[i].cells):
+                                new_table.rows[i].cells[j].text = cell.text
+                    
+                    table_idx_in_new_doc += 1
+                    logger.info(f"Added table {table_idx} ({rows}x{cols}) from position {position}")
+        
+        # 2. Copy all content up to SAMPLE PREPARATION AND STORAGE
         for i in range(sample_prep_idx + 1):
             para = doc.paragraphs[i]
             new_para = temp_doc.add_paragraph(para.text)
             new_para.style = para.style
+            paragraphs_copied.add(i)
             
-        # 2. Add our customized sample preparation content
+        # 3. Add our customized sample preparation content
         logger.info("Restructuring SAMPLE PREPARATION AND STORAGE section")
         temp_doc.add_paragraph("These sample collection instructions and storage conditions are intended as a general guideline. Sample stability has not been evaluated.")
         temp_doc.add_paragraph("")
@@ -184,27 +213,29 @@ def fix_sample_sections(document_path: Path) -> None:
         temp_doc.add_paragraph("")
         
         # Add a table for sample types
-        table = temp_doc.add_table(rows=5, cols=2)
-        table.style = 'Table Grid'
+        sample_type_table = temp_doc.add_table(rows=5, cols=2)
+        sample_type_table.style = 'Table Grid'
         
         # Set the table header
-        table.cell(0, 0).text = "Sample Type"
-        table.cell(0, 1).text = "Collection and Handling"
+        sample_type_table.cell(0, 0).text = "Sample Type"
+        sample_type_table.cell(0, 1).text = "Collection and Handling"
         
         # Set the table content
-        table.cell(1, 0).text = "Cell Culture Supernatant"
-        table.cell(1, 1).text = "Centrifuge at 1000 × g for 10 minutes to remove insoluble particulates. Collect supernatant."
+        sample_type_table.cell(1, 0).text = "Cell Culture Supernatant"
+        sample_type_table.cell(1, 1).text = "Centrifuge at 1000 × g for 10 minutes to remove insoluble particulates. Collect supernatant."
         
-        table.cell(2, 0).text = "Serum"
-        table.cell(2, 1).text = "Use a serum separator tube (SST). Allow samples to clot for 30 minutes before centrifugation for 15 minutes at approximately 1000 × g. Remove serum and assay immediately or store samples at -20°C."
+        sample_type_table.cell(2, 0).text = "Serum"
+        sample_type_table.cell(2, 1).text = "Use a serum separator tube (SST). Allow samples to clot for 30 minutes before centrifugation for 15 minutes at approximately 1000 × g. Remove serum and assay immediately or store samples at -20°C."
         
-        table.cell(3, 0).text = "Plasma"
-        table.cell(3, 1).text = "Collect plasma using EDTA or heparin as an anticoagulant. Centrifuge samples for 15 minutes at 1000 × g within 30 minutes of collection. Store samples at -20°C."
+        sample_type_table.cell(3, 0).text = "Plasma"
+        sample_type_table.cell(3, 1).text = "Collect plasma using EDTA or heparin as an anticoagulant. Centrifuge samples for 15 minutes at 1000 × g within 30 minutes of collection. Store samples at -20°C."
         
-        table.cell(4, 0).text = "Cell Lysates"
-        table.cell(4, 1).text = "Collect cells and rinse with ice-cold PBS. Homogenize at 1×10^7/ml in PBS with a protease inhibitor cocktail. Freeze/thaw 3 times. Centrifuge at 10,000×g for 10 min at 4°C. Aliquot the supernatant for testing and store at -80°C."
+        sample_type_table.cell(4, 0).text = "Cell Lysates"
+        sample_type_table.cell(4, 1).text = "Collect cells and rinse with ice-cold PBS. Homogenize at 1×10^7/ml in PBS with a protease inhibitor cocktail. Freeze/thaw 3 times. Centrifuge at 10,000×g for 10 min at 4°C. Aliquot the supernatant for testing and store at -80°C."
         
-        # 3. Add customized Sample Dilution Guideline section
+        table_idx_in_new_doc += 1
+        
+        # 4. Add customized Sample Dilution Guideline section
         logger.info("Restructuring SAMPLE DILUTION GUIDELINE section")
         
         dilution_para = temp_doc.add_paragraph("SAMPLE DILUTION GUIDELINE")
@@ -213,13 +244,15 @@ def fix_sample_sections(document_path: Path) -> None:
         # Add dilution guideline content
         temp_doc.add_paragraph("To inspect the validity of experimental operation and the appropriateness of sample dilution proportion, it is recommended to test all plates with the provided samples. Dilute the sample so the expected concentration falls near the middle of the standard curve range.")
         
-        # 4. Add all content from the ASSAY PROCEDURE section to the end
+        # 5. Add all content from the ASSAY PROCEDURE section to the end
         for i in range(assay_procedure_idx, len(doc.paragraphs)):
-            para = doc.paragraphs[i]
-            new_para = temp_doc.add_paragraph(para.text)
-            new_para.style = para.style
+            if i not in paragraphs_copied:  # Avoid copying paragraphs we've already included
+                para = doc.paragraphs[i]
+                new_para = temp_doc.add_paragraph(para.text)
+                new_para.style = para.style
+                paragraphs_copied.add(i)
             
-        # 5. Now add any "after_assay_procedure" tables
+        # 6. Add any "after_assay_procedure" tables
         tables_added = 0
         for table_idx, position in tables_to_preserve.items():
             if position == "after_assay_procedure":
@@ -242,6 +275,9 @@ def fix_sample_sections(document_path: Path) -> None:
                     
                     tables_added += 1
                     logger.info(f"Added table {table_idx} ({rows}x{cols}) from position {position}")
+        
+        # 7. Calculate total tables added
+        total_tables_added = table_idx_in_new_doc + tables_added
         
         # Save the temporary document
         temp_doc.save(temp_path)

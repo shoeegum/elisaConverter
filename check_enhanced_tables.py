@@ -64,15 +64,31 @@ def check_tables(document_path="output_populated_template.docx"):
             logger.info(f"Found REPRODUCIBILITY section at paragraph {i}")
     
     # Check all tables to identify and validate our target tables
-    # Print basic info about all tables first
+    # Print more detailed info about all tables
     print("\n--- Tables in Document ---")
     for i, table in enumerate(doc.tables):
         if not table.rows:
             print(f"Table {i}: Empty table")
             continue
         
-        row_sample = " ".join([cell.text for cell in table.rows[0].cells])
-        print(f"Table {i}: {len(table.rows)} rows x {len(table.rows[0].cells)} cols - First row: {row_sample[:50]}...")
+        # Get dimensions
+        rows = len(table.rows)
+        cols = len(table.rows[0].cells) if rows > 0 else 0
+        
+        # Get first row and first column as samples for identification
+        first_row = " ".join([cell.text.strip() for cell in table.rows[0].cells]) if rows > 0 else ""
+        
+        # Get a sample of the first cell in each row for column headers
+        col_headers = []
+        if rows > 1:
+            for row in table.rows[:min(3, rows)]:  # Look at first 3 rows max
+                if row.cells:
+                    col_headers.append(row.cells[0].text.strip())
+        
+        # Print detailed info
+        print(f"Table {i}: {rows}×{cols}")
+        print(f"  First row: {first_row[:75]}..." if len(first_row) > 75 else f"  First row: {first_row}")
+        print(f"  First column: {', '.join(col_headers)}")
     
     for i, table in enumerate(doc.tables):
         if not table.rows:
