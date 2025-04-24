@@ -403,14 +403,22 @@ class TemplatePopulator:
                     reagents_table_html += f"<w:tr><w:tc><w:p>{reagent['name']}</w:p></w:tc><w:tc><w:p>{reagent['quantity']}</w:p></w:tc></w:tr>"
                 processed_data['reagents_table_html'] = reagents_table_html
             
+            # Create a fresh template instance to avoid corruption
+            # This is the key fix for the document corruption issue
+            fresh_template = DocxTemplate(str(self.template_path))
+            
             # Render the template with the context data
-            self.template.render(processed_data)
+            fresh_template.render(processed_data)
             
             # Save the rendered template to the output path
-            self.template.save(output_path)
+            fresh_template.save(str(output_path))
             
-            self.logger.info(f"Template successfully populated and saved to {output_path}")
-            
+            # Verify the file exists and has content
+            if Path(output_path).exists() and Path(output_path).stat().st_size > 0:
+                self.logger.info(f"Template successfully populated and saved to {output_path}")
+            else:
+                self.logger.error(f"Output file was not created or is empty: {output_path}")
+                
         except Exception as e:
             self.logger.error(f"Error populating template: {e}")
             raise
