@@ -174,28 +174,33 @@ class TemplatePopulator:
             # Also keep original format for compatibility
             processed_data['required_materials_text'] = "\n".join(processed_data['required_materials'])
             
-            # Format as HTML for the enhanced template
-            required_materials_html = ""
+            # Prepare materials as a simple list
             materials = processed_data['required_materials']
             if materials:
-                bullet_items = []
+                # Clean up the items
+                clean_materials = []
                 for item in materials:
                     if item.strip():
-                        bullet_items.append(f"• {item.strip()}")
-                processed_data['required_materials_list_html'] = "\n".join(bullet_items)
+                        clean_materials.append(item.strip())
+                processed_data['required_materials_list_items'] = clean_materials
                 
-        # Format assay protocol as numbered steps for HTML display
+        # Format assay protocol as numbered steps
         if 'assay_protocol' in processed_data and processed_data['assay_protocol']:
             protocol = processed_data['assay_protocol']
             if protocol:
+                # Keep the original protocol steps
+                processed_data['assay_protocol_steps'] = protocol
+                
+                # Also create a numbered version for text display
                 numbered_steps = []
                 for i, step in enumerate(protocol, 1):
                     numbered_steps.append(f"{i}. {step}")
-                processed_data['assay_protocol_html'] = "\n".join(numbered_steps)
+                processed_data['assay_protocol_numbered'] = "\n".join(numbered_steps)
                 
-        # Format standard curve data for table display
+        # Format standard curve data for table display - just use the original data
         if 'standard_curve_table' in processed_data and processed_data['standard_curve_table']:
-            processed_data['standard_curve_table_html'] = processed_data['standard_curve_table']
+            # Make a copy to avoid unwanted modifications
+            processed_data['standard_curve_data'] = processed_data['standard_curve_table']
             
         # Process overview specifications table data
         if 'overview_specifications' in processed_data and processed_data['overview_specifications']:
@@ -396,12 +401,14 @@ class TemplatePopulator:
             # Clean and prepare the data
             processed_data = self._clean_data(data, kit_name, catalog_number, lot_number)
             
-            # Generate required content for template (like table HTML)
+            # Prepare reagents as a list for the template instead of trying to generate HTML
             if 'reagents' in processed_data:
-                reagents_table_html = ""
+                # Ensure we have proper reagent data
+                reagents_list = []
                 for reagent in processed_data['reagents']:
-                    reagents_table_html += f"<w:tr><w:tc><w:p>{reagent['name']}</w:p></w:tc><w:tc><w:p>{reagent['quantity']}</w:p></w:tc></w:tr>"
-                processed_data['reagents_table_html'] = reagents_table_html
+                    if isinstance(reagent, dict) and 'name' in reagent and 'quantity' in reagent:
+                        reagents_list.append(reagent)
+                processed_data['reagents_list'] = reagents_list
             
             # Render the template with the context data
             self.template.render(processed_data)
