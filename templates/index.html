@@ -24,9 +24,14 @@
                         <label for="template" class="form-label">Select Template</label>
                         <select class="form-select" id="template" name="template">
                             {% for template in templates %}
-                                <option value="{{ template.name }}">{{ template.description }}</option>
+                                <option value="{{ template.name }}" {% if template.name == 'enhanced_template.docx' %}class="fw-bold"{% endif %}>
+                                    {{ template.description }}
+                                </option>
                             {% endfor %}
                         </select>
+                        <div class="form-text text-info mt-2">
+                            <i class="bi bi-info-circle"></i> The Enhanced Template features blue section headers, proper spacing, and narrow margins.
+                        </div>
                     </div>
                     
                     <div class="mb-3">
