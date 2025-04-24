@@ -139,7 +139,9 @@ def populate_enhanced_template(
         context['intended_use'] = extracted_data.get('intended_use', 'For the quantitation of Mouse Klk1 concentrations in cell culture supernatants, cell lysates, serum and plasma (heparin, EDTA).')
         
         # Background information
-        context['background'] = extracted_data.get('background', 'Kallikrein-1, also known as tissue kallikrein, is a protein that in humans is encoded by the KLK1 gene. This serine protease generates Lys-bradykinin by specific proteolysis of kininogen-1. KLK1 is a member of the peptidase S1 family. Its gene is mapped to 19q13.3. In all, it has got 262-amino acids which contain a putative signal peptide, followed by a short activating peptide and the protease domain. The protein is mainly found in kidney, pancreas, and salivary gland, showing a unique pattern of tissue-specific expression relative to other members of the family. KLK1 is implicated in carcinogenesis and some have potential as novel cancer and other disease biomarkers.')
+        background_text = extracted_data.get('background', 'Kallikrein-1, also known as tissue kallikrein, is a protein that in humans is encoded by the KLK1 gene. This serine protease generates Lys-bradykinin by specific proteolysis of kininogen-1. KLK1 is a member of the peptidase S1 family. Its gene is mapped to 19q13.3. In all, it has got 262-amino acids which contain a putative signal peptide, followed by a short activating peptide and the protease domain. The protein is mainly found in kidney, pancreas, and salivary gland, showing a unique pattern of tissue-specific expression relative to other members of the family. KLK1 is implicated in carcinogenesis and some have potential as novel cancer and other disease biomarkers.')
+        context['background'] = background_text
+        context['background_text'] = background_text
         
         # Kit components
         reagents = extracted_data.get('reagents', [])
@@ -148,6 +150,11 @@ def populate_enhanced_template(
         # Required materials
         required_materials = extracted_data.get('required_materials', [])
         context['required_materials'] = required_materials
+        
+        # Format required materials with bullets
+        if required_materials:
+            bullet_list = "• " + "\n• ".join(required_materials)
+            context['required_materials_with_bullets'] = bullet_list
         
         # Format lists for new template sections
         sample_dilution = extracted_data.get('sample_dilution', '')
@@ -162,14 +169,14 @@ def populate_enhanced_template(
         context['sample_collection'] = extracted_data.get('sample_collection', 'Boster recommends that samples are used immediately upon preparation.')
         context['data_analysis'] = extracted_data.get('data_analysis', 'To analyze using manual methods, follow the process of duplicate readings for standard curve data points and averaging them.')
         
-        # Technical details
-        context['technical_details'] = {
-            'capture_detection_antibodies': extracted_data.get('capture_detection_antibodies', 'Rat monoclonal / Goat polyclonal'),
-            'specificity': extracted_data.get('specificity', 'Natural and recombinant Mouse Klk1'),
-            'standard_protein': extracted_data.get('standard_protein', 'Recombinant Mouse Klk1'),
-            'cross_reactivity': extracted_data.get('cross_reactivity', 'No detectable cross-reactivity with other relevant proteins'),
-            'sensitivity': extracted_data.get('sensitivity', '<2 pg/ml'),
-        }
+        # Technical details - we need to provide it in the format expected by the template
+        context['technical_details_table'] = [
+            {'name': 'Capture/Detection Antibodies', 'value': extracted_data.get('capture_detection_antibodies', 'Rat monoclonal / Goat polyclonal')},
+            {'name': 'Specificity', 'value': extracted_data.get('specificity', 'Natural and recombinant Mouse Klk1')},
+            {'name': 'Standard Protein', 'value': extracted_data.get('standard_protein', 'Recombinant Mouse Klk1')},
+            {'name': 'Cross-reactivity', 'value': extracted_data.get('cross_reactivity', 'No detectable cross-reactivity with other relevant proteins')},
+            {'name': 'Sensitivity', 'value': extracted_data.get('sensitivity', '<2 pg/ml')},
+        ]
         
         # Standard curve data
         concentrations = extracted_data.get('standard_curve', {}).get('concentrations', [62.5, 125, 250, 500, 1000, 2000, 4000])
@@ -203,13 +210,35 @@ def populate_enhanced_template(
 def main():
     """
     Test the template populator with the enhanced_template_final.docx template.
+    Use manually provided extraction data for testing.
     """
-    from elisa_parser import ELISAParser
-    
-    # Parse the ELISA datasheet
-    parser = ELISAParser()
-    source_path = Path('attached_assets/EK1586_Mouse_KLK1Kallikrein_1_ELISA_Kit_PicoKine_Datasheet.docx')
-    extracted_data = parser.extract_data(source_path)
+    # Create test extraction data
+    extracted_data = {
+        'kit_name': 'Mouse KLK1/Kallikrein 1 ELISA Kit',
+        'catalog_number': 'IMSKLK1KT',
+        'lot_number': '20250424',
+        'intended_use': 'For the quantitation of Mouse Klk1 concentrations in cell culture supernatants, cell lysates, serum and plasma (heparin, EDTA).',
+        'reagents': [
+            {'description': 'Anti-Mouse Klk1 Pre-coated 96-well strip microplate', 'quantity': '1', 'volume': '96 wells', 'storage': '4°C'},
+            {'description': 'Mouse Klk1 Standard', 'quantity': '2', 'volume': '10 ng/tube', 'storage': '4°C'},
+            {'description': 'Biotinylated anti-Mouse Klk1 antibody', 'quantity': '1', 'volume': '130 μl', 'storage': '4°C'},
+            {'description': 'Avidin-Biotin-Peroxidase Complex (ABC)', 'quantity': '1', 'volume': '130 μl', 'storage': '4°C'},
+            {'description': 'Sample diluent buffer', 'quantity': '1', 'volume': '30 ml', 'storage': '4°C'},
+            {'description': 'Antibody diluent buffer', 'quantity': '1', 'volume': '12 ml', 'storage': '4°C'},
+            {'description': 'ABC diluent buffer', 'quantity': '1', 'volume': '12 ml', 'storage': '4°C'},
+            {'description': 'TMB color developing agent', 'quantity': '1', 'volume': '10 ml', 'storage': '4°C'},
+            {'description': 'TMB stop solution', 'quantity': '1', 'volume': '10 ml', 'storage': '4°C'},
+            {'description': 'Adhesive cover', 'quantity': '4', 'volume': '-', 'storage': 'RT'},
+            {'description': 'User manual', 'quantity': '1', 'volume': '-', 'storage': 'RT'}
+        ],
+        'required_materials': [
+            'Microplate reader capable of reading absorbance at 450 nm. Incubator.',
+            'Automated plate washer (optional)',
+            'Pipettes and pipette tips capable of precisely dispensing 0.5 µl through 1 ml volumes of aqueous solutions. Multichannel pipettes are recommended for a large numbers of samples.',
+            'Deionized or distilled water. 500 ml graduated cylinders. Test tubes for dilution.'
+        ], 
+        'background': 'Kallikrein-1, also known as tissue kallikrein, is a protein that in humans is encoded by the KLK1 gene. This serine protease generates Lys-bradykinin by specific proteolysis of kininogen-1. KLK1 is a member of the peptidase S1 family. Its gene is mapped to 19q13.3. In all, it has got 262-amino acids which contain a putative signal peptide, followed by a short activating peptide and the protease domain. The protein is mainly found in kidney, pancreas, and salivary gland, showing a unique pattern of tissue-specific expression relative to other members of the family. KLK1 is implicated in carcinogenesis and some have potential as novel cancer and other disease biomarkers.'
+    }
     
     # Add any missing sections
     assay_principle = (
