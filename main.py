@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 from elisa_parser import ELISADatasheetParser
-from template_populator import TemplatePopulator
+from template_populator_enhanced import TemplatePopulator
 
 # Import Flask app for Gunicorn
 from app import app

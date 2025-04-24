@@ -12,7 +12,7 @@ from pathlib import Path
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 
 from elisa_parser import ELISADatasheetParser
-from template_populator import TemplatePopulator
+from template_populator_enhanced import TemplatePopulator
 from docx_templates import initialize_templates, get_available_templates
 
 # Configure logging
