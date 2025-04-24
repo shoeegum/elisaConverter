@@ -5,7 +5,7 @@ Create a proper template with placeholders from the sample document.
 import logging
 from pathlib import Path
 from docx import Document
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -29,6 +29,13 @@ def create_innovative_template():
     font.name = 'Calibri'
     font.size = Pt(11)
     
+    # Set narrow margins for the entire document
+    for section in doc.sections:
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
+        section.left_margin = Inches(0.5)
+        section.right_margin = Inches(0.5)
+    
     # Create style for section headers as Heading 2
     if 'Heading 2' not in styles:
         heading2_style = styles.add_style('Heading 2', styles['Normal'].type)
@@ -47,18 +54,31 @@ def create_innovative_template():
     header_style.font.bold = True
     header_style.font.color.rgb = RGBColor(0, 0, 128)  # Dark blue to match sample
     
+    # Create title style for the top heading
+    title_style = styles.add_style('Title Style', styles['Normal'].type)
+    title_style.font.name = 'Calibri'
+    title_style.font.size = Pt(36)
+    title_style.font.bold = True
+    
+    # Create footer styles
+    footer_company_style = styles.add_style('Footer Company Style', styles['Normal'].type)
+    footer_company_style.font.name = 'Calibri'
+    footer_company_style.font.size = Pt(24)
+    footer_company_style.font.bold = True
+    
+    footer_info_style = styles.add_style('Footer Info Style', styles['Normal'].type)
+    footer_info_style.font.name = 'Open Sans Light'
+    footer_info_style.font.size = Pt(12)
+    
     # Set paragraph spacing to match the sample document
     paragraph_format = styles['Normal'].paragraph_format
     paragraph_format.space_before = Pt(0)
     paragraph_format.space_after = Pt(8)
     paragraph_format.line_spacing = 1.15  # Matches sample document spacing
     
-    # Add the kit name title at the top - centered, bold, 14pt 
-    title_para = doc.add_paragraph()
+    # Add the kit name title at the top with Title Style (36pt Calibri Bold)
+    title_para = doc.add_paragraph(style='Title Style')
     title_run = title_para.add_run("{{ kit_name }}")
-    title_run.font.name = 'Calibri'
-    title_run.font.size = Pt(14)
-    title_run.font.bold = True
     title_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     
     # Add catalog/lot line - centered
@@ -74,6 +94,9 @@ def create_innovative_template():
     # INTENDED USE - all caps, Heading 2 style
     intended_use_header = doc.add_paragraph("INTENDED USE", style='Heading 2')
     intended_use_para = doc.add_paragraph("{{ intended_use }}")
+    
+    # Add page break after first page content
+    doc.add_page_break()
     
     # BACKGROUND - all caps, Heading 2 style
     background_header = doc.add_paragraph("BACKGROUND ON {{ kit_name }}", style='Heading 2')
@@ -94,11 +117,33 @@ def create_innovative_template():
     
     # KIT COMPONENTS/MATERIALS PROVIDED - all caps, Heading 2 style
     reagents_header = doc.add_paragraph("KIT COMPONENTS/MATERIALS PROVIDED", style='Heading 2')
-    # Add reagents table here if needed
+    
+    # Add reagents table
+    reagents_table = doc.add_table(rows=1, cols=2)
+    reagents_table.style = 'Table Grid'
+    reagents_headers = reagents_table.rows[0].cells
+    reagents_headers[0].text = "Component"
+    reagents_headers[1].text = "Quantity"
+    
+    # Make headers bold
+    for cell in reagents_headers:
+        for paragraph in cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.bold = True
+    
+    # Add placeholder rows with Jinja tags
+    reagents_para = doc.add_paragraph("{{ '{% for reagent in reagents %}' }}")
+    row_template = doc.add_paragraph("{{ '{% set row = reagents_table.add_row().cells %}' }}")
+    name_template = doc.add_paragraph("{{ '{{ row[0].text = reagent.name }}' }}")
+    quantity_template = doc.add_paragraph("{{ '{{ row[1].text = reagent.quantity }}' }}")
+    end_for = doc.add_paragraph("{{ '{% endfor %}' }}")
     
     # REQUIRED MATERIALS THAT ARE NOT SUPPLIED - all caps, Heading 2 style
     materials_header = doc.add_paragraph("REQUIRED MATERIALS THAT ARE NOT SUPPLIED", style='Heading 2')
-    materials_para = doc.add_paragraph("{{ required_materials }}")
+    materials_para = doc.add_paragraph("{{ '{% for item in required_materials_list %}' }}")
+    bullet_para = doc.add_paragraph("{{ '{{ item }}' }}")
+    bullet_para.style = 'List Bullet'
+    end_bullets = doc.add_paragraph("{{ '{% endfor %}' }}")
     
     # TYPICAL DATA - all caps, Heading 2 style
     typical_data_header = doc.add_paragraph("TYPICAL DATA", style='Heading 2')
@@ -183,15 +228,17 @@ def create_innovative_template():
     footer_website = footer.paragraphs[0]
     footer_website.text = "www.innov-research.com"
     footer_website.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-    footer_website.style = 'Header Style'
+    footer_website.style = 'Footer Info Style'
     
     # Create a new paragraph for contact info
     footer_contact = footer.add_paragraph("Ph: 248.896.0145 | Fx: 248.896.0149")
     footer_contact.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    footer_contact.style = 'Footer Info Style'
     
     # Add company name to the right side
     footer_company = footer.add_paragraph("Innovative Research, Inc.")
     footer_company.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+    footer_company.style = 'Footer Company Style'
     
     # Save the template
     template_path = Path('templates_docx/innovative_exact_template.docx')
