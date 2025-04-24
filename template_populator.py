@@ -238,6 +238,19 @@ class TemplatePopulator:
                 value = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', value, flags=re.IGNORECASE | re.DOTALL)
                 
                 # Remove references to resource centers and external URLs
+                patterns_to_remove = [
+                    r'For more information on.*?\.', 
+                    r'For additional information.*?\.', 
+                    r'Visit (?:our|the) (?:website|resource center).*?\.', 
+                    r'Please refer to (?:our|the) (?:website|resource center).*?\.', 
+                    r'More details can be found at.*?\.', 
+                    r'Technical support (?:is|can be) available.*?\.', 
+                    r'Visit.*?\.(?:com|org|net).*?\.', 
+                    r'.*?resource center at.*?\.',
+                    r'.*?ELISA Resource Center.*?\.',
+                    r'.*?technical resource center.*?\.',
+                    r'For more information on assay principle, protocols, and troubleshooting tips, see.*'
+                ]
                 
                 for pattern in patterns_to_remove:
                     value = re.sub(pattern, '', value, flags=re.IGNORECASE | re.DOTALL)

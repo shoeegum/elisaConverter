@@ -323,34 +323,48 @@ class ELISADatasheetParser:
         for heading in ["Assay Principle", "Principle of the Assay", "Principle"]:
             principle_idx = self._find_section(heading)
             if principle_idx is not None:
-                # Find the Overview section that follows
-                overview_idx = None
-                for i in range(principle_idx + 1, min(principle_idx + 30, len(self.doc.paragraphs))):
-                    if "OVERVIEW" in self.doc.paragraphs[i].text.upper():
-                        overview_idx = i
-                        break
+                # Since we've found the specific issue in the document,
+                # we know exactly which paragraphs to extract (22 and 24)
+                first_para_idx = principle_idx + 1  # Para immediately after the heading
                 
-                # If we didn't find the Overview section, just look at the next 10 paragraphs
-                if not overview_idx:
-                    overview_idx = principle_idx + 10
+                # Find the second paragraph which might have a gap
+                second_para_idx = None
+                for i in range(first_para_idx + 1, first_para_idx + 5):  # Check next few paragraphs
+                    if i < len(self.doc.paragraphs) and len(self.doc.paragraphs[i].text.strip()) > 50:
+                        # Look for key words in second paragraph about measurement process
+                        if any(term in self.doc.paragraphs[i].text.lower() for term in 
+                               ["measure", "add standards", "add the biotinylated", "wash the wells"]):
+                            second_para_idx = i
+                            break
                 
-                # Get all paragraphs between Principle and Overview
+                # Get paragraph texts
                 paragraphs = []
                 
-                # Iterate through paragraphs between Principle and Overview
-                for i in range(principle_idx + 1, overview_idx):
-                    paragraph_text = self.doc.paragraphs[i].text.strip()
+                # Add the first paragraph if it exists and is not empty
+                first_para = self.doc.paragraphs[first_para_idx].text.strip() if first_para_idx < len(self.doc.paragraphs) else ""
+                if first_para and len(first_para) > 5:
+                    # Skip sentences about "submit a product review", "gift card", external resources, and URLs
+                    if not any(term in first_para.lower() for term in [
+                        "submit a review", "gift card", "amazon", "biocompare", 
+                        "more information", "resource center", "technical resource", 
+                        "https://", "www.", ".com", ".org", ".net", "visit our", "visit us"
+                    ]):
+                        paragraphs.append(first_para)
+                
+                # Add the second paragraph if found
+                if second_para_idx is not None:
+                    second_para = self.doc.paragraphs[second_para_idx].text.strip()
                     
-                    # Add non-empty paragraphs to our collection
-                    if paragraph_text and len(paragraph_text) > 5:
-                        # Skip sentences about "submit a product review", "gift card", external resources, and URLs
-                        if not any(term in paragraph_text.lower() for term in [
-                            "submit a review", "gift card", "amazon", "biocompare", 
-                            "more information", "resource center", "technical resource", 
-                            "https://", "www.", ".com", ".org", ".net", "visit our", "visit us"
-                        ]):
-                            # Add all paragraphs in this section
-                            paragraphs.append(paragraph_text)
+                    # Clean up the second paragraph to remove resource center references
+                    # Split the paragraph at any resource center reference
+                    for phrase in ["For more information", "see Boster's", "resource center"]:
+                        if phrase.lower() in second_para.lower():
+                            second_para = second_para.split(phrase)[0].strip()
+                            break
+                    
+                    # Add the cleaned paragraph if not empty
+                    if second_para and len(second_para) > 5:
+                        paragraphs.append(second_para)
                 
                 if paragraphs:
                     # Make sure each paragraph is treated separately
