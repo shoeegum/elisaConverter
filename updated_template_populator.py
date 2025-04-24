@@ -80,92 +80,180 @@ def fix_sample_sections(document_path: Path) -> None:
         document_path: Path to the document to fix
     """
     try:
+        # Make a backup copy
+        backup_path = document_path.with_name(f"{document_path.stem}_backup{document_path.suffix}")
+        import shutil
+        shutil.copy2(document_path, backup_path)
+        
         # Load the document
         doc = Document(document_path)
         
         # Find the Sample Preparation and Sample Dilution sections
-        sample_prep_idx = None
-        sample_dilution_idx = None
-        assay_procedure_idx = None
+        sections = {}
+        section_names = ["SAMPLE PREPARATION AND STORAGE", "SAMPLE DILUTION GUIDELINE", "ASSAY PROCEDURE", "ASSAY PROTOCOL"]
+        section_indices = {}
         
-        for i, para in enumerate(doc.paragraphs):
-            text = para.text.strip()
-            if "SAMPLE PREPARATION AND STORAGE" in text:
-                sample_prep_idx = i
-                logger.info(f"Found SAMPLE PREPARATION AND STORAGE at paragraph {i}")
-            elif "SAMPLE DILUTION GUIDELINE" in text:
-                sample_dilution_idx = i
-                logger.info(f"Found SAMPLE DILUTION GUIDELINE at paragraph {i}")
-            elif "ASSAY PROCEDURE" in text or "ASSAY PROTOCOL" in text:
-                assay_procedure_idx = i
-                logger.info(f"Found ASSAY PROCEDURE at paragraph {i}")
+        # Track tables and their positions
+        table_positions = []
         
-        # Create a new document with the fixed sections
-        new_doc = Document()
+        # Find all section positions and table positions
+        para_count = 0
+        table_count = 0
+        current_position = 0
         
-        # First, copy all paragraphs up to and including SAMPLE PREPARATION AND STORAGE
-        if sample_prep_idx is not None:
-            logger.info("Restructuring SAMPLE PREPARATION AND STORAGE section")
-            for i in range(sample_prep_idx + 1):
-                para = doc.paragraphs[i]
-                new_para = new_doc.add_paragraph(para.text)
-                new_para.style = para.style
-            
-            # Add sample preparation content
-            new_doc.add_paragraph("These sample collection instructions and storage conditions are intended as a general guideline. Sample stability has not been evaluated.")
-            new_doc.add_paragraph("")
-            
-            # Add SAMPLE COLLECTION NOTES
-            sample_notes_para = new_doc.add_paragraph("SAMPLE COLLECTION NOTES")
-            sample_notes_para.style = 'Heading 3'
-            
-            # Add collection notes content
-            new_doc.add_paragraph("Innovative Research recommends that samples are used immediately upon preparation.")
-            new_doc.add_paragraph("Avoid repeated freeze-thaw cycles for all samples.")
-            new_doc.add_paragraph("Samples should be brought to room temperature (18-25°C) before performing the assay.")
-            new_doc.add_paragraph("")
-            
-            # Add a table for sample types
-            table = new_doc.add_table(rows=5, cols=2)
-            table.style = 'Table Grid'
-            
-            # Set the table header
-            table.cell(0, 0).text = "Sample Type"
-            table.cell(0, 1).text = "Collection and Handling"
-            
-            # Set the table content
-            table.cell(1, 0).text = "Cell Culture Supernatant"
-            table.cell(1, 1).text = "Centrifuge at 1000 × g for 10 minutes to remove insoluble particulates. Collect supernatant."
-            
-            table.cell(2, 0).text = "Serum"
-            table.cell(2, 1).text = "Use a serum separator tube (SST). Allow samples to clot for 30 minutes before centrifugation for 15 minutes at approximately 1000 × g. Remove serum and assay immediately or store samples at -20°C."
-            
-            table.cell(3, 0).text = "Plasma"
-            table.cell(3, 1).text = "Collect plasma using EDTA or heparin as an anticoagulant. Centrifuge samples for 15 minutes at 1000 × g within 30 minutes of collection. Store samples at -20°C."
-            
-            table.cell(4, 0).text = "Cell Lysates"
-            table.cell(4, 1).text = "Collect cells and rinse with ice-cold PBS. Homogenize at 1×10^7/ml in PBS with a protease inhibitor cocktail. Freeze/thaw 3 times. Centrifuge at 10,000×g for 10 min at 4°C. Aliquot the supernatant for testing and store at -80°C."
+        # First pass: find all sections and tables with their positions
+        for element in doc.element.body:
+            if element.tag.endswith('p'):  # This is a paragraph
+                para = doc.paragraphs[para_count]
+                text = para.text.strip().upper()
+                para_count += 1
+                current_position += 1
+                
+                # Check if this is a section we're interested in
+                for section_name in section_names:
+                    if section_name in text:
+                        section_indices[section_name] = (para_count - 1, current_position)
+                        break
+                        
+            elif element.tag.endswith('tbl'):  # This is a table
+                table_positions.append((table_count, current_position))
+                table_count += 1
+                current_position += 1
         
-        # Add Sample Dilution Guideline section
-        if sample_dilution_idx is not None:
-            logger.info("Restructuring SAMPLE DILUTION GUIDELINE section")
-            
-            dilution_para = new_doc.add_paragraph("SAMPLE DILUTION GUIDELINE")
-            dilution_para.style = 'Heading 2'
-            
-            # Add dilution guideline content
-            new_doc.add_paragraph("To inspect the validity of experimental operation and the appropriateness of sample dilution proportion, it is recommended to test all plates with the provided samples. Dilute the sample so the expected concentration falls near the middle of the standard curve range.")
+        # Extract section positions
+        sample_prep_position = section_indices.get("SAMPLE PREPARATION AND STORAGE")
+        sample_dilution_position = section_indices.get("SAMPLE DILUTION GUIDELINE")
+        assay_procedure_position = section_indices.get("ASSAY PROCEDURE") or section_indices.get("ASSAY PROTOCOL")
         
-        # Add all content from the ASSAY PROCEDURE section to the end
-        if assay_procedure_idx and assay_procedure_idx < len(doc.paragraphs):
-            for i in range(assay_procedure_idx, len(doc.paragraphs)):
-                para = doc.paragraphs[i]
-                new_para = new_doc.add_paragraph(para.text)
-                new_para.style = para.style
+        if not sample_prep_position:
+            logger.warning("Could not find SAMPLE PREPARATION AND STORAGE section")
+            return
+            
+        if not sample_dilution_position:
+            logger.warning("Could not find SAMPLE DILUTION GUIDELINE section")
+            return
+            
+        if not assay_procedure_position:
+            logger.warning("Could not find ASSAY PROCEDURE section")
+            return
         
-        # Save the document with the fixed sections
-        new_doc.save(document_path)
-        logger.info(f"Fixed sample sections and saved to {document_path}")
+        # Get paragraph index and position for each section
+        sample_prep_idx, sample_prep_pos = sample_prep_position
+        sample_dilution_idx, sample_dilution_pos = sample_dilution_position
+        assay_procedure_idx, assay_procedure_pos = assay_procedure_position
+        
+        logger.info(f"Found SAMPLE PREPARATION AND STORAGE at paragraph {sample_prep_idx}")
+        logger.info(f"Found SAMPLE DILUTION GUIDELINE at paragraph {sample_dilution_idx}")
+        logger.info(f"Found ASSAY PROCEDURE at paragraph {assay_procedure_idx}")
+        
+        # Keep track of which tables to preserve
+        tables_to_preserve = {}
+        
+        # Identify tables that need to be preserved (those not between sections we're modifying)
+        for table_idx, table_pos in table_positions:
+            if table_pos < sample_prep_pos:
+                tables_to_preserve[table_idx] = "before_sample_prep"
+            elif table_pos >= assay_procedure_pos:
+                tables_to_preserve[table_idx] = "after_assay_procedure"
+                
+        logger.info(f"Tables to preserve: {tables_to_preserve}")
+        
+        # Create a temporary document with our changes
+        temp_path = document_path.with_name(f"{document_path.stem}_temp{document_path.suffix}")
+        temp_doc = Document()
+        
+        # 1. Copy all content up to SAMPLE PREPARATION AND STORAGE
+        for i in range(sample_prep_idx + 1):
+            para = doc.paragraphs[i]
+            new_para = temp_doc.add_paragraph(para.text)
+            new_para.style = para.style
+            
+        # 2. Add our customized sample preparation content
+        logger.info("Restructuring SAMPLE PREPARATION AND STORAGE section")
+        temp_doc.add_paragraph("These sample collection instructions and storage conditions are intended as a general guideline. Sample stability has not been evaluated.")
+        temp_doc.add_paragraph("")
+        
+        # Add SAMPLE COLLECTION NOTES
+        sample_notes_para = temp_doc.add_paragraph("SAMPLE COLLECTION NOTES")
+        sample_notes_para.style = 'Heading 3'
+        
+        # Add collection notes content
+        temp_doc.add_paragraph("Innovative Research recommends that samples are used immediately upon preparation.")
+        temp_doc.add_paragraph("Avoid repeated freeze-thaw cycles for all samples.")
+        temp_doc.add_paragraph("Samples should be brought to room temperature (18-25°C) before performing the assay.")
+        temp_doc.add_paragraph("")
+        
+        # Add a table for sample types
+        table = temp_doc.add_table(rows=5, cols=2)
+        table.style = 'Table Grid'
+        
+        # Set the table header
+        table.cell(0, 0).text = "Sample Type"
+        table.cell(0, 1).text = "Collection and Handling"
+        
+        # Set the table content
+        table.cell(1, 0).text = "Cell Culture Supernatant"
+        table.cell(1, 1).text = "Centrifuge at 1000 × g for 10 minutes to remove insoluble particulates. Collect supernatant."
+        
+        table.cell(2, 0).text = "Serum"
+        table.cell(2, 1).text = "Use a serum separator tube (SST). Allow samples to clot for 30 minutes before centrifugation for 15 minutes at approximately 1000 × g. Remove serum and assay immediately or store samples at -20°C."
+        
+        table.cell(3, 0).text = "Plasma"
+        table.cell(3, 1).text = "Collect plasma using EDTA or heparin as an anticoagulant. Centrifuge samples for 15 minutes at 1000 × g within 30 minutes of collection. Store samples at -20°C."
+        
+        table.cell(4, 0).text = "Cell Lysates"
+        table.cell(4, 1).text = "Collect cells and rinse with ice-cold PBS. Homogenize at 1×10^7/ml in PBS with a protease inhibitor cocktail. Freeze/thaw 3 times. Centrifuge at 10,000×g for 10 min at 4°C. Aliquot the supernatant for testing and store at -80°C."
+        
+        # 3. Add customized Sample Dilution Guideline section
+        logger.info("Restructuring SAMPLE DILUTION GUIDELINE section")
+        
+        dilution_para = temp_doc.add_paragraph("SAMPLE DILUTION GUIDELINE")
+        dilution_para.style = 'Heading 2'
+        
+        # Add dilution guideline content
+        temp_doc.add_paragraph("To inspect the validity of experimental operation and the appropriateness of sample dilution proportion, it is recommended to test all plates with the provided samples. Dilute the sample so the expected concentration falls near the middle of the standard curve range.")
+        
+        # 4. Add all content from the ASSAY PROCEDURE section to the end
+        for i in range(assay_procedure_idx, len(doc.paragraphs)):
+            para = doc.paragraphs[i]
+            new_para = temp_doc.add_paragraph(para.text)
+            new_para.style = para.style
+            
+        # 5. Now add any "after_assay_procedure" tables
+        tables_added = 0
+        for table_idx, position in tables_to_preserve.items():
+            if position == "after_assay_procedure":
+                # Get the table from the original document
+                orig_table = doc.tables[table_idx]
+                
+                # Create a new table with same dimensions
+                rows = len(orig_table.rows)
+                cols = len(orig_table.rows[0].cells) if rows > 0 else 0
+                
+                if rows > 0 and cols > 0:
+                    new_table = temp_doc.add_table(rows=rows, cols=cols)
+                    new_table.style = orig_table.style
+                    
+                    # Copy cell content
+                    for i, row in enumerate(orig_table.rows):
+                        for j, cell in enumerate(row.cells):
+                            if i < len(new_table.rows) and j < len(new_table.rows[i].cells):
+                                new_table.rows[i].cells[j].text = cell.text
+                    
+                    tables_added += 1
+                    logger.info(f"Added table {table_idx} ({rows}x{cols}) from position {position}")
+        
+        # Save the temporary document
+        temp_doc.save(temp_path)
+        
+        # Replace the original with our temporary document
+        shutil.copy2(temp_path, document_path)
+        
+        # Clean up
+        if temp_path.exists():
+            os.remove(temp_path)
+            
+        logger.info(f"Fixed sample sections and saved to {document_path} with {tables_added} tables preserved")
         
     except Exception as e:
         logger.error(f"Error fixing sample sections: {e}")

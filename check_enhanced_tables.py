@@ -109,8 +109,15 @@ def check_tables(document_path="output_populated_template.docx"):
                   f"species={contains_species}, " +
                   f"reproducibility={contains_reproducibility}")
         
-        # Check for technical details table (Table 0)
-        if i == 0 or (contains_capture and contains_sensitivity):
+        # Look for the sample type table first (added by our fix_sample_sections function)
+        if "sample type" in table_content and "collection and handling" in table_content:
+            logger.info(f"Skipping sample type table at index {i}")
+            continue
+        
+        # Check for technical details table
+        # - It's usually the first non-sample table
+        # - It contains terms like sensitivity, detection, capture, etc.
+        if (contains_capture or contains_sensitivity or contains_detection_range) and not found_technical_details_table:
             found_technical_details_table = True
             logger.info(f"Found technical details table at index {i}")
             
@@ -133,8 +140,10 @@ def check_tables(document_path="output_populated_template.docx"):
                 else:
                     logger.warning("Technical details table has too many empty cells")
         
-        # Check for overview table (Table 1)
-        elif i == 1 or (contains_product and contains_species):
+        # Check for overview table
+        # - It usually contains terms like species, reactivity, etc.
+        # - It's often after the technical details table
+        elif (contains_product or contains_species) and not found_overview_table:
             found_overview_table = True
             logger.info(f"Found overview table at index {i}")
             
@@ -157,36 +166,44 @@ def check_tables(document_path="output_populated_template.docx"):
                 else:
                     logger.warning("Overview table has too many empty cells")
         
-        # Check for reproducibility tables (indices 4 and 5)
-        elif (i in [4, 5]) or (contains_reproducibility and reproducibility_section is not None):
-            # This is likely a reproducibility table
-            if not found_reproducibility_tables:
+        # Check for reproducibility tables
+        # - These are often near the end of the document
+        # - They contain terms like CV, precision, intra-assay, inter-assay, etc.
+        elif contains_reproducibility or "sample" in table_content:
+            # Identify if this is an intra-assay, inter-assay, or lot-to-lot table
+            is_intra_assay = "intra" in table_content.lower()
+            is_inter_assay = "inter" in table_content.lower()
+            is_lot_to_lot = "lot" in table_content.lower() and len(table.rows[0].cells) > 5
+            
+            if is_intra_assay or is_inter_assay or is_lot_to_lot:
                 found_reproducibility_tables = True
-                logger.info(f"Found reproducibility table at index {i}")
-            
-            # Check if values are filled in for all rows
-            empty_cells_in_table = 0
-            cell_count = 0
-            
-            for row_idx, row in enumerate(table.rows):
-                if row_idx == 0:  # Skip header row
-                    continue
-                    
-                for cell in row.cells:
-                    cell_count += 1
-                    if not cell.text.strip():
-                        empty_cells_in_table += 1
-            
-            # Calculate percentage of empty cells
-            if cell_count > 0:
-                empty_percentage = (empty_cells_in_table / cell_count) * 100
-                logger.info(f"Reproducibility table has {empty_percentage:.1f}% empty cells")
                 
-                if empty_percentage < 20:  # Less than 20% empty is considered populated
-                    reproducibility_populated = True
-                    logger.info("Reproducibility table is adequately populated")
-                else:
-                    logger.warning("Reproducibility table has too many empty cells")
+                table_type = "intra-assay" if is_intra_assay else "inter-assay" if is_inter_assay else "lot-to-lot"
+                logger.info(f"Found {table_type} reproducibility table at index {i}")
+                
+                # Check if values are filled in for all rows
+                empty_cells_in_table = 0
+                cell_count = 0
+                
+                for row_idx, row in enumerate(table.rows):
+                    if row_idx == 0:  # Skip header row
+                        continue
+                        
+                    for cell in row.cells:
+                        cell_count += 1
+                        if not cell.text.strip():
+                            empty_cells_in_table += 1
+                
+                # Calculate percentage of empty cells
+                if cell_count > 0:
+                    empty_percentage = (empty_cells_in_table / cell_count) * 100
+                    logger.info(f"Reproducibility table has {empty_percentage:.1f}% empty cells")
+                    
+                    if empty_percentage < 20:  # Less than 20% empty is considered populated
+                        reproducibility_populated = True
+                        logger.info(f"{table_type} table is adequately populated")
+                    else:
+                        logger.warning(f"{table_type} table has {empty_percentage:.1f}% empty cells")
     
     # Report overall status
     print("\n=== Table Population Status ===")
