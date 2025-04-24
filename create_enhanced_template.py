@@ -237,15 +237,46 @@ def create_enhanced_template():
     # KIT COMPONENTS/MATERIALS PROVIDED
     kit_components_header = doc.add_paragraph("KIT COMPONENTS/MATERIALS PROVIDED", style='Heading 2')
     
-    # Instead of trying to use Jinja loops in tables (which can be problematic),
-    # use a placeholder for an HTML table that will be inserted later
-    doc.add_paragraph("{{ reagents_table_html|safe }}")
+    # Create a table with fixed number of rows for components
+    # We'll create a static table with 7 rows, which should be sufficient for most kits
+    reagents_table = doc.add_table(rows=8, cols=4)  # 1 header row + 7 data rows
+    reagents_table.style = 'Table Grid'
+    
+    # Set column widths
+    col_widths = [3.0, 1.0, 1.5, 2.5]  # inches for each column
+    for i, width in enumerate(col_widths):
+        for cell in reagents_table.columns[i].cells:
+            cell.width = Inches(width)
+    
+    # Add headers to reagents table
+    header_row = reagents_table.rows[0].cells
+    header_row[0].text = "Description"
+    header_row[1].text = "Quantity"
+    header_row[2].text = "Volume"
+    header_row[3].text = "Storage of opened/reconstituted material"
+    
+    # Make headers bold and center-aligned
+    for cell in header_row:
+        cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        for run in cell.paragraphs[0].runs:
+            run.font.bold = True
+            
+    # Add placeholders for up to 7 reagents (static approach)
+    for i in range(1, 8):
+        row = reagents_table.rows[i].cells
+        row[0].text = f"{{{{ reagent_{i}_name|default('') }}}}"
+        row[1].text = f"{{{{ reagent_{i}_quantity|default('') }}}}"
+        row[2].text = f"{{{{ reagent_{i}_volume|default('') }}}}"
+        row[3].text = f"{{{{ reagent_{i}_storage|default('') }}}}"
     
     # MATERIALS REQUIRED BUT NOT PROVIDED
     materials_header = doc.add_paragraph("MATERIALS REQUIRED BUT NOT PROVIDED", style='Heading 2')
     
-    # Add placeholder for the bulleted list
-    doc.add_paragraph("{{ required_materials_list_html|safe }}")
+    # Create static bullet points for required materials (typical items, up to 10)
+    for i in range(1, 11):
+        bullet_para = doc.add_paragraph(f"{{{{ req_material_{i}|default('') }}}}", style='List Bullet')
+        # Only show bullet points with actual content
+        doc.add_paragraph(f"{{% if not req_material_{i} %}}{{{{ '' }}}}{{% endif %}}", style="Hidden Text")
     
     # REAGENT PREPARATION
     reagent_prep_header = doc.add_paragraph("REAGENT PREPARATION", style='Heading 2')
@@ -263,24 +294,27 @@ def create_enhanced_template():
     std_curve_header = doc.add_paragraph("TYPICAL DATA / STANDARD CURVE", style='Heading 2')
     std_curve_para = doc.add_paragraph("This standard curve is provided for demonstration only. A standard curve should be generated for each set of samples assayed.")
     
-    # Add standard curve table
-    curve_table = doc.add_table(rows=1, cols=2)
+    # Add standard curve table with fixed number of rows
+    # Typically there are 7-8 standard dilutions in an ELISA kit
+    curve_table = doc.add_table(rows=9, cols=2)  # 1 header row + 8 data rows
     curve_table.style = 'Table Grid'
-    curve_table.autofit = True
     
     # Add headers to curve table
     curve_headers = curve_table.rows[0].cells
     curve_headers[0].text = "Concentration (pg/ml)"
     curve_headers[1].text = "O.D."
     
-    # Make headers bold
+    # Make headers bold and centered
     for cell in curve_headers:
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.bold = True
+        cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        for run in cell.paragraphs[0].runs:
+            run.font.bold = True
     
-    # Add placeholder for dynamic content
-    doc.add_paragraph("{{ standard_curve_table_html|safe }}")
+    # Add placeholders for standard curve values
+    for i in range(1, 9):
+        row = curve_table.rows[i].cells
+        row[0].text = f"{{{{ std_conc_{i}|default('') }}}}"
+        row[1].text = f"{{{{ std_od_{i}|default('') }}}}"
     
     # INTRA/INTER-ASSAY VARIABILITY
     variability_header = doc.add_paragraph("INTRA/INTER-ASSAY VARIABILITY", style='Heading 2')
@@ -291,8 +325,11 @@ def create_enhanced_template():
     # ASSAY PROTOCOL
     protocol_header = doc.add_paragraph("ASSAY PROTOCOL", style='Heading 2')
     
-    # Add a placeholder for protocol steps
-    doc.add_paragraph("{{ assay_protocol_html|safe }}")
+    # Create static numbered steps for assay protocol (typical protocol has ~15-20 steps)
+    for i in range(1, 21):
+        num_para = doc.add_paragraph(f"{{{{ protocol_step_{i}|default('') }}}}", style='List Number')
+        # Only show steps with actual content
+        doc.add_paragraph(f"{{% if not protocol_step_{i} %}}{{{{ '' }}}}{{% endif %}}", style="Hidden Text")
     
     # DATA ANALYSIS
     analysis_header = doc.add_paragraph("DATA ANALYSIS", style='Heading 2')

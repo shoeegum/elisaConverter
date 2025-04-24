@@ -429,60 +429,70 @@ class TemplatePopulator:
             # Clean and prepare the data
             processed_data = self._clean_data(data, kit_name, catalog_number, lot_number)
             
-            # Generate an HTML table for the reagents instead of using complex templates
-            if 'reagents' in processed_data and 'reagents_header' in processed_data:
-                # Get the header row for the reagents table
-                header_row = processed_data.get('reagents_header', ['Description', 'Quantity'])
+            # Map reagent data to static individual fields in the template
+            if 'reagents' in processed_data:
+                reagents = processed_data['reagents']
+                # Add individual reagent entries for up to 7 rows
+                for i in range(min(len(reagents), 7)):
+                    reagent = reagents[i]
+                    # Fill in each column for this reagent
+                    if isinstance(reagent, dict):
+                        processed_data[f'reagent_{i+1}_name'] = reagent.get('name', '')
+                        processed_data[f'reagent_{i+1}_quantity'] = reagent.get('quantity', '')
+                        processed_data[f'reagent_{i+1}_volume'] = reagent.get('volume', '')
+                        processed_data[f'reagent_{i+1}_storage'] = reagent.get('storage', '')
                 
-                # Define column keys based on expected headers
-                column_keys = ['name', 'quantity', 'volume', 'storage']
+                # Clear any unused reagent slots
+                for i in range(len(reagents) + 1, 8):
+                    processed_data[f'reagent_{i}_name'] = ''
+                    processed_data[f'reagent_{i}_quantity'] = ''
+                    processed_data[f'reagent_{i}_volume'] = ''
+                    processed_data[f'reagent_{i}_storage'] = ''
+            
+            # Map required materials to individual bullet points
+            if 'required_materials' in processed_data:
+                req_materials = processed_data['required_materials']
+                # Add individual material entries
+                for i in range(min(len(req_materials), 10)):
+                    processed_data[f'req_material_{i+1}'] = req_materials[i]
                 
-                # Create a simpler HTML table without complex styling that might cause issues
-                reagents_html = '<table border="1">'
+                # Clear any unused material slots
+                for i in range(len(req_materials) + 1, 11):
+                    processed_data[f'req_material_{i}'] = ''
+            
+            # Map standard curve data to individual fields
+            if 'standard_curve' in processed_data:
+                # Check format of standard curve data
+                if 'concentration' in processed_data['standard_curve'] and 'od' in processed_data['standard_curve']:
+                    conc_values = processed_data['standard_curve']['concentration']
+                    od_values = processed_data['standard_curve']['od']
+                elif 'concentrations' in processed_data['standard_curve'] and 'od_values' in processed_data['standard_curve']:
+                    conc_values = processed_data['standard_curve']['concentrations']
+                    od_values = processed_data['standard_curve']['od_values']
+                else:
+                    conc_values = []
+                    od_values = []
                 
-                # Add header row - simpler styling
-                reagents_html += '<tr>'
-                for header in header_row:
-                    reagents_html += f'<th>{header}</th>'
-                reagents_html += '</tr>'
+                # Map to individual fields in template
+                for i in range(min(len(conc_values), len(od_values), 8)):
+                    processed_data[f'std_conc_{i+1}'] = conc_values[i]
+                    processed_data[f'std_od_{i+1}'] = od_values[i]
                 
-                # Add data rows - very basic formatting
-                for reagent in processed_data['reagents']:
-                    if isinstance(reagent, dict) and 'name' in reagent:
-                        reagents_html += '<tr>'
-                        # Add each column value
-                        for i, key in enumerate(column_keys):
-                            if i < len(header_row):  # Make sure we don't exceed the number of headers
-                                value = reagent.get(key, '')
-                                # Clean any problematic characters that might break Word
-                                if isinstance(value, str):
-                                    value = value.replace('<', '&lt;').replace('>', '&gt;')
-                                reagents_html += f'<td>{value}</td>'
-                        reagents_html += '</tr>'
+                # Clear any unused slots
+                for i in range(min(len(conc_values), len(od_values)) + 1, 9):
+                    processed_data[f'std_conc_{i}'] = ''
+                    processed_data[f'std_od_{i}'] = ''
+            
+            # Map assay protocol steps to numbered list items
+            if 'assay_protocol' in processed_data:
+                protocol_steps = processed_data['assay_protocol']
+                # Add individual protocol step entries
+                for i in range(min(len(protocol_steps), 20)):
+                    processed_data[f'protocol_step_{i+1}'] = protocol_steps[i]
                 
-                # Close the table
-                reagents_html += '</table>'
-                
-                # Add the HTML table to the processed data
-                processed_data['reagents_table_html'] = reagents_html
-                
-                # Keep the original reagent data for backward compatibility
-                processed_data['reagents_list'] = processed_data['reagents']
-                
-            elif 'reagents' in processed_data:
-                # Fallback for old format - simplest 2-column table with minimal styling
-                reagents_html = '<table border="1">'
-                reagents_html += '<tr><th>Description</th><th>Quantity</th></tr>'
-                
-                for reagent in processed_data['reagents']:
-                    if isinstance(reagent, dict) and 'name' in reagent and 'quantity' in reagent:
-                        name = reagent.get('name', '').replace('<', '&lt;').replace('>', '&gt;')
-                        quantity = reagent.get('quantity', '').replace('<', '&lt;').replace('>', '&gt;')
-                        reagents_html += f'<tr><td>{name}</td><td>{quantity}</td></tr>'
-                
-                reagents_html += '</table>'
-                processed_data['reagents_table_html'] = reagents_html
-                processed_data['reagents_list'] = processed_data['reagents']
+                # Clear any unused steps
+                for i in range(len(protocol_steps) + 1, 21):
+                    processed_data[f'protocol_step_{i}'] = ''
             
             # Render the template with the context data
             self.template.render(processed_data)
