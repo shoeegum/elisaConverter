@@ -208,12 +208,29 @@ class TemplatePopulator:
             r'.*?resource center at.*?\.',
             r'.*?ELISA Resource Center.*?\.',
             r'.*?technical resource center.*?\.',
-            r'For more information on assay principle, protocols, and troubleshooting tips, see.*'
+            r'For more information on assay principle, protocols, and troubleshooting tips, see.*',
+            r'Publications Citing This Product.*?publications\.',
+            r'\d+ Publications Citing This Product.*',
+            r'PubMed ID:.*?hydrocephalus',
+            r'.*html to see all \d+ publications\.',
+            r'Mouse KLK1/Kallikrein 1 ELISA Kit.*?publications'
         ]
 
         # Clean up data to remove unwanted content and replace company names
         for key, value in processed_data.items():
             if isinstance(value, str):
+                # Special handling for background text to remove publication citations
+                if key == 'background':
+                    # Remove publication citations from background
+                    pub_index = value.find("Publications Citing This Product")
+                    if pub_index > 0:
+                        value = value[:pub_index].strip()
+                    
+                    # Remove any PubMed ID lines
+                    value = re.sub(r'PubMed ID:.*?hydrocephalus', '', value, flags=re.IGNORECASE | re.DOTALL)
+                    value = re.sub(r'.*html to see all \d+ publications\..*', '', value, flags=re.IGNORECASE | re.DOTALL)
+                    value = re.sub(r'\d+ Publications Citing This Product.*', '', value, flags=re.IGNORECASE | re.DOTALL)
+                
                 # Replace "Boster" with "Innovative Research"
                 value = re.sub(r'\bBoster\b', 'Innovative Research', value)
                 value = re.sub(r'\bBOSTER\b', 'INNOVATIVE RESEARCH', value)
