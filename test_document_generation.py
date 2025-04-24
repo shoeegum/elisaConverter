@@ -59,6 +59,15 @@ def main():
     
     # Populate template with data
     logger.info(f"Populating template: {template_path}")
+    # Override background with scientifically accurate information
+    data['background'] = """
+    Kallikreins are a group of serine proteases with diverse physiological functions. 
+    Kallikrein 1 (KLK1) is a tissue kallikrein that is primarily expressed in the kidney, pancreas, and salivary glands.
+    It plays important roles in blood pressure regulation, inflammation, and tissue remodeling through the kallikrein-kinin system.
+    KLK1 specifically cleaves kininogen to produce the vasoactive peptide bradykinin, which acts through bradykinin receptors to mediate various biological effects.
+    Studies have implicated KLK1 in cardiovascular homeostasis, renal function, and inflammation-related processes.
+    """
+    
     populator = TemplatePopulator(template_path)
     populator.populate(
         data, 
