@@ -216,13 +216,29 @@ class TemplatePopulator:
                 value = re.sub(r'PicoKine', '', value)
                 value = re.sub(r'Picokine', '', value)
                 
-                # Remove references to online tool
+                # Remove references to online tools and Biocompare product reviews
                 value = re.sub(r'offers an easy-to-use online ELISA data analysis tool\. Try it out at.*?\.com.*?online', '', value)
-                
-                # Remove references to Biocompare product reviews
                 value = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare\.com.*?contribution\.', '', value, flags=re.IGNORECASE | re.DOTALL)
                 value = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare.*?gift card.*', '', value, flags=re.IGNORECASE | re.DOTALL)
                 value = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', value, flags=re.IGNORECASE | re.DOTALL)
+                
+                # Remove references to resource centers and external URLs
+                patterns_to_remove = [
+                    r'For more information on.*?\.', 
+                    r'For additional information.*?\.', 
+                    r'Visit (?:our|the) (?:website|resource center).*?\.', 
+                    r'Please refer to (?:our|the) (?:website|resource center).*?\.', 
+                    r'More details can be found at.*?\.', 
+                    r'Technical support (?:is|can be) available.*?\.', 
+                    r'Visit.*?\.(?:com|org|net).*?\.', 
+                    r'.*?resource center at.*?\.',
+                    r'.*?ELISA Resource Center.*?\.',
+                    r'.*?technical resource center.*?\.',
+                    r'For more information on assay principle, protocols, and troubleshooting tips, see.*'
+                ]
+                
+                for pattern in patterns_to_remove:
+                    value = re.sub(pattern, '', value, flags=re.IGNORECASE | re.DOTALL)
                 
                 # Final cleanup
                 value = re.sub(r'\s+', ' ', value)  # Replace multiple spaces with single space
@@ -256,6 +272,10 @@ class TemplatePopulator:
                                 replaced_value = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare\.com.*', '', replaced_value, flags=re.IGNORECASE | re.DOTALL)
                                 replaced_value = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', replaced_value, flags=re.IGNORECASE | re.DOTALL)
                                 
+                                # Remove references to resource centers and external URLs
+                                for pattern in patterns_to_remove:
+                                    replaced_value = re.sub(pattern, '', replaced_value, flags=re.IGNORECASE | re.DOTALL)
+                                
                                 # Final cleanup
                                 replaced_value = re.sub(r'\s+', ' ', replaced_value)  # Replace multiple spaces with single space
                                 replaced_value = replaced_value.strip()
@@ -284,6 +304,10 @@ class TemplatePopulator:
                         # Remove references to Biocompare
                         item = re.sub(r'Submit a (?:product )?review (?:of this product )?to Biocompare\.com.*', '', item, flags=re.IGNORECASE | re.DOTALL)
                         item = re.sub(r'.*?receive a \$[0-9]+ Amazon\.com gift card.*', '', item, flags=re.IGNORECASE | re.DOTALL)
+                        
+                        # Remove references to resource centers and external URLs
+                        for pattern in patterns_to_remove:
+                            item = re.sub(pattern, '', item, flags=re.IGNORECASE | re.DOTALL)
                         
                         # Final cleanup
                         item = re.sub(r'\s+', ' ', item)  # Replace multiple spaces with single space

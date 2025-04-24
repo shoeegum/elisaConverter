@@ -343,8 +343,12 @@ class ELISADatasheetParser:
                     
                     # Add non-empty paragraphs to our collection
                     if paragraph_text and len(paragraph_text) > 5:
-                        # Skip sentences about "submit a product review" or "gift card"
-                        if not any(term in paragraph_text.lower() for term in ["submit a review", "gift card", "amazon", "biocompare"]):
+                        # Skip sentences about "submit a product review", "gift card", external resources, and URLs
+                        if not any(term in paragraph_text.lower() for term in [
+                            "submit a review", "gift card", "amazon", "biocompare", 
+                            "more information", "resource center", "technical resource", 
+                            "https://", "www.", ".com", ".org", ".net", "visit our", "visit us"
+                        ]):
                             # Add all paragraphs in this section
                             paragraphs.append(paragraph_text)
                 
@@ -381,7 +385,13 @@ class ELISADatasheetParser:
                     # Make sure it's related to the assay principle
                     next_para = self.doc.paragraphs[i+1].text
                     if any(term in next_para.lower() for term in ["sample", "standard", "substrate", "measure", "detect", "absorbance"]):
-                        fallback_paragraphs.append(next_para)
+                        # Skip sentences about external resources and URLs
+                        if not any(term in next_para.lower() for term in [
+                            "submit a review", "gift card", "amazon", "biocompare", 
+                            "more information", "resource center", "technical resource", 
+                            "https://", "www.", ".com", ".org", ".net", "visit our", "visit us"
+                        ]):
+                            fallback_paragraphs.append(next_para)
                 
                 # Format all found paragraphs
                 formatted_paragraphs = []
