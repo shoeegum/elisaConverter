@@ -490,6 +490,7 @@ class TemplatePopulator:
                     processed_data[f'reagent_{i}_volume'] = ''
                     processed_data[f'reagent_{i}_storage'] = ''
             
+            
             # Map required materials to individual bullet points
             if 'required_materials' in processed_data:
                 req_materials = processed_data['required_materials']
@@ -512,18 +513,26 @@ class TemplatePopulator:
                             if len(req_materials) >= 5:
                                 break
                 
-                # Add individual material entries
-                for i in range(min(len(req_materials), 10)):
-                    # Clean up the material text (remove existing bullets)
-                    material_text = req_materials[i]
-                    material_text = material_text.strip()
-                    # Remove existing bullet characters
-                    if material_text.startswith('•'):
+                # Clean up the material items (only keep the text, no bullets)
+                clean_materials = []
+                for material in req_materials:
+                    # Remove any existing bullet points
+                    material_text = material.strip()
+                    if material_text.startswith('•') or material_text.startswith('-'):
                         material_text = material_text[1:].strip()
-                    processed_data[f'req_material_{i+1}'] = material_text
+                    elif material_text.startswith('\u2022'):  # Unicode bullet
+                        material_text = material_text[1:].strip()
+                    
+                    # Only add non-empty materials
+                    if material_text:
+                        clean_materials.append(material_text)
+                
+                # Add individual material entries (WITHOUT bullets, template already has them)
+                for i in range(min(len(clean_materials), 10)):
+                    processed_data[f'req_material_{i+1}'] = clean_materials[i]
                 
                 # Clear any unused material slots
-                for i in range(len(req_materials) + 1, 11):
+                for i in range(len(clean_materials) + 1, 11):
                     processed_data[f'req_material_{i}'] = ''
             
             # Map standard curve data to individual fields
