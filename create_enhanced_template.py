@@ -196,7 +196,7 @@ def create_enhanced_template():
     
     # PREPARATIONS BEFORE ASSAY
     prep_header = doc.add_paragraph("PREPARATIONS BEFORE ASSAY", style='Heading 2')
-    prep_para = doc.add_paragraph("{{ preparations_before_assay }}")
+    prep_para = doc.add_paragraph("{{ preparations_numbered }}")
     
     # KIT COMPONENTS/MATERIALS PROVIDED
     kit_components_header = doc.add_paragraph("KIT COMPONENTS/MATERIALS PROVIDED", style='Heading 2')
