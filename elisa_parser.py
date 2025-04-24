@@ -255,15 +255,25 @@ class ELISADatasheetParser:
         Studies have implicated KLK1 in cardiovascular homeostasis, renal function, and inflammation-related processes.
         """
         
-        # First try to find specific text about kallikreins in the document
-        for i, para in enumerate(self.doc.paragraphs):
-            if "kallikrein" in para.text.lower() and len(para.text) > 100:
-                if "family" in para.text.lower() and "proteases" in para.text.lower():
-                    return para.text.strip()
+        # First try to find specific text about kallikreins that would make a good background
+        # Start with searching toward the end of the document, as many datasheets have better descriptions there
+        for i in range(len(self.doc.paragraphs) - 1, 0, -1):
+            para_text = self.doc.paragraphs[i].text.lower()
+            # Look for paragraphs with the keyword and sufficient context 
+            if "kallikrein" in para_text and len(para_text) > 100:
+                text = self.doc.paragraphs[i].text.strip()
+                # Check if it's likely background text, not protocol steps
+                if ("encoded" in para_text or "gene" in para_text or "protein" in para_text) and not any(term in para_text for term in ['wash', 'discard', 'mix', 'add', 'incubate']):
+                    # Make sure it's not just a citation
+                    if not ("Publications" in text or "Citing" in text or "Submit" in text or "review" in text):
+                        # Clean up by removing publication references if they appear at the end
+                        if "Publications" in text:
+                            text = text.split("Publications")[0].strip()
+                        return text
         
-        # Look for background section with various possible names
-        for heading in ["Background", "Background Information", "Introduction"]:
-            section_idx = self._find_section(heading)
+        # If the above didn't work, look for specific background section with heading
+        for heading in ["Background", "Background Information", "Background on", "Introduction"]:
+            section_idx = self._find_section(heading, exact_match=False)
             if section_idx is not None:
                 # Get content for the next few paragraphs only - direct extraction
                 paragraphs = []
@@ -273,9 +283,11 @@ class ELISADatasheetParser:
                 for i in range(section_idx + 1, end_idx):
                     text = self.doc.paragraphs[i].text.strip()
                     if text:
-                        # Stop if we hit another section header
+                        # Stop if we hit another section header or protocol steps
                         if any(key in text.upper() for key in ["PRINCIPLE", "MATERIALS", "REAGENTS", "KIT COMPONENTS"]):
                             break
+                        if any(term in text.lower() for term in ['wash', 'discard', 'mix', 'add', 'incubate']):
+                            continue  # Skip protocol steps
                         
                         # Add paragraph to our collection
                         paragraphs.append(text)
@@ -283,23 +295,16 @@ class ELISADatasheetParser:
                 # Join all found paragraphs
                 if paragraphs:
                     background = "\n\n".join(paragraphs)
-                    if len(background) > 150:  # Make sure it's not just a short sentence
+                    if len(background) > 50:  # Make sure it's not just a short sentence
                         return background
         
-        # If we couldn't find anything, try the generic approach
-        background_text = self._extract_section_text("Background", ["Principle", "Assay Principle", "Materials", "Reagents"])
-        
-        # If not found or too short, check at the end of document (some datasheets have it there)
-        if not background_text or len(background_text) < 150:
-            background_text_alt = self._extract_section_text("Background Information", 
-                                                       ["References", "Disclaimer", "Terms and Conditions"])
-            if background_text_alt and len(background_text_alt) > len(background_text):
-                background_text = background_text_alt
-                
-        # Check if what we found is actually useful, not just procedural text
-        if background_text and len(background_text) > 150:
-            if not any(term in background_text.lower() for term in ['wash', 'discard', 'mix', 'add']):
-                return background_text
+        # Search throughout the document for any paragraph mentioning the target protein
+        for i, para in enumerate(self.doc.paragraphs):
+            para_text = para.text.lower()
+            # Find a paragraph that looks like background info but isn't protocol steps
+            if ("kallikrein" in para_text or "klk1" in para_text) and len(para_text) > 100:
+                if not any(term in para_text for term in ['wash', 'discard', 'pipette', 'mix', 'add', 'incubate']):
+                    return para.text.strip()
             
         # Return default text as fallback
         return default_background
