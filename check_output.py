@@ -122,4 +122,8 @@ def check_output(output_path="output_populated_template.docx"):
     print(f"Reproducibility table: {'Found' if reproducibility_table is not None else 'Missing'}")
 
 if __name__ == "__main__":
-    check_output()
+    import sys
+    if len(sys.argv) > 1:
+        check_output(sys.argv[1])
+    else:
+        check_output()

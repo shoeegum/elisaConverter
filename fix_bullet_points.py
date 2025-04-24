@@ -15,7 +15,12 @@ logger = logging.getLogger(__name__)
 
 def add_bullet_to_paragraph(paragraph):
     """Add a bullet character to the start of a paragraph."""
-    run = paragraph.add_run("• ", 0)  # Insert at the beginning
+    # First remove existing runs
+    for _ in range(len(paragraph.runs)):
+        paragraph.runs[0]._element.getparent().remove(paragraph.runs[0]._element)
+    
+    # Now add just the bullet
+    run = paragraph.add_run("• ")
     run.font.size = Pt(11)
     
 def fix_template_bullet_points(template_path="templates_docx/enhanced_template.docx"):

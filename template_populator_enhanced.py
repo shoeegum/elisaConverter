@@ -514,7 +514,13 @@ class TemplatePopulator:
                 
                 # Add individual material entries
                 for i in range(min(len(req_materials), 10)):
-                    processed_data[f'req_material_{i+1}'] = req_materials[i]
+                    # Clean up the material text (remove existing bullets)
+                    material_text = req_materials[i]
+                    material_text = material_text.strip()
+                    # Remove existing bullet characters
+                    if material_text.startswith('•'):
+                        material_text = material_text[1:].strip()
+                    processed_data[f'req_material_{i+1}'] = material_text
                 
                 # Clear any unused material slots
                 for i in range(len(req_materials) + 1, 11):
