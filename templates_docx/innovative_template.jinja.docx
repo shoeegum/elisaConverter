@@ -1,0 +1,145 @@
+Mouse KLK1/Kallikrein 1 ELISA Kit 
+
+CATALOG NO: {{ catalog_number }}					 		LOT NO:  {{ lot_number }}
+
+INTENDED USE
+
+{{ intended_use }}
+
+Background
+
+{{ background }}
+
+Principle of the assay
+
+{{ assay_principle }}
+
+specification
+
+Sensitivity
+{{ sensitivity }}
+
+Detection Range
+{{ detection_range }}
+
+Specificity
+{{ specificity }}
+
+Standard
+{{ standard }}
+
+Cross-reactivity
+{{ cross_reactivity }}
+
+Reagents
+
+Description
+Quantity
+
+{% for reagent in reagents %}{{ reagent.name }}
+{{ reagent.quantity }}
+{% endfor %}
+
+Materials Required But Not Provided
+
+{{ required_materials }}
+
+Typical Data 
+
+Concentration(pg/ml)
+{% for conc in standard_curve.concentrations %}{{ conc }}{% if not loop.last %} {% endif %}{% endfor %}
+
+O.D
+{% for od in standard_curve.od_values %}{{ od }}{% if not loop.last %} {% endif %}{% endfor %}
+
+Typical Standard Curve
+This standard curve was generated for demonstration purpose only. A standard curve must be run with each assay.
+
+INTRA/INTER ASSAY VARIABILITY
+
+{{ variability.intra_precision }}
+
+{{ variability.inter_precision }}
+
+Intra-Assay Precision
+Inter-Assay Precision 
+
+Sample
+{% for row in tables.intra %}{{ row.sample }}{% if not loop.last %} {% endif %}{% endfor %}
+{% for row in tables.inter %}{{ row.sample }}{% if not loop.last %} {% endif %}{% endfor %}
+
+n
+{% for row in tables.intra %}{{ row.n }}{% if not loop.last %} {% endif %}{% endfor %}
+{% for row in tables.inter %}{{ row.n }}{% if not loop.last %} {% endif %}{% endfor %}
+
+Mean(pg/ml)
+{% for row in tables.intra %}{{ row.mean }}{% if not loop.last %} {% endif %}{% endfor %}
+{% for row in tables.inter %}{{ row.mean }}{% if not loop.last %} {% endif %}{% endfor %}
+
+Standard deviation
+{% for row in tables.intra %}{{ row.std_dev }}{% if not loop.last %} {% endif %}{% endfor %}
+{% for row in tables.inter %}{{ row.std_dev }}{% if not loop.last %} {% endif %}{% endfor %}
+
+CV(%)
+{% for row in tables.intra %}{{ row.cv }}{% if not loop.last %} {% endif %}{% endfor %}
+{% for row in tables.inter %}{{ row.cv }}{% if not loop.last %} {% endif %}{% endfor %}
+
+Reproducibility
+
+Lots
+Lot1 (pg/ml)
+Lot2 (pg/ml)
+Lot3 (pg/ml)
+Lot4 (pg/ml)
+Mean (pg/ml)
+Standard Deviation
+CV (%)
+
+{% for lot in reproducibility %}Sample {{ lot.sample }}
+{{ lot.lot1 }}
+{{ lot.lot2 }}
+{{ lot.lot3 }}
+{{ lot.lot4 }}
+{{ lot.mean }}
+{{ lot.std_dev }}
+{{ lot.cv }}
+{% endfor %}
+
+Procedural Notes
+
+{{ procedural_notes }}
+
+Reagent Preparation and Storage
+
+{{ reagent_preparation }}
+
+Dilution of standard
+
+{{ dilution_of_standard }}
+
+Sample Preparation and Storage
+
+{{ sample_preparation_and_storage }}
+
+SAMPLE Collection Notes
+
+{{ sample_collection_notes }}
+
+Sample Dilution Guideline
+
+{{ sample_dilution_guideline }}
+
+Assay Procedure
+
+{% for step in assay_protocol %}
+{{ step }}{% endfor %}
+
+Data Analysis
+
+{{ data_analysis }}
+
+Disclaimer
+
+This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification.
+
+Innovative Research, Inc. · www.innov-research.com · Ph: 248.896.0145 | Fx: 248.896.0149

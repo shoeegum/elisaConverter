@@ -24,7 +24,7 @@
                         <label for="template" class="form-label">Select Template</label>
                         <select class="form-select" id="template" name="template">
                             {% for template in templates %}
-                                <option value="{{ template }}">{{ template }}</option>
+                                <option value="{{ template.name }}">{{ template.description }}</option>
                             {% endfor %}
                         </select>
                     </div>

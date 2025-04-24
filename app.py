@@ -13,6 +13,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 
 from elisa_parser import ELISADatasheetParser
 from template_populator import TemplatePopulator
+from docx_templates import initialize_templates, get_available_templates
 
 # Configure logging
 logging.basicConfig(
@@ -29,31 +30,26 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 UPLOAD_FOLDER = Path('uploads')
 OUTPUT_FOLDER = Path('outputs')
 TEMPLATE_FOLDER = Path('templates_docx')
+ASSETS_FOLDER = Path('attached_assets')
 
 for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, TEMPLATE_FOLDER]:
     folder.mkdir(exist_ok=True)
 
-# Copy default template if it doesn't exist yet
-DEFAULT_TEMPLATE = TEMPLATE_FOLDER / 'default_template.docx'
-if not DEFAULT_TEMPLATE.exists():
-    import shutil
-    default_source = Path('attached_assets/boster_template_ready.docx')
-    if default_source.exists():
-        shutil.copy(default_source, DEFAULT_TEMPLATE)
+# Initialize templates
+initialize_templates(TEMPLATE_FOLDER, ASSETS_FOLDER)
 
 @app.route('/')
 def index():
     """Render the home page"""
-    # List available templates
-    templates = list(TEMPLATE_FOLDER.glob('*.docx'))
-    template_names = [template.name for template in templates]
+    # Get available templates with descriptions
+    templates = get_available_templates(TEMPLATE_FOLDER)
     
     # List recent outputs if any
     recent_outputs = list(OUTPUT_FOLDER.glob('*.docx'))
     recent_outputs = sorted(recent_outputs, key=lambda x: x.stat().st_mtime, reverse=True)[:5]
     recent_output_names = [output.name for output in recent_outputs]
     
-    return render_template('index.html', templates=template_names, recent_outputs=recent_output_names)
+    return render_template('index.html', templates=templates, recent_outputs=recent_output_names)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -179,15 +175,14 @@ def view_source():
 @app.route('/batch_process')
 def batch_process():
     """Show batch processing page"""
-    # List available templates
-    templates = list(TEMPLATE_FOLDER.glob('*.docx'))
-    template_names = [template.name for template in templates]
+    # Get available templates with descriptions
+    templates = get_available_templates(TEMPLATE_FOLDER)
     
     # List available source files
     source_files = list(UPLOAD_FOLDER.glob('*.docx'))
     source_file_names = [source.name for source in source_files]
     
-    return render_template('batch_process.html', templates=template_names, source_files=source_file_names)
+    return render_template('batch_process.html', templates=templates, source_files=source_file_names)
 
 @app.route('/about')
 def about():

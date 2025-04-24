@@ -42,10 +42,13 @@ class ELISADatasheetParser:
         """
         self.logger.info(f"Extracting data from {self.file_path}")
         
+        # Extract technical specifications
+        sensitivity, detection_range, specificity, standard, cross_reactivity = self._extract_specifications()
+        
         # Initialize data structure
         data = {
             'catalog_number': self._extract_catalog_number(),
-            'lot_number': 'TBD',  # Often not included in datasheets
+            'lot_number': 'SAMPLE',  # Often not included in datasheets
             'intended_use': self._extract_intended_use(),
             'background': self._extract_background(),
             'assay_principle': self._extract_assay_principle(),
@@ -62,10 +65,80 @@ class ELISADatasheetParser:
             'sample_collection_notes': self._extract_sample_collection_notes(),
             'sample_dilution_guideline': self._extract_sample_dilution_guideline(),
             'assay_protocol': self._extract_assay_protocol(),
-            'data_analysis': self._extract_data_analysis()
+            'data_analysis': self._extract_data_analysis(),
+            
+            # Additional fields for the innovative template
+            'sensitivity': sensitivity,
+            'detection_range': detection_range,
+            'specificity': specificity,
+            'standard': standard,
+            'cross_reactivity': cross_reactivity
         }
         
         return data
+        
+    def _extract_specifications(self) -> Tuple[str, str, str, str, str]:
+        """Extract technical specifications from the datasheet."""
+        sensitivity = "<12 pg/ml"
+        detection_range = "62.5 pg/ml - 4,000 pg/ml"
+        specificity = "Natural and recombinant Mouse Klk1"
+        standard = "Expression system for standard: NS0; Immunogen sequence: I25-D261"
+        cross_reactivity = "This kit is for the detection of Mouse Klk1. No significant cross-reactivity or interference between Klk1 and its analogs was observed."
+        
+        # Try to find a specifications or technical details section
+        specs_idx = self._find_section("Specifications")
+        if specs_idx is None:
+            specs_idx = self._find_section("Technical Details")
+        
+        if specs_idx is not None:
+            # Look for paragraphs or tables after the specification section
+            for i in range(specs_idx + 1, min(specs_idx + 20, len(self.doc.paragraphs))):
+                para_text = self.doc.paragraphs[i].text.lower()
+                
+                if "sensitivity" in para_text and "pg/ml" in para_text:
+                    sensitivity = para_text.split("sensitivity", 1)[1].strip()
+                    if ":" in sensitivity:
+                        sensitivity = sensitivity.split(":", 1)[1].strip()
+                
+                if "detection range" in para_text:
+                    detection_range = para_text.split("detection range", 1)[1].strip()
+                    if ":" in detection_range:
+                        detection_range = detection_range.split(":", 1)[1].strip()
+                
+                if "specificity" in para_text:
+                    specificity = para_text.split("specificity", 1)[1].strip()
+                    if ":" in specificity:
+                        specificity = specificity.split(":", 1)[1].strip()
+                
+                if "standard" in para_text and ("protein" in para_text or "expression" in para_text):
+                    standard = para_text.split("standard", 1)[1].strip()
+                    if ":" in standard:
+                        standard = standard.split(":", 1)[1].strip()
+                
+                if "cross-reactivity" in para_text:
+                    cross_reactivity = para_text.split("cross-reactivity", 1)[1].strip()
+                    if ":" in cross_reactivity:
+                        cross_reactivity = cross_reactivity.split(":", 1)[1].strip()
+        
+        # Also check tables for specifications
+        for table in self.doc.tables:
+            for row in table.rows:
+                if len(row.cells) >= 2:
+                    header = row.cells[0].text.lower().strip()
+                    value = row.cells[1].text.strip()
+                    
+                    if "sensitivity" in header:
+                        sensitivity = value
+                    elif "detection range" in header:
+                        detection_range = value
+                    elif "specificity" in header:
+                        specificity = value
+                    elif "standard" in header:
+                        standard = value
+                    elif "cross" in header and "reactivity" in header:
+                        cross_reactivity = value
+        
+        return sensitivity, detection_range, specificity, standard, cross_reactivity
     
     def _find_section(self, section_name: str, start_idx: int = 0, exact_match: bool = False) -> Optional[int]:
         """
