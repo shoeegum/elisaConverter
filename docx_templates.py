@@ -119,24 +119,50 @@ def initialize_templates(template_dir: Path, assets_dir: Path) -> None:
     # Create the template directory if it doesn't exist
     template_dir.mkdir(exist_ok=True)
     
-    # Copy default templates if they don't exist
+    # First try to find and use the enhanced template with proper date stamp
+    enhanced_template_exists = False
+    
+    # Check for todays or other dated Innovative template
+    enhance_path = Path('IMSKLK1KT-20250424.docx')
+    dest_path = template_dir / 'enhanced_template.docx'
+    output_template = Path('output_populated_template.docx')
+    
+    # Try to find any other dated template if today's doesn't exist
+    if not enhance_path.exists():
+        # Look for any recent IMSKLK1KT-*.docx file
+        dated_templates = list(Path('.').glob('IMSKLK1KT-*.docx'))
+        if dated_templates:
+            enhance_path = sorted(dated_templates, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+            logger.info(f"Found alternative enhanced template: {enhance_path}")
+    
+    # Copy the enhanced template if found and it doesn't already exist
+    if enhance_path.exists() and not dest_path.exists():
+        shutil.copy(enhance_path, dest_path)
+        logger.info(f"Copied enhanced template from {enhance_path} to {dest_path}")
+        enhanced_template_exists = True
+    elif dest_path.exists():
+        enhanced_template_exists = True
+        logger.info(f"Enhanced template already exists at {dest_path}")
+    elif output_template.exists():
+        # If no enhanced template but we have a recently generated output, use that
+        shutil.copy(output_template, dest_path)
+        logger.info(f"Copied output template to {dest_path}")
+        enhanced_template_exists = True
+    
+    # Copy other default templates if they don't exist
     templates = [
         ('boster_template_ready.docx', 'default_template.docx'),
         ('IMSKLK1KT-Sample.docx', 'innovative_template.docx'),
-        ('boster_template_ready.docx', 'enhanced_template.docx')  # We'll replace this with the actual enhanced template
     ]
+    
+    # If enhanced template still doesn't exist, add it to the list
+    if not enhanced_template_exists:
+        templates.append(('boster_template_ready.docx', 'enhanced_template.docx'))
+        logger.warning("Could not find an enhanced template, will use boster_template_ready.docx as fallback")
     
     for source_name, dest_name in templates:
         source_path = assets_dir / source_name
         dest_path = template_dir / dest_name
-        
-        if dest_name == 'enhanced_template.docx':
-            # Check if we already have a generated enhanced template
-            enhanced_path = Path('IMSKLK1KT-20250424.docx')
-            if enhanced_path.exists() and not dest_path.exists():
-                shutil.copy(enhanced_path, dest_path)
-                logger.info(f"Copied generated enhanced template to {dest_name}")
-                continue
         
         if source_path.exists() and not dest_path.exists():
             shutil.copy(source_path, dest_path)

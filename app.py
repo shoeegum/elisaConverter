@@ -61,10 +61,10 @@ def index():
     default_template_name = DEFAULT_TEMPLATE.name if DEFAULT_TEMPLATE.exists() else None
     for template in templates:
         if template['name'] == default_template_name:
-            template['is_default'] = True
+            template['is_default'] = "yes"
             template['description'] += " (Default)"
         else:
-            template['is_default'] = False
+            template['is_default'] = "no"
     
     # List recent outputs if any
     recent_outputs = list(OUTPUT_FOLDER.glob('*.docx'))
@@ -232,10 +232,10 @@ def batch_process():
     default_template_name = DEFAULT_TEMPLATE.name if DEFAULT_TEMPLATE.exists() else None
     for template in templates:
         if template['name'] == default_template_name:
-            template['is_default'] = True
+            template['is_default'] = "yes"
             template['description'] += " (Default)"
         else:
-            template['is_default'] = False
+            template['is_default'] = "no"
     
     # List available source files
     source_files = list(UPLOAD_FOLDER.glob('*.docx'))
