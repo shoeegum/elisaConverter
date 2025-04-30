@@ -127,6 +127,7 @@ def fix_sample_sections(document_path: Path) -> None:
         sample_prep_position = section_indices.get("SAMPLE PREPARATION AND STORAGE")
         sample_dilution_position = section_indices.get("SAMPLE DILUTION GUIDELINE")
         assay_procedure_position = section_indices.get("ASSAY PROCEDURE") or section_indices.get("ASSAY PROTOCOL")
+        assay_principle_position = section_indices.get("ASSAY PRINCIPLE")
         
         if not sample_prep_position:
             logger.warning("Could not find SAMPLE PREPARATION AND STORAGE section")
@@ -144,6 +145,29 @@ def fix_sample_sections(document_path: Path) -> None:
         sample_prep_idx, sample_prep_pos = sample_prep_position
         sample_dilution_idx, sample_dilution_pos = sample_dilution_position
         assay_procedure_idx, assay_procedure_pos = assay_procedure_position
+        
+        # Check if we have an ASSAY PRINCIPLE section
+        assay_principle_idx = None
+        assay_principle_content = []
+        if assay_principle_position:
+            assay_principle_idx, assay_principle_pos = assay_principle_position
+            logger.info(f"Found ASSAY PRINCIPLE at paragraph {assay_principle_idx}")
+            
+            # Extract the content of the ASSAY PRINCIPLE section
+            # Look for the next 10 paragraphs after the ASSAY PRINCIPLE heading
+            start_idx = assay_principle_idx + 1
+            end_idx = min(start_idx + 10, len(doc.paragraphs))
+            
+            for i in range(start_idx, end_idx):
+                para_text = doc.paragraphs[i].text.strip()
+                # Stop if we hit the next section
+                if any(section in para_text.upper() for section in section_names if section != "ASSAY PRINCIPLE"):
+                    break
+                # Skip empty paragraphs
+                if para_text:
+                    assay_principle_content.append(para_text)
+            
+            logger.info(f"Extracted {len(assay_principle_content)} paragraphs from ASSAY PRINCIPLE section")
         
         logger.info(f"Found SAMPLE PREPARATION AND STORAGE at paragraph {sample_prep_idx}")
         logger.info(f"Found SAMPLE DILUTION GUIDELINE at paragraph {sample_dilution_idx}")
@@ -192,14 +216,49 @@ def fix_sample_sections(document_path: Path) -> None:
                     table_idx_in_new_doc += 1
                     logger.info(f"Added table {table_idx} ({rows}x{cols}) from position {position}")
         
-        # 2. Copy all content up to SAMPLE PREPARATION AND STORAGE
-        for i in range(sample_prep_idx + 1):
+        # 2. Copy the first few paragraphs (title and catalog info) only
+        for i in range(min(5, sample_prep_idx + 1)):
             para = doc.paragraphs[i]
             new_para = temp_doc.add_paragraph(para.text)
             new_para.style = para.style
             paragraphs_copied.add(i)
+        
+        # 3. Add the ASSAY PRINCIPLE section at the beginning
+        if assay_principle_content:
+            logger.info("Moving ASSAY PRINCIPLE section to the beginning of the document")
             
-        # 3. Add our customized sample preparation content
+            # Create the ASSAY PRINCIPLE heading
+            principle_heading = temp_doc.add_paragraph("ASSAY PRINCIPLE")
+            principle_heading.style = 'Heading 2'
+            
+            # Add the content paragraphs with spacing preserved
+            for para_text in assay_principle_content:
+                temp_doc.add_paragraph(para_text)
+                # Add an empty paragraph to preserve spacing between paragraphs
+                temp_doc.add_paragraph("")
+            
+            # Mark the original paragraphs as copied
+            if assay_principle_idx:
+                # Mark the heading
+                paragraphs_copied.add(assay_principle_idx)
+                # Mark the content paragraphs
+                start_idx = assay_principle_idx + 1
+                end_idx = min(start_idx + 10, len(doc.paragraphs))
+                for i in range(start_idx, end_idx):
+                    para_text = doc.paragraphs[i].text.strip()
+                    if any(section in para_text.upper() for section in section_names if section != "ASSAY PRINCIPLE"):
+                        break
+                    paragraphs_copied.add(i)
+        
+        # 4. Copy the remaining content up to SAMPLE PREPARATION AND STORAGE
+        for i in range(5, sample_prep_idx + 1):
+            if i not in paragraphs_copied:
+                para = doc.paragraphs[i]
+                new_para = temp_doc.add_paragraph(para.text)
+                new_para.style = para.style
+                paragraphs_copied.add(i)
+            
+        # 5. Add our customized sample preparation content
         logger.info("Restructuring SAMPLE PREPARATION AND STORAGE section")
         temp_doc.add_paragraph("These sample collection instructions and storage conditions are intended as a general guideline. Sample stability has not been evaluated.")
         temp_doc.add_paragraph("")
@@ -237,7 +296,7 @@ def fix_sample_sections(document_path: Path) -> None:
         
         table_idx_in_new_doc += 1
         
-        # 4. Add customized Sample Dilution Guideline section
+        # 6. Add customized Sample Dilution Guideline section
         logger.info("Restructuring SAMPLE DILUTION GUIDELINE section")
         
         dilution_para = temp_doc.add_paragraph("SAMPLE DILUTION GUIDELINE")
@@ -246,7 +305,7 @@ def fix_sample_sections(document_path: Path) -> None:
         # Add dilution guideline content
         temp_doc.add_paragraph("To inspect the validity of experimental operation and the appropriateness of sample dilution proportion, it is recommended to test all plates with the provided samples. Dilute the sample so the expected concentration falls near the middle of the standard curve range.")
         
-        # 5. Add all content from the ASSAY PROCEDURE section to the end
+        # 7. Add all content from the ASSAY PROCEDURE section to the end
         for i in range(assay_procedure_idx, len(doc.paragraphs)):
             if i not in paragraphs_copied:  # Avoid copying paragraphs we've already included
                 para = doc.paragraphs[i]
@@ -254,7 +313,7 @@ def fix_sample_sections(document_path: Path) -> None:
                 new_para.style = para.style
                 paragraphs_copied.add(i)
             
-        # 6. Add any "after_assay_procedure" tables
+        # 8. Add any "after_assay_procedure" tables
         tables_added = 0
         for table_idx, position in tables_to_preserve.items():
             if position == "after_assay_procedure":
@@ -278,7 +337,7 @@ def fix_sample_sections(document_path: Path) -> None:
                     tables_added += 1
                     logger.info(f"Added table {table_idx} ({rows}x{cols}) from position {position}")
         
-        # 7. Calculate total tables added
+        # 9. Calculate total tables added
         total_tables_added = table_idx_in_new_doc + tables_added
         
         # Apply Calibri font and 1.15 line spacing to the entire document
