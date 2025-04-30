@@ -16,7 +16,7 @@ def check_header_format(document_path="output_populated_template.docx"):
     Args:
         document_path: Path to the document to check
     """
-    print(f"Checking header format in {document_path}...")
+    print(f"Checking header format in {document_path}")
     
     # Open the document
     doc = docx.Document(document_path)
@@ -67,4 +67,8 @@ def check_header_format(document_path="output_populated_template.docx"):
         print(f"Paragraph {i}: {para.text[:50]}...")
 
 if __name__ == "__main__":
-    check_header_format()
+    import sys
+    if len(sys.argv) > 1:
+        check_header_format(sys.argv[1])
+    else:
+        check_header_format()
