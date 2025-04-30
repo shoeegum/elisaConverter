@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING
-from docx.shared import Pt
+from docx.shared import Pt, RGBColor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -42,6 +42,7 @@ def apply_document_formatting(document_path):
         if 'Normal' in doc.styles:
             style = doc.styles['Normal']
             style.font.name = "Calibri"
+            style.font.size = Pt(11)  # 11pt for body text
             style.paragraph_format.line_spacing = 1.15
             style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
         
@@ -88,6 +89,9 @@ def apply_document_formatting(document_path):
             # Apply font to all runs
             for run in para.runs:
                 run.font.name = "Calibri"
+                # Ensure 11pt font size for body text (unless it's a heading)
+                if para.style.name not in ['Heading 1', 'Heading 2', 'Heading 3', 'Title']:
+                    run.font.size = Pt(11)
         
         # Apply to all tables
         for table in doc.tables:
@@ -103,13 +107,24 @@ def apply_document_formatting(document_path):
                             run.font.name = "Calibri"
                             
         # Make one final pass for any styled paragraphs
-        for style_id in ['Heading 1', 'Heading 2', 'Heading 3', 'List Bullet', 'List Number']:
+        for style_id in ['Heading 1', 'Heading 3', 'List Bullet', 'List Number']:
             if style_id in doc.styles:
                 style = doc.styles[style_id]
                 style.font.name = "Calibri"
                 # Keep line spacing consistent
                 style.paragraph_format.line_spacing = 1.15
                 style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+        
+        # Specific settings for Heading 2 style (section headings)
+        if 'Heading 2' in doc.styles:
+            style = doc.styles['Heading 2']
+            style.font.name = "Calibri"
+            style.font.size = Pt(12)  # 12pt for section headings
+            style.font.color.rgb = RGBColor(0, 70, 180)  # Blue color
+            style.font.bold = True
+            # Keep line spacing consistent
+            style.paragraph_format.line_spacing = 1.15
+            style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
                 
         # Save the document
         doc.save(document_path)
