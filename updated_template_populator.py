@@ -219,17 +219,72 @@ def fix_sample_sections(document_path: Path) -> None:
         
         # 2. Completely rebuild the document in the correct order
         
-        # 2.1 First, add the cover page elements (first few paragraphs) - ONLY the cover page elements!
+        # 2.1 First, ONLY add the title, catalog, lot number, and intended use to the first page
+        # These are typically the first 4 paragraphs of the document
+        cover_page_elements = ["Mouse KLK1", "Catalog", "Lot", "ELISA Kit"]  # Keywords to identify cover page elements
+        
         cover_page_count = 0
-        for i in range(min(5, len(doc.paragraphs))):
+        # First, add the title (always the first paragraph)
+        if len(doc.paragraphs) > 0:
+            title_para = doc.paragraphs[0]
+            new_para = temp_doc.add_paragraph(title_para.text)
+            new_para.style = title_para.style
+            paragraphs_copied.add(0)
+            cover_page_count += 1
+            
+        # Then look for catalog number, lot number in the next few paragraphs
+        for i in range(1, min(10, len(doc.paragraphs))):  # Look in the first 10 paragraphs
             para = doc.paragraphs[i]
-            if para.text.strip() and not any(section in para.text.upper() for section in section_names):
-                new_para = temp_doc.add_paragraph(para.text)
+            para_text = para.text.strip()
+            
+            # Only include paragraphs that contain our cover page keywords and are not section headings
+            if para_text and any(keyword in para_text for keyword in cover_page_elements) and not any(section in para_text.upper() for section in section_names):
+                new_para = temp_doc.add_paragraph(para_text)
                 new_para.style = para.style
                 paragraphs_copied.add(i)
                 cover_page_count += 1
         
-        logger.info(f"Added {cover_page_count} paragraphs from cover page")
+        # Now find and add the INTENDED USE section to the first page
+        intended_use_found = False
+        for i in range(len(doc.paragraphs)):
+            if "INTENDED USE" in doc.paragraphs[i].text.upper():
+                # Found the INTENDED USE heading
+                intended_use_heading = temp_doc.add_paragraph("INTENDED USE")
+                intended_use_heading.style = 'Heading 2'
+                paragraphs_copied.add(i)
+                intended_use_found = True
+                
+                # Look for content in the next paragraph(s)
+                if i + 1 < len(doc.paragraphs):
+                    intended_use_content = doc.paragraphs[i + 1].text.strip()
+                    if intended_use_content and not any(section in intended_use_content.upper() for section in section_names):
+                        intended_use_para = temp_doc.add_paragraph(intended_use_content)
+                        intended_use_para.style = doc.paragraphs[i + 1].style
+                        paragraphs_copied.add(i + 1)
+                        cover_page_count += 2  # Count both heading and content
+                break
+        
+        # If we didn't find the intended use section, add a default one
+        if not intended_use_found:
+            logger.info("INTENDED USE section not found - adding default")
+            intended_use_heading = temp_doc.add_paragraph("INTENDED USE")
+            intended_use_heading.style = 'Heading 2'
+            
+            # Extract the default text from the document or use a generic one
+            # Check for text like "For the quantitation of Mouse Klk1 concentrations"
+            default_text = "For the quantitation of Mouse KLK1/Kallikrein 1 concentrations in cell culture supernatants, cell lysates, serum, and plasma. For Research Use Only. Not for use in diagnostic procedures."
+            
+            # Look for "For the quantitation" text in the first 20 paragraphs
+            for i in range(min(20, len(doc.paragraphs))):
+                if "for the quantitation" in doc.paragraphs[i].text.lower() and "mouse" in doc.paragraphs[i].text.lower():
+                    default_text = doc.paragraphs[i].text
+                    paragraphs_copied.add(i)
+                    break
+                    
+            intended_use_para = temp_doc.add_paragraph(default_text)
+            cover_page_count += 2  # Count both heading and content
+        
+        logger.info(f"Added {cover_page_count} paragraphs from cover page (title, catalog, lot, intended use)")
         
         # Create a new section with a page break
         # This is a more explicit way to ensure that the content starts on a new page
@@ -287,8 +342,8 @@ def fix_sample_sections(document_path: Path) -> None:
         for i in range(len(doc.paragraphs)):
             if i not in paragraphs_copied and i < sample_prep_idx:
                 para = doc.paragraphs[i]
-                # Skip any duplicate ASSAY PRINCIPLE sections
-                if "ASSAY PRINCIPLE" in para.text.upper():
+                # Skip any duplicate ASSAY PRINCIPLE or INTENDED USE sections
+                if "ASSAY PRINCIPLE" in para.text.upper() or "INTENDED USE" in para.text.upper():
                     paragraphs_copied.add(i)
                     continue
                 new_para = temp_doc.add_paragraph(para.text)
