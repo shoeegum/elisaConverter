@@ -534,12 +534,23 @@ class TemplatePopulator:
         # Format the document title (first paragraph should be the title)
         if len(doc.paragraphs) > 0:
             title_para = doc.paragraphs[0]
+            
+            # Set Title style properties directly
+            if 'Title' in doc.styles:
+                title_style = doc.styles['Title']
+                title_style.font.size = Pt(36)
+                title_style.font.bold = True
+                title_style.font.name = 'Calibri'
+                title_style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            
+            # Apply Title style to paragraph
             title_para.style = 'Title'
             
-            # Set font size to 36pt for the title
+            # Also set font size directly on the runs for extra assurance
             for run in title_para.runs:
                 run.font.size = Pt(36)
                 run.font.bold = True
+                run.font.name = 'Calibri'
             
             # Make sure the title is centered
             title_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
