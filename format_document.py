@@ -105,6 +105,8 @@ def apply_document_formatting(document_path):
                         # Apply font to all runs
                         for run in para.runs:
                             run.font.name = "Calibri"
+                            # Ensure 11pt font size for table cells
+                            run.font.size = Pt(11)
                             
         # Make one final pass for any styled paragraphs
         for style_id in ['Heading 1', 'Heading 3', 'List Bullet', 'List Number']:
