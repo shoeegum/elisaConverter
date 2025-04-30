@@ -55,7 +55,12 @@ def update_template_populator(
             # Apply consistent formatting to the document
             from format_document import apply_document_formatting
             apply_document_formatting(output_path)
-            logger.info(f"Applied consistent formatting (Calibri, 1.15 spacing) to {output_path}")
+            
+            # Restructure document to move Assay Principle before Technical Details
+            from restructure_document import restructure_document
+            restructure_document(output_path)
+            
+            logger.info(f"Applied consistent formatting and restructuring to {output_path}")
             return
             
         # If no backup is available, use the normal process
@@ -79,7 +84,11 @@ def update_template_populator(
         from format_document import apply_document_formatting
         apply_document_formatting(output_path)
         
-        logger.info(f"Successfully processed document: {output_path}")
+        # Restructure document to move Assay Principle before Technical Details
+        from restructure_document import restructure_document
+        restructure_document(output_path)
+        
+        logger.info(f"Successfully processed document with formatting and restructuring: {output_path}")
         
     except Exception as e:
         logger.error(f"Error processing document: {e}")
