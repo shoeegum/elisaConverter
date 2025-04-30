@@ -1,0 +1,24 @@
+Capture/Detection Antibodies	It is recommended that the standards be prepared no more than 2 hours prior to performing the experiment. Use one 10 ng of lyophilized Mouse Klk1 standard for each experiment. Gently spin the vial prior to use. Reconstitute the standard to a stock concentration of 10 ng/ml using 1ml of sample diluent. Allow the standard to sit for a minimum of 10 minutes with gentle agitation prior to making dilutions.
+Specificity	Natural and recombinant Mouse Klk1
+Standard Protein	It is recommended that the standards be prepared no more than 2 hours prior to performing the experiment. Use one 10 ng of lyophilized Mouse Klk1 standard for each experiment. Gently spin the vial prior to use. Reconstitute the standard to a stock concentration of 10 ng/ml using 1ml of sample diluent. Allow the standard to sit for a minimum of 10 minutes with gentle agitation prior to making dilutions.
+Cross-reactivity	This kit is for the detection of Mouse Klk1. No significant cross-reactivity or interference between Klk1 and its analogs was observed. This claim is limited by existing techniques; therefore, cross- reactivity may exist with untested analogs.
+Product Name	Mouse KLK1/Kallikrein 1 ELISA Kit 
+Reactive Species	This kit is for the detection of Mouse Klk1. No significant cross-reactivity or interference between Klk1 and its analogs was observed. This claim is limited by existing techniques; therefore, cross- reactivity may exist with untested analogs.
+Range	62.5 pg/ml - 4,000 pg/ml
+Sensitivity	<12 pg/ml
+Sample Type	Cell culture media, serum, plasma, and other biological fluids
+Sample Volume	100 μl
+Assay Time	4.5 hours
+Protocol	4.5 hours
+Description	Quantity	Volume	Storage of opened/reconstituted material
+Anti-Mouse Klk1 Pre-coated 96-well Strip Microplate	1	12 strips of 8 wells	Return unused wells to the foil pouch. Reseal along the entire edge of the zip-seal. May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Mouse Klk1 Standard	2	10 ng/tube	Discard the Klk1 stock solution after 12 hours at 4°C. May be stored at -20°C for 48 hours.
+Mouse Klk1 Biotinylated Antibody (100x)	1	100 µl	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Avidin-Biotin-Peroxidase Complex (100x)	1	100 µl	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Sample Diluent	1	30 ml	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Antibody Diluent	1	12 ml	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Avidin-Biotin-Peroxidase Diluent	1	12 ml	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Color Developing Reagent (TMB)	1	10 ml	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Stop Solution	1	10 ml	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Wash Buffer (25x)	1	20 ml	May be stored for up to 1 month at 4°C provided this is within the expiration date of the kit.
+Plate Sealers	4	Piece	

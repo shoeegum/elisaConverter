@@ -179,7 +179,15 @@ def fix_sample_sections(document_path: Path) -> None:
         
         # Identify tables that need to be preserved (those not between sections we're modifying)
         for table_idx, table_pos in table_positions:
-            if table_pos < sample_prep_pos:
+            # Get the first cell text of the table to check for Technical Details or Overview tables
+            first_cell_text = ""
+            if len(doc.tables[table_idx].rows) > 0 and len(doc.tables[table_idx].rows[0].cells) > 0:
+                first_cell_text = doc.tables[table_idx].rows[0].cells[0].text.strip()
+                
+            # Handle special classification for Technical Details or Overview tables
+            if first_cell_text in ["Capture/Detection Antibodies", "Product Name", "Specificity", "Standard Protein"]:
+                tables_to_preserve[table_idx] = "technical_details_section"
+            elif table_pos < sample_prep_pos:
                 tables_to_preserve[table_idx] = "before_sample_prep"
             elif table_pos >= assay_procedure_pos:
                 tables_to_preserve[table_idx] = "after_assay_procedure"
@@ -257,7 +265,10 @@ def fix_sample_sections(document_path: Path) -> None:
                 # Look for content in the next paragraph(s)
                 if i + 1 < len(doc.paragraphs):
                     intended_use_content = doc.paragraphs[i + 1].text.strip()
-                    if intended_use_content and not any(section in intended_use_content.upper() for section in section_names):
+                    # Make sure this paragraph doesn't contain table content that belongs in technical details/overview
+                    if (intended_use_content and not any(section in intended_use_content.upper() for section in section_names) 
+                            and "Capture/Detection" not in intended_use_content 
+                            and "Product Name" not in intended_use_content):
                         intended_use_para = temp_doc.add_paragraph(intended_use_content)
                         intended_use_para.style = doc.paragraphs[i + 1].style
                         paragraphs_copied.add(i + 1)
@@ -337,6 +348,28 @@ def fix_sample_sections(document_path: Path) -> None:
             for text, style in technical_details_content:
                 new_para = temp_doc.add_paragraph(text)
                 new_para.style = style
+                
+            # Now add technical details tables (Capture/Detection Antibodies, etc.)
+            for table_idx, position in tables_to_preserve.items():
+                if position == "technical_details_section":
+                    # Get the table from the original document
+                    orig_table = doc.tables[table_idx]
+                    
+                    # Create a new table with same dimensions
+                    rows = len(orig_table.rows)
+                    cols = len(orig_table.rows[0].cells) if rows > 0 else 0
+                    
+                    if rows > 0 and cols > 0:
+                        new_table = temp_doc.add_table(rows=rows, cols=cols)
+                        new_table.style = orig_table.style
+                        
+                        # Copy cell content
+                        for i, row in enumerate(orig_table.rows):
+                            for j, cell in enumerate(row.cells):
+                                if i < len(new_table.rows) and j < len(new_table.rows[i].cells):
+                                    new_table.rows[i].cells[j].text = cell.text
+                        
+                        logger.info(f"Added technical details table {table_idx} ({rows}x{cols})")
         
         # 2.5 Add all other sections except SAMPLE PREPARATION and beyond
         for i in range(len(doc.paragraphs)):
