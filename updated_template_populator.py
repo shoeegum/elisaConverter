@@ -17,7 +17,7 @@ import re
 
 from docx import Document
 import docx
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING, WD_BREAK
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING
 from docx.shared import Pt, RGBColor
 from docxtpl import DocxTemplate
 
@@ -230,11 +230,10 @@ def fix_sample_sections(document_path: Path) -> None:
         
         logger.info(f"Added {cover_page_count} paragraphs from cover page")
         
-        # Add a page break after the cover page using a simple paragraph with a page break
+        # Add a page break after the cover page
         page_break_para = temp_doc.add_paragraph()
         run = page_break_para.add_run()
-        run._element.append(docx.oxml.shared.OxmlElement('w:br'))
-        run._element.attrib['{http://schemas.openxmlformats.org/wordprocessingml/2006/main}type'] = 'page'
+        run.add_break(WD_BREAK.PAGE)
         
         # 2.2 Find the TECHNICAL DETAILS section
         technical_details_idx = None
@@ -255,13 +254,11 @@ def fix_sample_sections(document_path: Path) -> None:
             principle_heading = temp_doc.add_paragraph("ASSAY PRINCIPLE")
             principle_heading.style = 'Heading 2'
             
-            # Add the content paragraphs with proper paragraph breaks
-            for i, para_text in enumerate(assay_principle_content):
-                p = temp_doc.add_paragraph(para_text)
-                # Add paragraph spacing after each paragraph except the last one
-                if i < len(assay_principle_content) - 1:
-                    # Add a paragraph break with spacing
-                    temp_doc.add_paragraph("")
+            # Add the content paragraphs with spacing preserved
+            for para_text in assay_principle_content:
+                temp_doc.add_paragraph(para_text)
+                # Add an empty paragraph to preserve spacing between paragraphs
+                temp_doc.add_paragraph("")
             
             # Mark the original paragraphs as copied
             if assay_principle_idx:
