@@ -157,6 +157,16 @@ def main():
         logger.info("Fixing sample preparation and dilution sections")
         update_template_populator(source_path, output_path, output_path)
         
+        # Add ASSAY PRINCIPLE section
+        logger.info("Adding ASSAY PRINCIPLE section")
+        from add_assay_principle import add_assay_principle
+        add_assay_principle(output_path)
+        
+        # Fix OVERVIEW table
+        logger.info("Fixing OVERVIEW table with correct data")
+        from fix_overview_table import fix_overview_table
+        fix_overview_table(output_path)
+        
         # Create a date-based version of the output for preservation
         from datetime import datetime
         if catalog_number:
