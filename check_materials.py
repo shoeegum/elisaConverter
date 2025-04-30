@@ -11,7 +11,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def check_materials(document_path="updated_output.docx"):
+def check_materials(document_path="output_populated_template.docx"):
     """Check materials section for properly formatted bullet points."""
     doc = Document(document_path)
     logger.info(f"Checking materials section in {document_path}")
