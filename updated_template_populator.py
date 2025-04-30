@@ -199,29 +199,12 @@ def fix_sample_sections(document_path: Path) -> None:
         # Keep track of which paragraphs we've already copied to avoid duplication
         paragraphs_copied = set()
         
-        # 1. First, copy all tables that come before the SAMPLE PREPARATION section
+        # Skip copying tables before cover page - they'll be copied after the section break
+        # This ensures no tables appear on the first page
         table_idx_in_new_doc = 0
-        for table_idx, position in tables_to_preserve.items():
-            if position == "before_sample_prep":
-                # Get the table from the original document
-                orig_table = doc.tables[table_idx]
-                
-                # Create a new table with same dimensions
-                rows = len(orig_table.rows)
-                cols = len(orig_table.rows[0].cells) if rows > 0 else 0
-                
-                if rows > 0 and cols > 0:
-                    new_table = temp_doc.add_table(rows=rows, cols=cols)
-                    new_table.style = orig_table.style
-                    
-                    # Copy cell content
-                    for i, row in enumerate(orig_table.rows):
-                        for j, cell in enumerate(row.cells):
-                            if i < len(new_table.rows) and j < len(new_table.rows[i].cells):
-                                new_table.rows[i].cells[j].text = cell.text
-                    
-                    table_idx_in_new_doc += 1
-                    logger.info(f"Added table {table_idx} ({rows}x{cols}) from position {position}")
+        tables_before_sample_prep = [table_idx for table_idx, position in tables_to_preserve.items() 
+                                   if position == "before_sample_prep"]
+        logger.info(f"Found {len(tables_before_sample_prep)} tables before sample prep - will copy after cover page")
         
         # 2. Completely rebuild the document in the correct order
         
@@ -347,7 +330,27 @@ def fix_sample_sections(document_path: Path) -> None:
                 new_para = temp_doc.add_paragraph(text)
                 new_para.style = style
                 
-            # No special handling for technical details tables
+            # Now add the tables that were skipped earlier (before sample prep tables)
+            for table_idx in tables_before_sample_prep:
+                # Get the table from the original document
+                orig_table = doc.tables[table_idx]
+                
+                # Create a new table with same dimensions
+                rows = len(orig_table.rows)
+                cols = len(orig_table.rows[0].cells) if rows > 0 else 0
+                
+                if rows > 0 and cols > 0:
+                    new_table = temp_doc.add_table(rows=rows, cols=cols)
+                    new_table.style = orig_table.style
+                    
+                    # Copy cell content
+                    for i, row in enumerate(orig_table.rows):
+                        for j, cell in enumerate(row.cells):
+                            if i < len(new_table.rows) and j < len(new_table.rows[i].cells):
+                                new_table.rows[i].cells[j].text = cell.text
+                    
+                    table_idx_in_new_doc += 1
+                    logger.info(f"Added 'before_sample_prep' table {table_idx} ({rows}x{cols}) after page break")
         
         # 2.5 Add all other sections except SAMPLE PREPARATION and beyond
         for i in range(len(doc.paragraphs)):
