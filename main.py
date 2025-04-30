@@ -157,6 +157,17 @@ def main():
         logger.info("Fixing sample preparation and dilution sections")
         update_template_populator(source_path, output_path, output_path)
         
+        # Create a date-based version of the output for preservation
+        from datetime import datetime
+        if catalog_number:
+            today = datetime.now().strftime("%Y%m%d")
+            catalog_based_filename = f"{catalog_number}-{today}.docx"
+            output_dir = output_path.parent
+            dated_path = output_dir / catalog_based_filename
+            import shutil
+            shutil.copy2(output_path, dated_path)
+            logger.info(f"Copy saved with date-based filename: {catalog_based_filename}")
+        
         logger.info(f"Successfully generated populated template at: {output_path}")
         return 0
         
