@@ -230,6 +230,11 @@ def fix_sample_sections(document_path: Path) -> None:
         
         logger.info(f"Added {cover_page_count} paragraphs from cover page")
         
+        # Add a page break after the cover page
+        page_break_para = temp_doc.add_paragraph()
+        run = page_break_para.add_run()
+        run.add_break(WD_BREAK.PAGE)
+        
         # 2.2 Find the TECHNICAL DETAILS section
         technical_details_idx = None
         technical_details_content = []
