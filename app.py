@@ -498,13 +498,23 @@ def api_templates():
     templates = get_available_templates(TEMPLATE_FOLDER)
     return jsonify({'templates': templates})
 
-@app.route('/api/recent_outputs')
+@app.route('/api_recent_outputs')
 @login_required
 def api_recent_outputs():
     """API to get recent outputs"""
     recent_outputs = list(OUTPUT_FOLDER.glob('*.docx'))
     recent_outputs = sorted(recent_outputs, key=lambda x: x.stat().st_mtime, reverse=True)[:10]
-    output_list = [{'name': output.name, 'size': output.stat().st_size, 'date': output.stat().st_mtime} for output in recent_outputs]
+    
+    # Format the timestamp as a readable date string
+    from datetime import datetime
+    output_list = [
+        {
+            'filename': output.name, 
+            'size': output.stat().st_size, 
+            'date': datetime.fromtimestamp(output.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+        } 
+        for output in recent_outputs
+    ]
     return jsonify({'outputs': output_list})
 
 if __name__ == '__main__':
