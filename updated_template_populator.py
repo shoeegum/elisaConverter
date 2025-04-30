@@ -5,6 +5,7 @@ Updated Template Populator for ELISA Kit Datasheets
 This module extends the EnhancedTemplatePopulator to add:
 1. Improved Sample Preparation and Storage section with a proper table
 2. Shortened Sample Dilution Guideline section
+3. Assay Principle section placed before other sections with preserved paragraph spacing
 """
 
 import logging
@@ -77,6 +78,7 @@ def update_template_populator(
 def fix_sample_sections(document_path: Path) -> None:
     """
     Fix the Sample Preparation and Sample Dilution sections in the document.
+    Also ensures ASSAY PRINCIPLE section appears before other sections with preserved paragraph spacing.
     
     Args:
         document_path: Path to the document to fix
@@ -91,7 +93,7 @@ def fix_sample_sections(document_path: Path) -> None:
         
         # Find the Sample Preparation and Sample Dilution sections
         sections = {}
-        section_names = ["SAMPLE PREPARATION AND STORAGE", "SAMPLE DILUTION GUIDELINE", "ASSAY PROCEDURE", "ASSAY PROTOCOL"]
+        section_names = ["SAMPLE PREPARATION AND STORAGE", "SAMPLE DILUTION GUIDELINE", "ASSAY PROCEDURE", "ASSAY PROTOCOL", "ASSAY PRINCIPLE"]
         section_indices = {}
         
         # Track tables and their positions
