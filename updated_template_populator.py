@@ -223,9 +223,31 @@ def fix_sample_sections(document_path: Path) -> None:
             new_para.style = para.style
             paragraphs_copied.add(i)
         
-        # 3. Add the ASSAY PRINCIPLE section at the beginning
+        # 3. First add all content after cover page and up to TECHNICAL DETAILS (or other sections)
+        # We'll add ASSAY PRINCIPLE after
+        content_to_add = []
+        technical_details_idx = None
+        for i in range(5, sample_prep_idx + 1):
+            if i not in paragraphs_copied:
+                para = doc.paragraphs[i]
+                if "TECHNICAL DETAILS" in para.text or "REPRODUCIBILITY" in para.text:
+                    technical_details_idx = len(content_to_add)
+                content_to_add.append((para.text, para.style))
+                paragraphs_copied.add(i)
+        
+        # If technical details section not found, insert ASSAY PRINCIPLE at the beginning
+        if technical_details_idx is None:
+            technical_details_idx = 0
+            
+        # Add content up to TECHNICAL DETAILS
+        for i in range(technical_details_idx):
+            text, style = content_to_add[i]
+            new_para = temp_doc.add_paragraph(text)
+            new_para.style = style
+            
+        # Now add the ASSAY PRINCIPLE section
         if assay_principle_content:
-            logger.info("Moving ASSAY PRINCIPLE section to the beginning of the document")
+            logger.info("Moving ASSAY PRINCIPLE section before TECHNICAL DETAILS")
             
             # Create the ASSAY PRINCIPLE heading
             principle_heading = temp_doc.add_paragraph("ASSAY PRINCIPLE")
@@ -250,13 +272,12 @@ def fix_sample_sections(document_path: Path) -> None:
                         break
                     paragraphs_copied.add(i)
         
-        # 4. Copy the remaining content up to SAMPLE PREPARATION AND STORAGE
-        for i in range(5, sample_prep_idx + 1):
-            if i not in paragraphs_copied:
-                para = doc.paragraphs[i]
-                new_para = temp_doc.add_paragraph(para.text)
-                new_para.style = para.style
-                paragraphs_copied.add(i)
+        # 4. Add the remaining content after ASSAY PRINCIPLE (if any)
+        # Copy the rest of the content up to TECHNICAL DETAILS
+        for i in range(technical_details_idx, len(content_to_add)):
+            text, style = content_to_add[i]
+            new_para = temp_doc.add_paragraph(text)
+            new_para.style = style
             
         # 5. Add our customized sample preparation content
         logger.info("Restructuring SAMPLE PREPARATION AND STORAGE section")
