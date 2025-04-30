@@ -201,29 +201,11 @@ def fix_sample_sections(document_path: Path) -> None:
         # Keep track of which paragraphs we've already copied to avoid duplication
         paragraphs_copied = set()
         
-        # 1. First, copy all tables that come before the SAMPLE PREPARATION section
+        # IMPORTANT CHANGE: Do NOT pre-copy any tables to ensure first page is clean
+        # All tables will be added at their appropriate positions AFTER the first page
         table_idx_in_new_doc = 0
-        for table_idx, position in tables_to_preserve.items():
-            if position == "before_sample_prep":
-                # Get the table from the original document
-                orig_table = doc.tables[table_idx]
-                
-                # Create a new table with same dimensions
-                rows = len(orig_table.rows)
-                cols = len(orig_table.rows[0].cells) if rows > 0 else 0
-                
-                if rows > 0 and cols > 0:
-                    new_table = temp_doc.add_table(rows=rows, cols=cols)
-                    new_table.style = orig_table.style
-                    
-                    # Copy cell content
-                    for i, row in enumerate(orig_table.rows):
-                        for j, cell in enumerate(row.cells):
-                            if i < len(new_table.rows) and j < len(new_table.rows[i].cells):
-                                new_table.rows[i].cells[j].text = cell.text
-                    
-                    table_idx_in_new_doc += 1
-                    logger.info(f"Added table {table_idx} ({rows}x{cols}) from position {position}")
+        # We're intentionally skipping the pre-copy of tables to ensure the first page
+        # contains ONLY the title, catalog number, lot number, and intended use
         
         # 2. Completely rebuild the document in the correct order
         
