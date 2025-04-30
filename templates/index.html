@@ -64,12 +64,24 @@
                         <thead>
                             <tr>
                                 <th>Filename</th>
-                                <th>Creation Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="recentOutputsList">
-                            <!-- Will be populated via AJAX -->
+                        <tbody>
+                            {% if recent_outputs %}
+                                {% for output in recent_outputs %}
+                                <tr>
+                                    <td>{{ output }}</td>
+                                    <td>
+                                        <a href="{{ url_for('download_file', filename=output) }}" class="btn btn-sm btn-primary">Download</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-center">No recent outputs found</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -93,50 +105,6 @@
         }
     });
     
-    // Load recent outputs
-    function loadRecentOutputs() {
-        fetch('/api_recent_outputs')
-            .then(response => response.json())
-            .then(data => {
-                const outputsList = document.getElementById('recentOutputsList');
-                outputsList.innerHTML = '';
-                
-                if (data.outputs.length === 0) {
-                    outputsList.innerHTML = '<tr><td colspan="3" class="text-center">No recent outputs found</td></tr>';
-                    return;
-                }
-                
-                data.outputs.forEach(output => {
-                    const row = document.createElement('tr');
-                    
-                    const filenameCell = document.createElement('td');
-                    filenameCell.textContent = output.filename;
-                    
-                    const dateCell = document.createElement('td');
-                    dateCell.textContent = output.date;
-                    
-                    const actionsCell = document.createElement('td');
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = `{{ url_for('download_file', filename='') }}${output.filename}`;
-                    downloadLink.classList.add('btn', 'btn-sm', 'btn-primary');
-                    downloadLink.textContent = 'Download';
-                    actionsCell.appendChild(downloadLink);
-                    
-                    row.appendChild(filenameCell);
-                    row.appendChild(dateCell);
-                    row.appendChild(actionsCell);
-                    
-                    outputsList.appendChild(row);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching recent outputs:', error);
-                document.getElementById('recentOutputsList').innerHTML = 
-                    '<tr><td colspan="3" class="text-center text-danger">Failed to load recent outputs</td></tr>';
-            });
-    }
-    
-    // Load recent outputs when page loads
-    document.addEventListener('DOMContentLoaded', loadRecentOutputs);
+    // No need to load recent outputs via JavaScript anymore, directly rendered in the template
 </script>
 {% endblock %}
