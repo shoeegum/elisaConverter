@@ -30,7 +30,7 @@ def update_template_populator(
 ) -> None:
     """
     Process ELISA datasheet by extracting data and populating template.
-    This version uses the April 24th working version without modifications.
+    This version uses the April 24th working version with consistent Calibri font and 1.15 spacing.
     
     Args:
         input_document: Path to the input ELISA datasheet
@@ -51,6 +51,11 @@ def update_template_populator(
             import shutil
             shutil.copy2(backup_path, output_path)
             logger.info(f"Restored April 24th version to {output_path}")
+            
+            # Apply consistent formatting to the document
+            from format_document import apply_document_formatting
+            apply_document_formatting(output_path)
+            logger.info(f"Applied consistent formatting (Calibri, 1.15 spacing) to {output_path}")
             return
             
         # If no backup is available, use the normal process
@@ -69,6 +74,10 @@ def update_template_populator(
             catalog_number, 
             lot_number
         )
+        
+        # Apply consistent formatting to the document
+        from format_document import apply_document_formatting
+        apply_document_formatting(output_path)
         
         logger.info(f"Successfully processed document: {output_path}")
         
