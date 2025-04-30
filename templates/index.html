@@ -95,7 +95,7 @@
     
     // Load recent outputs
     function loadRecentOutputs() {
-        fetch('{{ url_for("api_recent_outputs") }}')
+        fetch('/api_recent_outputs')
             .then(response => response.json())
             .then(data => {
                 const outputsList = document.getElementById('recentOutputsList');

@@ -491,7 +491,7 @@ def download_batch(task_id):
         flash(f"Error downloading batch: {str(e)}", 'error')
         return redirect(url_for('batch_process'))
 
-@app.route('/api/templates')
+@app.route('/api_templates')
 @login_required
 def api_templates():
     """API to get available templates"""
