@@ -172,11 +172,6 @@ def main():
         from fix_document_structure import ensure_sections_with_tables
         ensure_sections_with_tables(output_path)
         
-        # Replace company name references (Boster -> Innovative Research, Inc.)
-        logger.info("Replacing company name and brand references")
-        from replace_company_name import replace_company_references
-        replace_company_references(output_path)
-        
         # Create a date-based version of the output for preservation
         from datetime import datetime
         if catalog_number:
