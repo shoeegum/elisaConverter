@@ -114,6 +114,11 @@ class BatchProcessor:
                 lot_number=lot_number
             )
             
+            # Apply additional processing to position ASSAY PRINCIPLE at the beginning
+            self.progress[batch_id]['progress'] = 85
+            self.progress[batch_id]['message'] = f'Applying enhancements for {file_path.name}'
+            update_template_populator(file_path, output_path, output_path)
+            
             self.progress[batch_id]['progress'] = 100
             self.progress[batch_id]['status'] = 'completed'
             self.progress[batch_id]['message'] = f'Successfully processed {file_path.name}'

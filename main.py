@@ -20,7 +20,7 @@ from pathlib import Path
 
 from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
-from updated_template_populator import fix_sample_sections
+from updated_template_populator import update_template_populator
 
 # Import Flask app for Gunicorn
 from app import app
@@ -155,7 +155,7 @@ def main():
         
         # Fix the sample preparation and dilution sections
         logger.info("Fixing sample preparation and dilution sections")
-        fix_sample_sections(output_path)
+        update_template_populator(source_path, output_path, output_path)
         
         logger.info(f"Successfully generated populated template at: {output_path}")
         return 0
