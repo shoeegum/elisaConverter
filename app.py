@@ -255,6 +255,11 @@ def upload_file():
         from fix_document_structure import ensure_sections_with_tables
         ensure_sections_with_tables(output_path)
         
+        # Replace company name references (Boster -> Innovative Research, Inc.)
+        logger.info("Replacing company name and brand references")
+        from replace_company_name import replace_company_references
+        replace_company_references(output_path)
+        
         # Redirect to download page
         return redirect(url_for('download_file', filename=output_filename))
     
