@@ -32,6 +32,9 @@ logger = logging.getLogger(__name__)
 # Create the Flask application
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = 2592000  # 30 days in seconds
 
 # Set the application password from environment variables for security
 # Fall back to a default hash only in development 
@@ -81,31 +84,50 @@ def login_required(f):
 def login():
     """Handle password protection"""
     if session.get('authenticated'):
+        logger.debug("User already authenticated, redirecting to index")
         return redirect(url_for('index'))
     
     if request.method == 'POST':
         password = request.form.get('password')
+        if not password:
+            logger.warning("Login attempt with empty password")
+            flash('Password cannot be empty', 'error')
+            return render_template('login.html')
+            
         remember_me = 'remember_me' in request.form
+        logger.debug(f"Login attempt, remember_me: {remember_me}")
         
         # Hash the input password using SHA-1 for comparison
         password_hash = hashlib.sha1(password.encode()).hexdigest()
+        expected_hash = APP_PASSWORD_HASH
         
-        if password_hash == APP_PASSWORD_HASH:
+        # Debug password hashing (but not the actual password)
+        logger.debug(f"Input password hash: {password_hash[:5]}...{password_hash[-5:]}")
+        logger.debug(f"Expected hash: {expected_hash[:5]}...{expected_hash[-5:]}")
+        
+        if password_hash == expected_hash:
+            # Login successful
+            session.clear()  # Clear any existing session data
             session['authenticated'] = True
+            
             if remember_me:
                 # Set a longer session lifetime (30 days)
                 session.permanent = True
+                logger.debug("Setting permanent session")
             
             next_page = request.args.get('next')
             if not next_page or not next_page.startswith('/'):
                 next_page = url_for('index')
-                
+            
+            logger.info(f"Login successful, redirecting to {next_page}")
             flash('Login successful!', 'success')
             return redirect(next_page)
         else:
+            logger.warning(f"Login failed: invalid password")
             flash('Invalid password. Please try again.', 'error')
-            return redirect(url_for('login'))
+            return render_template('login.html')
     
+    # GET request - show login form
     return render_template('login.html')
 
 @app.route('/logout')
