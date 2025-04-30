@@ -250,6 +250,11 @@ def upload_file():
         from fix_overview_table import fix_overview_table
         fix_overview_table(output_path)
         
+        # Fix document structure to ensure tables are properly positioned
+        logger.info("Fixing document structure and table positions")
+        from fix_document_structure import ensure_sections_with_tables
+        ensure_sections_with_tables(output_path)
+        
         # Redirect to download page
         return redirect(url_for('download_file', filename=output_filename))
     
