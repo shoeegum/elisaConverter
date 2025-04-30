@@ -470,9 +470,23 @@ class TemplatePopulator:
                 
                 # Format as a bulleted list for display in the template
                 if isinstance(materials, list):
-                    processed_data['required_materials_with_bullets'] = "• " + "\n• ".join(materials)
+                    # Clean materials to avoid double bullet points
+                    cleaned_materials = []
+                    for item in materials:
+                        # Remove any existing bullet points or leading spaces
+                        item = item.strip()
+                        if item.startswith('•'):
+                            item = item[1:].strip()
+                        cleaned_materials.append(item)
+                    
+                    # Join with bullet points
+                    processed_data['required_materials_with_bullets'] = "• " + "\n• ".join(cleaned_materials)
                 else:
-                    processed_data['required_materials_with_bullets'] = f"• {materials}"
+                    # Clean single material string
+                    material_str = str(materials).strip()
+                    if material_str.startswith('•'):
+                        material_str = material_str[1:].strip()
+                    processed_data['required_materials_with_bullets'] = f"• {material_str}"
             
             # Process standard curve data for the template
             if 'standard_curve' in processed_data:

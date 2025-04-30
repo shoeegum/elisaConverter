@@ -21,7 +21,21 @@ def check_header_format(document_path="output_populated_template.docx"):
     # Open the document
     doc = docx.Document(document_path)
     
+    # Check style definitions first
+    print("\nChecking style definitions:")
+    if 'Title' in doc.styles:
+        title_style = doc.styles['Title']
+        if hasattr(title_style.font, 'size') and title_style.font.size is not None:
+            print(f"Title style font size: {title_style.font.size.pt}pt")
+        else:
+            print("Title style font size: Not explicitly set")
+        print(f"Title style font name: {title_style.font.name}")
+        print(f"Title style bold: {title_style.font.bold}")
+    else:
+        print("No 'Title' style found in document")
+    
     # Check the first paragraph (should be the title)
+    print("\nChecking title paragraph:")
     if len(doc.paragraphs) > 0:
         title_para = doc.paragraphs[0]
         print(f"Title text: {title_para.text}")
@@ -35,6 +49,7 @@ def check_header_format(document_path="output_populated_template.docx"):
                     print(f"Run {i} font size: {size_pt}pt")
                 else:
                     print(f"Run {i} font size: Not explicitly set (inherits from style)")
+                print(f"Run {i} font name: {run.font.name}")
                 print(f"Run {i} bold: {run.font.bold}")
         else:
             print("No runs found in title paragraph")
