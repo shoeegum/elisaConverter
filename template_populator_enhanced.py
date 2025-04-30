@@ -742,27 +742,43 @@ class TemplatePopulator:
         Args:
             doc: The Document object to modify
         """
+        # First set the default style
+        style = doc.styles['Normal']
+        style.font.name = "Calibri"
+        style.paragraph_format.line_spacing = 1.15
+        style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+        
+        # Apply to all paragraphs
         for para in doc.paragraphs:
-            # Set paragraph spacing to 1.15
+            # Apply paragraph formatting
             para.paragraph_format.line_spacing = 1.15
             para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
             
-            # Set font to Calibri for all runs in the paragraph
+            # Apply font to all runs
             for run in para.runs:
                 run.font.name = "Calibri"
         
-        # Also apply to table content
+        # Apply to all tables
         for table in doc.tables:
             for row in table.rows:
                 for cell in row.cells:
                     for para in cell.paragraphs:
-                        # Set paragraph spacing to 1.15
+                        # Apply paragraph formatting
                         para.paragraph_format.line_spacing = 1.15
                         para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
                         
-                        # Set font to Calibri for all runs
+                        # Apply font to all runs
                         for run in para.runs:
                             run.font.name = "Calibri"
+                            
+        # Make one final pass for any styled paragraphs
+        for style_id in ['Heading 1', 'Heading 2', 'Heading 3', 'List Bullet', 'List Number']:
+            if style_id in doc.styles:
+                style = doc.styles[style_id]
+                style.font.name = "Calibri"
+                # Keep line spacing consistent
+                style.paragraph_format.line_spacing = 1.15
+                style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
     
     def _post_process_technical_tables(self, output_path: Path, processed_data: Dict[str, Any]) -> None:
         """

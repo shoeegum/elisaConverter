@@ -1,72 +1,47 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}ELISA Kit Datasheet Parser - About{% endblock %}
+{% block title %}About - ELISA Kit Datasheet Processor{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <div class="card shadow-sm mb-4">
+        <div class="card">
             <div class="card-header">
-                <h4 class="my-0">About ELISA Kit Datasheet Parser</h4>
+                <h3>About ELISA Kit Datasheet Processor</h3>
             </div>
             <div class="card-body">
-                <p class="lead">
-                    This application extracts structured data from ELISA kit datasheets and populates DOCX templates with the extracted information.
-                </p>
+                <p>ELISA Kit Datasheet Processor is a specialized tool designed to extract data from ELISA kit datasheets and populate standardized templates with the extracted information. This tool helps in creating consistent and professional ELISA kit documentation.</p>
                 
-                <h5 class="mt-4">Features</h5>
+                <h4 class="mt-4">Key Features</h4>
                 <ul>
-                    <li>Upload ELISA kit datasheets in DOCX format</li>
-                    <li>Extract structured data from the datasheets</li>
-                    <li>Populate templates with the extracted data</li>
-                    <li>Upload custom templates with Jinja2 placeholders</li>
-                    <li>Download the populated templates</li>
+                    <li>Extracts key information from various ELISA kit datasheets</li>
+                    <li>Populates templates with standardized formatting</li>
+                    <li>Preserves technical details, tables, and reagent information</li>
+                    <li>Restructures sample preparation and storage information</li>
+                    <li>Supports batch processing for multiple files</li>
+                    <li>Custom template support</li>
                 </ul>
                 
-                <h5 class="mt-4">How It Works</h5>
-                <p>
-                    The application uses the <code>python-docx</code> library to parse DOCX files and extract information from ELISA kit datasheets.
-                    It identifies sections like catalog numbers, reagents, protocols, and more, and organizes them into a structured format.
-                </p>
-                <p>
-                    The extracted data is then used to populate DOCX templates using the <code>docxtpl</code> library, which supports Jinja2 templating.
-                    This allows for flexible template creation and customization.
-                </p>
-                
-                <h5 class="mt-4">Supported Sections</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <ul>
-                            <li>Catalog Number</li>
-                            <li>Intended Use</li>
-                            <li>Background</li>
-                            <li>Assay Principle</li>
-                            <li>Reagents</li>
-                            <li>Required Materials</li>
-                            <li>Standard Curve</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <ul>
-                            <li>Variability (Intra/Inter-Assay)</li>
-                            <li>Reproducibility</li>
-                            <li>Procedural Notes</li>
-                            <li>Reagent Preparation</li>
-                            <li>Sample Preparation</li>
-                            <li>Assay Protocol</li>
-                            <li>Data Analysis</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <h5 class="mt-4">Technologies Used</h5>
+                <h4 class="mt-4">Template Formatting</h4>
+                <p>The generated documents use the following standardized formatting:</p>
                 <ul>
-                    <li>Python 3.11</li>
-                    <li>Flask (Web Framework)</li>
-                    <li>python-docx (DOCX Parsing)</li>
-                    <li>docxtpl (Template Population)</li>
-                    <li>Bootstrap 5 (UI Framework)</li>
+                    <li>Document heading: Bold Calibri 36pt with Title style</li>
+                    <li>Section titles: Heading 2 Style in blue color (RGB 0,70,180)</li>
+                    <li>Body text: Calibri 11pt with 1.15 line spacing</li>
+                    <li>First page contains only title, catalog number, lot number, and intended use</li>
+                    <li>Tables: Properly formatted for technical details, overview, reproducibility data</li>
                 </ul>
+                
+                <h4 class="mt-4">Usage Guidelines</h4>
+                <p>For best results:</p>
+                <ol>
+                    <li>Use DOCX format for source datasheets</li>
+                    <li>Provide catalog and lot numbers when available</li>
+                    <li>For batch processing, ensure all files use similar formatting</li>
+                </ol>
+            </div>
+            <div class="card-footer">
+                <p class="mb-0 text-center">Version 1.0 - Contact support for assistance</p>
             </div>
         </div>
     </div>

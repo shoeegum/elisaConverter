@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Source Structure - ELISA Kit Datasheet Processor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3>Understanding ELISA Kit Datasheet Structure</h3>
+            </div>
+            <div class="card-body">
+                <p>This page explains the structure of ELISA kit datasheets and how our system extracts and processes information from them. Understanding this structure helps you get the best results from the processor.</p>
+                
+                <h4 class="mt-4">Standard Sections</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Section</th>
+                                <th>Description</th>
+                                <th>Extraction Method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Kit Name & Catalog Number</td>
+                                <td>The main title of the kit and its catalog identifier</td>
+                                <td>Extracted from header or first paragraphs</td>
+                            </tr>
+                            <tr>
+                                <td>INTENDED USE</td>
+                                <td>Purpose and applications of the kit</td>
+                                <td>Located by section heading match</td>
+                            </tr>
+                            <tr>
+                                <td>TECHNICAL DETAILS</td>
+                                <td>Sensitivity, detection range, specificity</td>
+                                <td>Located by section heading and table extraction</td>
+                            </tr>
+                            <tr>
+                                <td>OVERVIEW</td>
+                                <td>Product information, reactive species, sample type</td>
+                                <td>Located by section heading and table extraction</td>
+                            </tr>
+                            <tr>
+                                <td>KIT COMPONENTS</td>
+                                <td>List of reagents and materials provided</td>
+                                <td>Located by section heading and table extraction</td>
+                            </tr>
+                            <tr>
+                                <td>MATERIALS REQUIRED BUT NOT SUPPLIED</td>
+                                <td>Additional equipment and materials needed</td>
+                                <td>Located by section heading and bullet point extraction</td>
+                            </tr>
+                            <tr>
+                                <td>SAMPLE PREPARATION AND STORAGE</td>
+                                <td>Protocols for handling different sample types</td>
+                                <td>Located by section heading and restructured into paragraphs and table</td>
+                            </tr>
+                            <tr>
+                                <td>SAMPLE DILUTION GUIDELINE</td>
+                                <td>Recommendations for diluting different sample types</td>
+                                <td>Located by section heading and condensed</td>
+                            </tr>
+                            <tr>
+                                <td>ASSAY PROCEDURE</td>
+                                <td>Step-by-step protocol</td>
+                                <td>Located by section heading with numbered steps preserved</td>
+                            </tr>
+                            <tr>
+                                <td>DATA ANALYSIS</td>
+                                <td>Instructions for analyzing results</td>
+                                <td>Located by section heading with publication citation text filtered</td>
+                            </tr>
+                            <tr>
+                                <td>REPRODUCIBILITY</td>
+                                <td>Precision and reliability data</td>
+                                <td>Located by section heading and table extraction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h4 class="mt-4">Extraction Challenges</h4>
+                <ul>
+                    <li><strong>Varying formats:</strong> Source files may have inconsistent formatting that needs to be normalized</li>
+                    <li><strong>Table structure:</strong> Tables may not have clear headers or consistent structure</li>
+                    <li><strong>Missing sections:</strong> Some datasheets may lack certain sections</li>
+                    <li><strong>Bullet and numbered lists:</strong> Maintaining proper formatting of lists during extraction</li>
+                </ul>
+                
+                <h4 class="mt-4">Output Structure</h4>
+                <p>The processor generates a standardized document with:</p>
+                <ul>
+                    <li>First page containing only the title, catalog number, lot number, and intended use</li>
+                    <li>Consistent section order following industry standards</li>
+                    <li>Properly formatted tables with complete information</li>
+                    <li>Clear headings with proper styling</li>
+                    <li>Consistent font (Calibri) and line spacing (1.15) throughout</li>
+                    <li>Added disclaimer section after Data Analysis</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
