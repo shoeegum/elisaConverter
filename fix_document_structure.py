@@ -6,6 +6,29 @@ This script ensures:
 1. The ASSAY PRINCIPLE section remains on the second page
 2. Tables stay within their appropriate sections
 3. Document maintains proper formatting and spacing
+4. Sections are arranged in the correct order according to requirements
+5. Content is properly extracted from the source document
+
+Section Order Requirements:
+1. Title, Catalog Number, Lot Number, and INTENDED USE (first page)
+2. ASSAY PRINCIPLE (second page)
+3. BACKGROUND (from source 'Background on...' section)
+4. OVERVIEW (with table)
+5. TECHNICAL DETAILS
+6. PREPARATIONS BEFORE ASSAY (with numbered list)
+7. KIT COMPONENTS/MATERIALS PROVIDED (table)
+8. REQUIRED MATERIALS THAT ARE NOT SUPPLIED (bulleted list)
+9. ELISA STANDARD CURVE EXAMPLE (with table and figure)
+10. INTRA/INTER-ASSAY VARIABILITY (with tables)
+11. REPRODUCIBILITY (with table)
+12. PREPARATION BEFORE THE EXPERIMENT (with table)
+13. DILUTION OF STANDARD (numbered list)
+14. SAMPLE PREPARATION AND STORAGE (with table)
+15. SAMPLE COLLECTION NOTES (numbered list)
+16. SAMPLE DILUTION GUIDELINE
+17. ASSAY PROTOCOL (numbered list)
+18. DATA ANALYSIS
+19. DISCLAIMER
 """
 
 import logging
@@ -130,34 +153,96 @@ def ensure_sections_with_tables(document_path):
             run.font.color.rgb = RGBColor(0, 70, 180)
             
         # Add the content for ASSAY PRINCIPLE section
+        # Filter out the specific sentence that should be removed per requirements
+        filtered_content = []
         for content in assay_principle_content:
+            if "For more information on assay principle, protocols, and troubleshooting tips" not in content:
+                filtered_content.append(content)
+        
+        # Add the filtered content
+        for content in filtered_content:
             p = new_doc.add_paragraph(content)
             p.paragraph_format.line_spacing = 1.15
             p.paragraph_format.space_after = Pt(6)
+        
+        # 3. Try to extract and add BACKGROUND section right after ASSAY PRINCIPLE
+        # First try to find "Background on" in the source document
+        background_content = []
+        found_background = False
+        
+        if source_doc_path.exists():
+            for paragraph in source_doc.paragraphs:
+                if paragraph.text.strip().startswith("Background on"):
+                    found_background = True
+                    background_content.append(paragraph.text.strip())
+                    break
+        
+        if found_background and background_content:
+            # Add the BACKGROUND section
+            p = new_doc.add_paragraph("BACKGROUND")
+            p.style = 'Heading 2'
+            for run in p.runs:
+                run.font.color.rgb = RGBColor(0, 70, 180)
+                
+            # Add the content for BACKGROUND section
+            for content in background_content:
+                p = new_doc.add_paragraph(content)
+                p.paragraph_format.line_spacing = 1.15
+                p.paragraph_format.space_after = Pt(6)
         
         # 3. Find the remaining sections and tables
         section_map = {}  # Maps section title paragraph to index
         table_map = {}    # Maps table index to nearby section title
         
+        # Define the expected section order based on requirements
+        expected_section_order = [
+            "BACKGROUND",
+            "OVERVIEW",
+            "TECHNICAL DETAILS",
+            "PREPARATIONS BEFORE ASSAY",
+            "KIT COMPONENTS",
+            "MATERIALS REQUIRED BUT NOT PROVIDED",
+            "ELISA STANDARD CURVE EXAMPLE",
+            "INTRA/INTER-ASSAY VARIABILITY",
+            "REPRODUCIBILITY",
+            "PREPARATION BEFORE THE EXPERIMENT",
+            "DILUTION OF STANDARD",
+            "SAMPLE PREPARATION AND STORAGE",
+            "SAMPLE COLLECTION NOTES",
+            "SAMPLE DILUTION GUIDELINE",
+            "ASSAY PROTOCOL",
+            "DATA ANALYSIS",
+            "DISCLAIMER"
+        ]
+        
         # First, identify all section headings
         for i, para in enumerate(doc.paragraphs):
             text = para.text.strip()
-            if (text.isupper() and 
-                (text.startswith("TECHNICAL") or 
-                 text.startswith("OVERVIEW") or 
-                 text.startswith("KIT COMPONENTS") or
-                 text.startswith("MATERIALS REQUIRED") or
-                 text.startswith("SAMPLE") or
-                 text.startswith("ASSAY PROCEDURE") or
-                 text.startswith("DATA") or
-                 text.startswith("BACKGROUND") or
-                 text.startswith("DISCLAIMER"))):
+            if (text.isupper() and any(text.startswith(prefix) for prefix in [
+                "TECHNICAL", "OVERVIEW", "KIT COMPONENTS", "MATERIALS REQUIRED", 
+                "SAMPLE", "ASSAY PROTOCOL", "DATA ANALYSIS", "BACKGROUND", 
+                "DISCLAIMER", "ELISA STANDARD", "INTRA/INTER", "REPRODUCIBILITY",
+                "PREPARATION", "DILUTION"])
+            ):
                 section_map[text] = i
                 logger.info(f"Found section '{text}' at paragraph {i}")
         
         # Find tables and associate them with sections
         section_titles = list(section_map.keys())
-        section_titles.sort(key=lambda title: section_map[title])  # Sort by paragraph index
+        # Sort by expected order rather than document index
+        sorted_section_titles = []
+        for expected_section in expected_section_order:
+            for title in section_titles:
+                if title.startswith(expected_section) and title not in sorted_section_titles:
+                    sorted_section_titles.append(title)
+                    break
+        
+        # Add any sections that weren't in our expected list at the end
+        for title in section_titles:
+            if title not in sorted_section_titles:
+                sorted_section_titles.append(title)
+        
+        section_titles = sorted_section_titles
         
         current_section = None
         for i, table in enumerate(doc.tables):
@@ -235,6 +320,33 @@ def ensure_sections_with_tables(document_path):
                                         new_para.paragraph_format.line_spacing = 1.15
                         
                         logger.info(f"Added table for section '{title}'")
+        
+        # Ensure DISCLAIMER is the final section, immediately after DATA ANALYSIS
+        # Check if we need to add the DISCLAIMER section
+        disclaimer_added = False
+        for title in section_titles:
+            if title.startswith("DISCLAIMER"):
+                disclaimer_added = True
+                break
+        
+        if not disclaimer_added:
+            # Add the DISCLAIMER section
+            p = new_doc.add_paragraph("DISCLAIMER")
+            p.style = 'Heading 2'
+            for run in p.runs:
+                run.font.color.rgb = RGBColor(0, 70, 180)
+                
+            # Add the standard disclaimer text
+            disclaimer_text = ("This material is sold for in-vitro use only in manufacturing and research. "
+                              "This material is not suitable for human use. It is the responsibility of the user "
+                              "to undertake sufficient verification and testing to determine the suitability of "
+                              "each product's application. The statements herein are offered for informational "
+                              "purposes only and are intended to be used solely for your consideration, investigation "
+                              "and verification.")
+            
+            p = new_doc.add_paragraph(disclaimer_text)
+            p.paragraph_format.line_spacing = 1.15
+            p.paragraph_format.space_after = Pt(6)
         
         # Save the new document
         new_path = document_path.with_name(f"{document_path.stem}_structured{document_path.suffix}")

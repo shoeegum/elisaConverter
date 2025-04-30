@@ -1,0 +1,52 @@
+Heres what you should take from the outside document and transfer into the inside document. 
+
+User input (based on the website) for:
+Title
+Catalog Number
+Lot Number
+
+INTENDED USE section should come from the first page of the Boster document
+
+ASSAY PRINCIPLE section should be mapped to the Assay Principle section in the outside document.  This section stops when this sentence ends, "For more information on assay principle, protocols, and troubleshooting tips, see Boster's ELISA Resource Center at https://www.bosterbio.com/elisa-technical-resource-center." Delete this section from ever appearing.
+
+The next section should be the BACKGROUND section, this section can be sourced from the outside document, where the section starts with 'Background on' and then has the product, for instance one example is 'Background on Klk1'. This is only one paragraph and it appears after Data Analysis section and before the Publication Citing This Product section in the outside document. However, it should appear between the ASSAY PRINCIPLE and OVERVIEW section in the processed new document.
+
+The next section should be the OVERVIEW section, this section should include a table, that has 'product name' 'reactive species' and 'Uniprot ID' among others. this should be directly copied from the outside document section titled Overview.
+
+The next section should be the TECHNICAL DETAILS section coming from the Technical Details section in the outside document, this will include a table that includes 'Capture/Detection Antibodies' and such.
+
+The next section should be the PREPARATIONS BEFORE ASSAY section, coming from the Preparations Before Assay section, please copy and past everything from this section. It should continue to be numbered. It usually starts with 'Please read the following instructions before starting the experiment.' and then it has a numbered list. It usually ends at the numbered list '12.12.	The kit should not be used beyond the expiration date on the kit label. Any variation in diluent, operator, pipetting technique, washing technique, incubation time or temperature, and kit age can cause variation in binding. Variations in sample collection, processing, and storage may cause sample value differences.'
+
+The next section that should be shown is the KIT COMPONENTS/MATERIALS PROVIDED section, this comes from Kit Components/Materials Provided section in the outside document. Located between the Preparations Before Assay and Required Materials That Are Not Supplied section in the outside document. This section should only be a table, that follows the exact format that the outside document shows. 
+
+The next section is the REQUIRED MATERIALS THAT ARE NOT SUPPLIED section, which should be populated with the contents from the outside document section called Required Materials That Are Not Supplied.This section should have every line in this section issued with a bullet point in the new document. 
+
+The next section is the ELISA STANDARD CURVE EXAMPLE section that comes from the '...ELISA Standard Curve Example' section in the outside document. In this section there should be a 2x9 table filled with the Concentration(pg/ml) and O.D. values. The second cell in the first row should be 0.0, and you should grab the rest of the numbers to populate the table with from the outside document. 
+If possible, you should also include the Standard Curve picture. 
+
+The next section is the INTRA/INTER-ASSAY VARIABILITY section, which should be populated with the contents of the section in the outside document titled 'Intra/Inter-Assay Variability' There should be two paragraphs in the beginning, here they are 'Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.
+
+Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter-assay precision.'
+And then there should be a table that shows the sample, n, mean (pg.ml). Standard Deviation, and Cv(%), against the Intra-Assay Precision and the Inter-Assay Precision. All of this should be copied from the outside document.
+
+The next section should be the REPRODUCIBILITY section, that is populated with the contents from the Reproducibility Section in the outside document. This will be a 4x8 table.
+
+The next section should be the PREPARATION BEFORE THE EXPERIMENT section, that will be populated with the contents from the Preparation Before The Experiment section in the outside document. This should be a two column table thats headed with 'Item' and 'Preparation' as the first row. All content should be transferred over to the new document. 
+
+The next section is the DILUTION OF STANDARD section, which comes from the outside document's Dilution of _____ Standard section. This _____ refers to the specific product name that will be different depending on each document, so just ignore it. This section should be numbered list and be copied exactly as it shows in the outside document. 
+
+The next section is the SAMPLE PREPARATION AND STORAGE section, which is copied with the contents from Sample Preparation and Storage section in the outside document. Copy and populate all of the info from this section into the new populated one. This mainly includes a table that should have 'Sample Type' and 'Procedure' as the cells for the first row, respectfully. 
+
+The next section is titled SAMPLE COLLECTION NOTES which should be populated with all of the information from the section in the outside document that is titled Sample Collection Notes. This is a numbered list, usually 1 through 8.
+
+The next section is the SAMPLE DILUTION GUIDELINE section, which gets all of its information from the Sample Dilution Guideline section in the outside document. This is what this section should say 'The user needs to estimate the concentration of the target protein in the sample and use an appropriate dilution factor so that the diluted target protein concentration falls in the range of O.D. values of the standard curve. Dilute the sample using provided diluent buffer. Pilot tests using a dilution series of each sample type are necessary. The sample must be mixed thoroughly with Sample Diluent.'
+
+The next section is titled ASSAY PROTOCOL, which will be populated with the content from the section in the outside document called Assay  Protocol. It starts with a small paragraph and then has a 10+ bulleted number list, usually the first numbered list starts with '1. Prepare all reagents and working standards as directed previously.'
+
+The next section is the DATA ANALYSIS section, which gets information from the Data Analysis section in the outside document. This section starts with this sentence, 'Boster Bio offers an easy-to-use online ELISA data analysis tool. Try it out at https://www.bosterbio.com/biology-research-tools/elisa-data-analysis- online' however this should be deleted. Coppy and paste the rest of the contents although. 
+
+The final section should be the DISCLAIMER section, this should state, ' This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification.'
+
+All other sections/paragraphs not mentioned, should not be included in the final outputted document, so disregard them.
+
+
