@@ -568,6 +568,17 @@ class TemplatePopulator:
             
             # Make sure the title is centered
             title_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            
+            # If there are no runs in the paragraph (sometimes happens),
+            # add the content as a new run with proper formatting
+            if len(title_para.runs) == 0:
+                title_text = title_para.text
+                title_para.clear()
+                new_run = title_para.add_run(title_text)
+                new_run.font.size = Pt(36)
+                new_run.font.bold = True
+                new_run.font.name = 'Calibri'
+                self.logger.info(f"Added new formatted run with text: {title_text}")
         
         # Find the intended use section (should be within first few paragraphs)
         intended_use_idx = None

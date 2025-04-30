@@ -301,6 +301,7 @@ def fix_sample_sections(document_path: Path) -> None:
 def apply_document_formatting(doc):
     """
     Apply Calibri font and 1.15 line spacing to all paragraphs in the document.
+    Also ensures Title formatting is correct.
     
     Args:
         doc: The Document object to modify
@@ -311,9 +312,43 @@ def apply_document_formatting(doc):
         style.font.name = "Calibri"
         style.paragraph_format.line_spacing = 1.15
         style.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+    
+    # Ensure Title style is correct
+    if 'Title' in doc.styles:
+        title_style = doc.styles['Title']
+        title_style.font.name = "Calibri"
+        title_style.font.size = Pt(36)
+        title_style.font.bold = True
+        title_style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        
+    # First check and fix the title paragraph specifically
+    if len(doc.paragraphs) > 0:
+        title_para = doc.paragraphs[0]
+        if title_para.style.name == 'Title':
+            # Make sure title paragraphs have correct formatting
+            title_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            
+            # Fix title paragraph formatting
+            for run in title_para.runs:
+                run.font.name = "Calibri"
+                run.font.size = Pt(36)
+                run.font.bold = True
+                
+            # If there are no runs, add them with proper formatting
+            if len(title_para.runs) == 0:
+                title_text = title_para.text
+                title_para.clear()
+                new_run = title_para.add_run(title_text)
+                new_run.font.name = "Calibri"
+                new_run.font.size = Pt(36)
+                new_run.font.bold = True
         
     # Apply to all paragraphs
     for para in doc.paragraphs:
+        # Skip title paragraph which we've already handled
+        if para.style.name == 'Title':
+            continue
+            
         # Apply paragraph formatting
         para.paragraph_format.line_spacing = 1.15
         para.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
