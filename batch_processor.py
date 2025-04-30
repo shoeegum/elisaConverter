@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
+from updated_template_populator import update_template_populator
 
 # Configure logging
 logger = logging.getLogger(__name__)

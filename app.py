@@ -19,6 +19,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 
 from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
+from updated_template_populator import update_template_populator
 from docx_templates import initialize_templates, get_available_templates
 from batch_processor import BatchProcessor
 
@@ -234,6 +235,10 @@ def upload_file():
             catalog_number=catalog_number,
             lot_number=lot_number
         )
+        
+        # Apply additional processing to position ASSAY PRINCIPLE at the beginning
+        logger.info("Fixing sample preparation and dilution sections")
+        update_template_populator(source_path, output_path, output_path)
         
         # Redirect to download page
         return redirect(url_for('download_file', filename=output_filename))
