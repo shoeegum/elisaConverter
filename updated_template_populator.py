@@ -18,6 +18,7 @@ import re
 from docx import Document
 import docx
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING, WD_BREAK
+from docx.enum.section import WD_SECTION_START
 from docx.shared import Pt, RGBColor
 from docxtpl import DocxTemplate
 
@@ -218,7 +219,7 @@ def fix_sample_sections(document_path: Path) -> None:
         
         # 2. Completely rebuild the document in the correct order
         
-        # 2.1 First, add the cover page elements (first few paragraphs)
+        # 2.1 First, add the cover page elements (first few paragraphs) - ONLY the cover page elements!
         cover_page_count = 0
         for i in range(min(5, len(doc.paragraphs))):
             para = doc.paragraphs[i]
@@ -230,10 +231,10 @@ def fix_sample_sections(document_path: Path) -> None:
         
         logger.info(f"Added {cover_page_count} paragraphs from cover page")
         
-        # Add a direct page break after the cover page (no extra paragraph)
-        last_para = temp_doc.paragraphs[-1]
-        run = last_para.add_run()
-        run.add_break(WD_BREAK.PAGE)
+        # Create a new section with a page break
+        # This is a more explicit way to ensure that the content starts on a new page
+        section = temp_doc.add_section()
+        section.start_type = WD_SECTION_START.NEW_PAGE
         
         # 2.2 Find the TECHNICAL DETAILS section
         technical_details_idx = None
@@ -246,7 +247,7 @@ def fix_sample_sections(document_path: Path) -> None:
                 paragraphs_copied.add(i)
                 break
         
-        # 2.3 Now add the ASSAY PRINCIPLE section right after cover page
+        # 2.3 Now add the ASSAY PRINCIPLE section right after cover page, on a new page
         if assay_principle_content:
             logger.info("Adding ASSAY PRINCIPLE section after cover page")
             
