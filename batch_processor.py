@@ -105,19 +105,44 @@ class BatchProcessor:
             self.progress[batch_id]['progress'] = 70
             self.progress[batch_id]['message'] = f'Populating template for {file_path.name}'
             
-            populator = TemplatePopulator(self.template_path)
-            populator.populate(
-                data, 
-                output_path,
-                kit_name=kit_name,
-                catalog_number=catalog_number,
-                lot_number=lot_number
-            )
+            # Check if we're using the Red Dot template
+            if self.template_path.name == 'red_dot_template.docx':
+                logger.info("Using Red Dot template populator for batch processing")
+                # Import the Red Dot template populator
+                from red_dot_template_populator import populate_red_dot_template
+                
+                # Populate the template with the Red Dot populator
+                success = populate_red_dot_template(
+                    source_path=file_path,
+                    template_path=self.template_path, 
+                    output_path=output_path,
+                    kit_name=kit_name,
+                    catalog_number=catalog_number,
+                    lot_number=lot_number
+                )
+                
+                if not success:
+                    return False, "Error populating Red Dot template", output_path
+            else:
+                # Use the standard template populator for other templates
+                populator = TemplatePopulator(self.template_path)
+                populator.populate(
+                    data, 
+                    output_path,
+                    kit_name=kit_name,
+                    catalog_number=catalog_number,
+                    lot_number=lot_number
+                )
             
-            # Apply additional processing to position ASSAY PRINCIPLE at the beginning
-            self.progress[batch_id]['progress'] = 85
-            self.progress[batch_id]['message'] = f'Applying enhancements for {file_path.name}'
-            update_template_populator(file_path, output_path, output_path)
+            # Apply additional processing for non-Red Dot templates
+            if self.template_path.name != 'red_dot_template.docx':
+                self.progress[batch_id]['progress'] = 85
+                self.progress[batch_id]['message'] = f'Applying enhancements for {file_path.name}'
+                update_template_populator(file_path, output_path, output_path)
+            else:
+                # For Red Dot templates, just update progress
+                self.progress[batch_id]['progress'] = 85
+                self.progress[batch_id]['message'] = f'Red Dot template already fully populated for {file_path.name}'
             
             self.progress[batch_id]['progress'] = 100
             self.progress[batch_id]['status'] = 'completed'
