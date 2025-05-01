@@ -172,6 +172,11 @@ def main():
         from fix_document_structure import ensure_sections_with_tables
         ensure_sections_with_tables(output_path)
         
+        # Modify footer text
+        logger.info("Modifying footer text")
+        from modify_footer import modify_footer_text
+        modify_footer_text(output_path)
+        
         # Create a date-based version of the output for preservation
         from datetime import datetime
         if catalog_number:
