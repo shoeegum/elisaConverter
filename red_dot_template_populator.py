@@ -108,23 +108,41 @@ def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
     if is_red_dot:
         logger.info("Processing as Red Dot document format")
         
-        # Identify key sections that might be named differently in Red Dot documents
+        # Identify key sections that we need to extract with their formatting
         red_dot_sections = {
             "INTENDED USE": None,
             "TEST PRINCIPLE": None,
+            "REAGENTS PROVIDED": None,
             "REAGENTS AND MATERIALS PROVIDED": None,
+            "KIT COMPONENTS": None,  # Alternative name for REAGENTS PROVIDED
+            "OTHER SUPPLIES REQUIRED": None,
             "MATERIALS REQUIRED BUT NOT SUPPLIED": None,
+            "STORAGE OF THE KITS": None,
+            "SAMPLE COLLECTION AND STORAGE": None,
             "REAGENT PREPARATION": None,
             "SAMPLE PREPARATION": None,
             "ASSAY PROCEDURE": None,
-            "CALCULATION OF RESULTS": None
+            "CALCULATION OF RESULTS": None,
+            "TYPICAL DATA": None,
+            "DETECTION RANGE": None,
+            "SENSITIVITY": None, 
+            "SPECIFICITY": None,
+            "PRECISION": None,
+            "STABILITY": None,
+            "ASSAY PROCEDURE SUMMARY": None,
+            "IMPORTANT NOTE": None,
+            "PRECAUTION": None
         }
         
-        # Scan document for Red Dot specific section headers
+        # Enhanced extraction that preserves formatting, lists, and tables
+        section_markers = list(red_dot_sections.keys())
         current_section = None
-        section_content = []
         
-        for para in doc.paragraphs:
+        # Track the index ranges for each section
+        section_ranges = {}
+        
+        # First pass: detect section boundaries
+        for i, para in enumerate(doc.paragraphs):
             text = para.text.strip()
             upper_text = text.upper()
             
@@ -132,31 +150,94 @@ def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
             is_section_header = False
             matched_section = None
             
-            for section in red_dot_sections.keys():
-                if section in upper_text or upper_text == section:
+            for section in section_markers:
+                # Check for exact match or section title within the paragraph
+                if upper_text == section or (section in upper_text and len(upper_text) < len(section) + 15):
                     is_section_header = True
                     matched_section = section
                     break
             
-            # If section header, start a new section
+            # If it's a section header, mark the start
             if is_section_header and matched_section:
-                # Save previous section if any
-                if current_section:
-                    red_dot_sections[current_section] = "\n".join(section_content)
+                # If we were already in a section, mark its end
+                if current_section and current_section in section_ranges:
+                    section_ranges[current_section]["end"] = i - 1
                 
-                # Start new section
+                # Start tracking the new section
                 current_section = matched_section
-                section_content = []
-            # Otherwise add to current section if in one
-            elif current_section:
-                section_content.append(text)
+                section_ranges[current_section] = {"start": i + 1, "end": None}  # Start after the header
         
-        # Save last section if any
-        if current_section and section_content:
-            red_dot_sections[current_section] = "\n".join(section_content)
+        # Mark the end of the last section
+        if current_section and current_section in section_ranges:
+            section_ranges[current_section]["end"] = len(doc.paragraphs) - 1
+        
+        # Extract content for each section with proper formatting
+        for section, range_info in section_ranges.items():
+            start_idx = range_info["start"]
+            end_idx = range_info["end"]
+            
+            if start_idx is not None and end_idx is not None:
+                # Check for any tables in this section
+                tables_in_section = []
+                for table_idx, table in enumerate(doc.tables):
+                    # Locate the table's position by checking the parent element
+                    # This is an approximation - a more accurate approach would analyze the XML structure
+                    table_para_idx = -1
+                    for p_idx, para in enumerate(doc.paragraphs):
+                        if p_idx >= start_idx and p_idx <= end_idx:
+                            if para._p.getprevious() == table._tbl:
+                                table_para_idx = p_idx
+                                break
+                    
+                    if table_para_idx >= start_idx and table_para_idx <= end_idx:
+                        tables_in_section.append(table_idx)
+                
+                # Extract paragraphs for this section
+                section_paragraphs = doc.paragraphs[start_idx:end_idx+1]
+                section_text = []
+                
+                # Process each paragraph to maintain proper formatting
+                for para in section_paragraphs:
+                    # Check if it's a list item (bullet or number)
+                    is_list_item = False
+                    if hasattr(para, '_p') and para._p.pPr is not None and para._p.pPr.numPr is not None:
+                        is_list_item = True
+                        if para.style.name.startswith('List'):
+                            # Handle bullet points
+                            section_text.append(f"• {para.text}")
+                        else:
+                            # Handle numbered list (approximate, as we can't get the exact number easily)
+                            section_text.append(f"1. {para.text}")
+                    else:
+                        # Regular paragraph
+                        if para.text.strip().lower().startswith("note:"):
+                            # Highlight note paragraphs
+                            section_text.append(f"Note: {para.text.strip()[5:].strip()}")
+                        else:
+                            section_text.append(para.text)
+                
+                # Combine paragraphs into formatted content
+                section_content = "\n".join(section_text)
+                
+                # Store the tables separately to be handled in the template
+                if tables_in_section:
+                    red_dot_sections[f"{section}_TABLES"] = tables_in_section
+                
+                red_dot_sections[section] = section_content
         
         # Add Red Dot specific sections to data
         data['red_dot_sections'] = red_dot_sections
+        
+        # Also extract tables for direct access
+        tables_data = []
+        for i, table in enumerate(doc.tables):
+            table_data = []
+            for row in table.rows:
+                row_data = [cell.text for cell in row.cells]
+                table_data.append(row_data)
+            tables_data.append(table_data)
+        
+        data['tables'] = tables_data
         
         # Update kit name, catalog number from document if not already set
         if not data.get('kit_name'):
