@@ -116,12 +116,19 @@ class BatchProcessor:
                 
                 # If document is Red Dot but template isn't, use the Red Dot template
                 if is_red_dot_document and not is_red_dot_template:
-                    red_dot_template_path = Path("templates_docx/red_dot_template.docx")
-                    if red_dot_template_path.exists():
-                        logger.info(f"Switching to Red Dot template for document {file_path.name}")
-                        template_to_use = red_dot_template_path
+                    # First, check for enhanced Red Dot template
+                    enhanced_red_dot_template_path = Path("templates_docx/enhanced_red_dot_template.docx")
+                    if enhanced_red_dot_template_path.exists():
+                        logger.info(f"Switching to enhanced Red Dot template for document {file_path.name}")
+                        template_to_use = enhanced_red_dot_template_path
                     else:
-                        template_to_use = self.template_path
+                        # Fall back to standard Red Dot template
+                        red_dot_template_path = Path("templates_docx/red_dot_template.docx")
+                        if red_dot_template_path.exists():
+                            logger.info(f"Switching to Red Dot template for document {file_path.name}")
+                            template_to_use = red_dot_template_path
+                        else:
+                            template_to_use = self.template_path
                 else:
                     template_to_use = self.template_path
                 

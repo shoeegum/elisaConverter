@@ -198,6 +198,11 @@ def populate_red_dot_template(
     Returns:
         True if successful, False otherwise
     """
+    # Check if enhanced Red Dot template exists and use it instead
+    enhanced_template_path = Path("templates_docx/enhanced_red_dot_template.docx")
+    if enhanced_template_path.exists():
+        logger.info(f"Using enhanced Red Dot template: {enhanced_template_path}")
+        template_path = enhanced_template_path
     try:
         # Extract data from source document using Red Dot specific extraction
         logger.info(f"Extracting data from {source_path}")
