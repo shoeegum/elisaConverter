@@ -148,15 +148,33 @@ class BatchProcessor:
                     lot_number=lot_number
                 )
             
-            # Apply additional processing for non-Red Dot templates
-            if self.template_path.name != 'red_dot_template.docx':
+            # Apply additional processing only for standard templates (not Red Dot)
+            is_red_dot_template = self.template_path.name.lower() == 'red_dot_template.docx'
+            is_red_dot_document = "RDR" in file_path.name.upper() or file_path.name.upper().endswith('RDR.DOCX')
+            
+            if not is_red_dot_template and not is_red_dot_document:
                 self.progress[batch_id]['progress'] = 85
                 self.progress[batch_id]['message'] = f'Applying enhancements for {file_path.name}'
                 update_template_populator(file_path, output_path, output_path)
+                
+                # Add ASSAY PRINCIPLE section
+                from add_assay_principle import add_assay_principle
+                add_assay_principle(output_path)
+                
+                # Fix OVERVIEW table
+                from fix_overview_table import fix_overview_table
+                fix_overview_table(output_path)
+                
+                # Fix document structure to ensure tables are properly positioned
+                from fix_document_structure import ensure_sections_with_tables
+                ensure_sections_with_tables(output_path)
             else:
-                # For Red Dot templates, just update progress
+                # For Red Dot templates/documents, just update progress and modify footer
                 self.progress[batch_id]['progress'] = 85
-                self.progress[batch_id]['message'] = f'Red Dot template already fully populated for {file_path.name}'
+                self.progress[batch_id]['message'] = f'Red Dot document already fully populated for {file_path.name}'
+                # Modify footer text
+                from modify_footer import modify_footer_text
+                modify_footer_text(output_path)
             
             self.progress[batch_id]['progress'] = 100
             self.progress[batch_id]['status'] = 'completed'

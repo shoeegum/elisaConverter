@@ -1,0 +1,144 @@
+Mouse KLK1/Kallikrein 1 ELISA Kit
+Catalog Number: IMSKLK1KT
+Lot Number: 20250424
+ 
+ASSAY PRINCIPLE
+The Boster Picokine® Mouse Klk1 Pre-Coated ELISA (Enzyme-Linked Immunosorbent Assay) kit is a solid-phase immunoassay specially designed to measure Mouse Klk1 with a 96-well strip plate that is pre-coated with antibody specific for Klk1. The detection antibody is a biotinylated antibody specific for Klk1. The capture antibody is monoclonal antibody from rat and the detection antibody is polyclonal antibody from goat. The kit includes Mouse Klk1 protein as standards.
+Overview
+*The sensitivity or the minimum detectable dose (MDD) is the lower limit of the target protein that can be detected by the kit. It is determined by adding two standard deviations to the mean O.D. value of twenty (20) blank wells and calculating the corresponding concentration.
+Technical Details
+Preparations Before Assay
+Please read the following instructions before starting the experiment.
+Read this manual in its entirety in order to minimize the chance of error.
+Confirm that you have the appropriate non-supplied equipment available.
+Confirm that the species, target antigen, and sensitivity of this kit are appropriate for your intended application.
+Confirm that your samples have been prepared appropriately based upon recommendations (see Sample Preparation) and that you have sufficient sample volume for use in the assay.
+When first using a kit, appropriate validation steps should be taken before using valuable samples. Confirm that the kit adequately detects the target antigen in your intended sample type(s) by running control samples.
+If the concentration of target antigen within your samples is unknown, a preliminary experiment should be run using a control sample to determine the optimal sample dilution (see Sample Preparation).
+To inspect the validity of experiment operation and the appropriateness of sample dilution proportion, a pilot experiment using standards and a small number of samples is recommended.
+Before using the kit, spin tubes to bring down all components to the bottom of the tubes.
+Don’t let the 96-well plate dry out since this will inactivate active components on the plate.
+Don’t reuse tips and tubes to avoid cross-contamination.
+Avoid using the reagents from different batches together.
+The kit should not be used beyond the expiration date on the kit label. Any variation in diluent, operator, pipetting technique, washing technique, incubation time or temperature, and kit age can cause variation in binding. Variations in sample collection, processing, and storage may cause sample value differences.
+Kit Components/Materials Provided
+Required Materials That Are Not Supplied
+Microplate reader capable of reading absorbance at 450 nm. Incubator.
+Automated plate washer (optional)
+Pipettes and pipette tips capable of precisely dispensing 0.5 µl through 1 ml volumes of aqueous solutions. Multichannel pipettes are recommended for a large numbers of samples.
+Deionized or distilled water. 500 ml graduated cylinders. Test tubes for dilution.
+Mouse Klk1 ELISA Standard Curve Example
+The highest O.D. value might be higher or lower than in the example. The experiment result is statistically significant if the highest O.D. value is no less than 1.0.
+Mouse KLK1 PicoKine ELISA Kit standard curve	A standard curve is provided for demonstration only. A standard curve
+should be generated for each set of samples assayed.
+Intra/Inter-Assay Variability
+Boster spends great efforts in documenting lot-to-lot variability and ensuring our assay kits produce robust data that are reproducible.
+Intra-Assay Precision (Precision within an assay): Three samples of known concentration were tested on one plate to assess intra-assay precision.
+Inter-Assay Precision (Precision across assays): Three samples of known concentration were tested in separate assays to assess inter-assay precision.
+Reproducibility
+We ensure reproducibility by testing three samples with differing concentrations of Klk1 in ELISA kits from four different production batches/lots.
+*number of samples for each test n=16.
+Preparation Before The Experiment
+Dilution of Mouse Klk1 Standard
+Number tubes 1-8. Final Concentrations to be Tube # 1: 4,000.00 pg/ml, # 2: 2,000.00 pg/ml, # 3: 1,000.00
+pg/ml, # 4: 500.00 pg/ml,
+# 5: 250.00 pg/ml, # 6: 125.00 pg/ml, # 7: 62.50 pg/ml, # 8: Sample Diluent serves as the zero standard (0 pg/ml).
+To generate standard #1, add 400 µl of the reconstituted standard stock solution of 10 ng/ml and 600 µl of sample diluent to tube #1 for a
+final volume of 1000 µl. Mix thoroughly.
+Add 300 µl of sample diluent to tubes # 2-7.
+To generate standard # 2, add 300 µl of standard # 1 from tube # 1 to tube # 2 for a final volume of 600 µl. Mix thoroughly.
+To generate standard # 3, add 300 µl of standard # 2 from tube # 2 to tube # 3 for a final volume of 600 µl. Mix
+thoroughly.
+Continue the serial dilution for tube # 4-7.
+Sample Preparation and Storage
+These sample collection instructions and storage conditions are intended as a general guideline, and the sample stability has not been evaluated.
+Sample dilution ratios should be determined by a pilot study (run a serial dilution of samples and see which dilution ratio results in the idea O.D., near the middle of the standard range). In general, high concentration samples can be dilutioned by 1:100, mid concentration samples 1:10, low concentration samples 1:2 or neat.
+Sample Collection Notes
+Boster recommends that samples are used immediately upon preparation.
+Avoid repeated freeze/thaw cycles for all samples.
+In the event that a sample type not listed above is intended to be used with the kit, it is recommended that the customer conduct validation experiments in order to be confident in the results.
+Due to chemical interference, the use of tissue or cell extraction samples prepared by chemical lysis buffers may result in inaccurate results.
+Due to factors including cell viability, cell number, or sampling time, samples from cell culture supernatant may not be detected by the kit.
+Samples should be brought to room temperature (18-25°C) before performing the assay without the use of extra heating.
+Sample concentrations should be predicted before being used in the assay. If the sample concentration is not within the range of the standard curve, users must determine the optimal sample dilutions for their particular experiments.
+Boster is responsible for the quality and performance of the kit components but is NOT responsible for the performance of customer supplied samples used with the kit.
+Sample Dilution Guideline
+The user needs to estimate the concentration of the target protein in the sample and use an appropriate dilution factor so that the diluted target protein concentration falls in the range of O.D. values of the standard curve. Dilute the sample using provided diluent buffer. Pilot tests using a dilution series of each sample type are necessary. The sample must be mixed thoroughly with Sample Diluent.
+Assay Protocol
+It is recommended that all reagents and materials be equilibrated to room temperature (18-25°C) prior to the experiment (see Preparation Before The Experiment, if you have missed this information).
+Prepare all reagents and working standards as directed previously.
+Remove excess microplate strips from the plate frame and seal and store them in the original packaging.
+Add 100 µl of the standard, samples, or control per well. Add 100 µl of the Sample Diluent into the zero well. At least two replicates of each standard, sample, or control is recommended.
+Cover with the plate sealer provided and incubate for 120 minutes at room temperature (or 90 min. at 37 °C).
+Remove the cover and discard the liquid in the wells into an appropriate waste receptacle. Invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time.
+Add 100 µl of the prepared 1x Biotinylated Anti-Mouse Klk1 antibody to each well.
+Cover with a plate sealer and incubate for 90 minutes at room temperature (or 60 minutes at 37°C).
+Wash the plate 3 times with the 1x wash buffer:
+Discard the liquid in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time.
+Add 300 µl of the 1x wash buffer to each assay well. (For cleaner background incubate for 60 seconds between each wash).
+Repeat steps a-b 2 additional times.
+Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid.
+Add 100 µl of the prepared 1x Avidin-Biotin-Peroxidase Complex into each well. Cover with the plate sealer provided and incubate for 40 minutes at RT (or 30 minutes at 37°C).
+Wash the plate 5 times with the 1x wash buffer:
+Discard the liquid in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time.
+Add 300 µl of the 1x wash buffer to each assay well. (For cleaner background incubate for 60 seconds between each wash).
+Repeat steps a-b 4 additional times.
+Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid.
+Add 90 µl of Color Developing Reagent to each well. Cover with the plate sealer provided and incubate in the dark for 30 minutes at RT (or
+15-25 minutes at 37°C). (The optimal incubation time must be empirically determined. A guideline to look for is blue shading the top four standard wells, while the remaining standards remain clear.)
+Add 100 µl of Stop Solution to each well. The color should immediately change to yellow.
+Within 30 minutes of stopping the reaction, the O.D. absorbance should be read with a microplate reader at 450nm.
+Assay Protocol Notes
+Solutions: To avoid cross-contamination, change pipette tips between additions of each standard, between sample additions, and between reagent additions. Also, use separate reservoirs for each reagent.
+Applying Solutions: All solutions should be added to the bottom of the ELISA plate well. Avoid touching the inside wall of the well. Avoid foaming when possible.
+Assay Timing: The interval between adding samples to the first and last wells should be minimized. Delays will increase the incubation time differential between wells, which will significantly affect the experimental accuracy and repeatability. For each step in the procedure, total dispensing time for addition of reagents or samples should not exceed 10 minutes.
+Incubation: To prevent evaporation and ensure accurate results, proper adhesion of plate sealers during incubation steps is necessary. Do not allow wells to sit uncovered for extended periods of time between incubation steps. Do not let wells dry out at any time during the assay. Strictly observe the recommended incubation times and temperatures.
+Washing: Proper washing procedure is critical. Insufficient washing will result in poor precision and falsely elevated absorbance readings. Residual liquid in the reaction wells should be patted dry against absorbent paper during the washing process. Do not put absorbent paper directly into the reaction wells.
+Controlling Substrate Reaction Time: After the addition of the TMB Substrate, periodically monitor the color development. Stop color development before the color becomes too deep by adding Stop Solution. The excessively strong color will result in inaccurate absorbance readings.
+Reading: The microplate reader should be preheated and programmed prior to use. Prior to taking O.D. readings, remove any residual liquid or fingerprints from the underside of the plate and confirm that there are no bubbles in the wells.
+Reaction Time Control: Control reaction time should be strictly followed as outlined.
+Stop Solution: The Stop Solution contains an acid, therefore proper precautions should be taken during its use, such as protection of the eyes, hands, face, and clothing.
+To minimize the external influence on the assay performance, operational procedures and lab conditions (such as room temperature, humidity, incubator temperature) should be strictly controlled. It is also strongly suggested that the whole assay is performed by the same operator from the beginning to the end.
+Data Analysis
+Boster Bio offers an easy-to-use online ELISA data analysis tool. Try it out at https://www.bosterbio.com/biology-research-tools/elisa-data-analysis- online
+To analyze using manual methods, follow the process below:
+Average the duplicate readings for each standard, sample, and control. Subtract the average zero standard O.D. reading.
+It is recommended that a standard curve be created using computer software to generate a four-parameter logistic (4-PL) curve-fit. A free program capable of generating a four-parameter logistic (4-PL) curve-fit can be found online at: www.myassays.com/four-parameter-logistic-curve.assay. Alternatively, plot the mean absorbance for each standard against the concentration. The measured concentration in the sample can be interpolated by using linear regression of each average relative O.D. against the standard curve generated using curve fitting software. This will generate an adequate but less precise fit of the data.
+For diluted samples, the concentration reading from the standard curve must be multiplied by the dilution factor.
+Background on Klk1
+Kallikrein-1, also known as tissue kallikrein, is a protein that in humans is encoded by the KLK1 gene. This serine protease generates Lys-bradykinin by specific proteolysis of kininogen-1. KLK1 is a member of the peptidase S1 family. Its gene is mapped to 19q13.3. In all, it has got 262-amino acids which contain a putative signal peptide, followed by a short activating peptide and the protease domain. The protein is mainly found in kidney, pancreas, and salivary gland, showing a unique pattern of tissue-specific expression relative to other members of the family. KLK1 is implicated in carcinogenesis and some have potential as novel cancer and other disease biomarkers.
+1 Publications Citing This Product
+PubMed ID: 10.1186/s12014-021-09335-9, Proteomics and functional study reveal kallikrein-6 enhances communicating hydrocephalus Visit bosterbio.com/mouse-klk1-picokine-trade-elisa-kit-ek1586-boster.html to see all 1 publications.
+Submit a Product Review to Biocompare.com
+Submit a review of this product to Biocompare.com to receive a $20 Amazon.com gift card! Your reviews help your fellow scientists make the right decisions. Thank you for your contribution.
+Mouse KLK1/Kallikrein 1 ELISA Kit ®
+BACKGROUND
+Background on Klk1
+BACKGROUND
+Kallikrein-1, also known as tissue kallikrein, is a protein that in humans is encoded by the KLK1 gene. This serine protease generates Lys-bradykinin by specific proteolysis of kininogen-1. KLK1 is a member of the peptidase S1 family. Its gene is mapped to 19q13.3. In all, it has got 262-amino acids which contain a putative signal peptide, followed by a short activating peptide and the protease domain. The protein is mainly found in kidney, pancreas, and salivary gland, showing a unique pattern of tissue-specific expression relative to other members of the family. KLK1 is implicated in carcinogenesis and some have potential as novel cancer and other disease biomarkers.
+OVERVIEW
+TECHNICAL DETAILS
+PREPARATIONS BEFORE ASSAY
+1. Prepare all reagents, samples, and standards according to the instructions.
+2. Confirm that you have the appropriate non-supplied equipment available.
+3. Spin down all components to the bottom of the tube before opening.
+4. Don't let the 96-well plate dry out as this will inactivate active components.
+5. Don't reuse tips and tubes to avoid cross-contamination. Avoid using reagents from different batches.
+KIT COMPONENTS
+MATERIALS REQUIRED BUT NOT PROVIDED
+• Microplate reader capable of reading absorbance at 450 nm. Incubator. • Automated plate washer (optional) • Pipettes and pipette tips capable of precisely dispensing 0.5 µl through 1 ml volumes of aqueous solutions. Multichannel pipettes are recommended for a large numbers of samples. • Deionized or distilled water. 500 ml graduated cylinders. Test tubes for dilution.
+REAGENT PREPARATION
+Bring all reagents to room temperature before use. Wash Buffer: Dilute Wash Buffer (25X) with distilled water. For example, if preparing 500 ml of Wash Buffer, dilute 20 ml of Wash Buffer (25X) into 480 ml of distilled water. Standard: Reconstitute the standard with standard diluent according to the label instructions. This reconstitution produces a stock solution. Let the standard stand for a minimum of 15 minutes with gentle agitation prior to making dilutions. Detection Reagent A and B: Dilute to the working concentration using Assay Diluent A and B, respectively.
+INTRA/INTER-ASSAY VARIABILITY
+Three samples of known concentration were tested on one plate to assess intra-assay precision.
+Three samples of known concentration were tested in separate assays to assess inter-assay precision.
+REPRODUCIBILITY
+Samples were tested in four different assay lots to assess reproducibility.
+DILUTION OF STANDARD
+1. Label 7 tubes, one for each standard: 4000 pg/ml, 2000 pg/ml, 1000 pg/ml, 500 pg/ml, 250 pg/ml, 125 pg/ml, and 62.5 pg/ml. 2. Pipette 300 µl of the Sample Diluent into each tube. 3. Pipette 300 µl of the reconstituted standard into the first tube and mix to create the 4000 pg/ml standard. 4. Pipette 300 µl from the 4000 pg/ml tube into the second tube and mix to create the 2000 pg/ml standard. 5. Continue this process for the remaining tubes. 6. The Sample Diluent serves as the zero standard (0 pg/ml).
+ASSAY PROTOCOL
+1. It is recommended that all reagents and materials be equilibrated to room temperature (18-25°C) prior to the experiment (see Preparation Before The Experiment, if you have missed this information). Prepare all reagents and working standards as directed previously. Remove excess microplate strips from the plate frame and seal and store them in the original packaging. Add 100 µl of the standard, samples, or control per well. Add 100 µl of the Sample Diluent into the zero well. At least two replicates of each standard, sample, or control is recommended. Cover with the plate sealer provided and incubate for 120 minutes at room temperature (or 90 min. at 37 °C). Remove the cover and discard the liquid in the wells into an appropriate waste receptacle. Invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time. Add 100 µl of the prepared 1x Biotinylated Anti-Mouse Klk1 antibody to each well. Cover with a plate sealer and incubate for 90 minutes at room temperature (or 60 minutes at 37°C). Wash the plate 3 times with the 1x wash buffer: Discard the liquid in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time. Add 300 µl of the 1x wash buffer to each assay well. (For cleaner background incubate for 60 seconds between each wash). Repeat steps a-b 2 additional times. Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. Add 100 µl of the prepared 1x Avidin-Biotin-Peroxidase Complex into each well. Cover with the plate sealer provided and incubate for 40 minutes at RT (or 30 minutes at 37°C). Wash the plate 5 times with the 1x wash buffer: Discard the liquid in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. It is recommended that the wells are not allowed to completely dry at any time. Add 300 µl of the 1x wash buffer to each assay well. (For cleaner background incubate for 60 seconds between each wash). Repeat steps a-b 4 additional times. Discard the wash buffer in the wells into an appropriate waste receptacle. Then, invert the plate on the benchtop onto a paper towel and tap the plate to gently blot any remaining liquid. Add 90 µl of Color Developing Reagent to each well. Cover with the plate sealer provided and incubate in the dark for 30 minutes at RT (or 15-25 minutes at 37°C). (The optimal incubation time must be empirically determined. A guideline to look for is blue shading the top four standard wells, while the remaining standards remain clear.) Add 100 µl of Stop Solution to each well. The color should immediately change to yellow. Within 30 minutes of stopping the reaction, the O.D. absorbance should be read with a microplate reader at 450nm. Assay Protocol Notes Solutions: To avoid cross-contamination, change pipette tips between additions of each standard, between sample additions, and between reagent additions. Also, use separate reservoirs for each reagent. Applying Solutions: All solutions should be added to the bottom of the ELISA plate well. Avoid touching the inside wall of the well. Avoid foaming when possible. Assay Timing: The interval between adding samples to the first and last wells should be minimized. Delays will increase the incubation time differential between wells, which will significantly affect the experimental accuracy and repeatability. For each step in the procedure, total dispensing time for addition of reagents or samples should not exceed 10 minutes.
+TYPICAL DATA / STANDARD CURVE
+This standard curve is for demonstration only. A standard curve must be run with each assay.
+DISCLAIMER
+This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification.

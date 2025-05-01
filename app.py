@@ -238,20 +238,34 @@ def upload_file():
         catalog_number = request.form.get('catalog_number')
         lot_number = request.form.get('lot_number')
         
-        # Check if we're using the Red Dot template
-        if template_path.name == 'red_dot_template.docx':
-            logger.info("Using Red Dot template populator")
+        # Check if we're using the Red Dot template or if it's a Red Dot document
+        is_red_dot_template = template_path.name.lower() == 'red_dot_template.docx'
+        is_red_dot_document = "RDR" in source_path.name.upper() or source_path.name.upper().endswith('RDR.DOCX')
+        
+        if is_red_dot_template or is_red_dot_document:
+            logger.info(f"Using Red Dot template populator for {'template' if is_red_dot_template else 'document'}: {source_path.name}")
             # Import the Red Dot template populator
             from red_dot_template_populator import populate_red_dot_template
+            
+            # If document is Red Dot but template isn't, use the Red Dot template
+            if is_red_dot_document and not is_red_dot_template:
+                red_dot_template_path = Path("templates_docx/red_dot_template.docx")
+                if red_dot_template_path.exists():
+                    logger.info(f"Switching to Red Dot template for document {source_path.name}")
+                    template_to_use = red_dot_template_path
+                else:
+                    template_to_use = template_path
+            else:
+                template_to_use = template_path
             
             # Populate the template with the Red Dot populator
             success = populate_red_dot_template(
                 source_path=source_path,
-                template_path=template_path, 
+                template_path=template_to_use, 
                 output_path=output_path,
-                kit_name=kit_name,
-                catalog_number=catalog_number,
-                lot_number=lot_number
+                kit_name=kit_name if kit_name else "",
+                catalog_number=catalog_number if catalog_number else "",
+                lot_number=lot_number if lot_number else ""
             )
             
             if not success:
@@ -273,24 +287,31 @@ def upload_file():
                 lot_number=lot_number
             )
         
-        # Apply additional processing to position ASSAY PRINCIPLE at the beginning
-        logger.info("Fixing sample preparation and dilution sections")
-        update_template_populator(source_path, output_path, output_path)
-        
-        # Add ASSAY PRINCIPLE section
-        logger.info("Adding ASSAY PRINCIPLE section")
-        from add_assay_principle import add_assay_principle
-        add_assay_principle(output_path)
-        
-        # Fix OVERVIEW table
-        logger.info("Fixing OVERVIEW table with correct data")
-        from fix_overview_table import fix_overview_table
-        fix_overview_table(output_path)
-        
-        # Fix document structure to ensure tables are properly positioned
-        logger.info("Fixing document structure and table positions")
-        from fix_document_structure import ensure_sections_with_tables
-        ensure_sections_with_tables(output_path)
+        # Apply additional processing only for standard templates (not Red Dot)
+        if not is_red_dot_template and not is_red_dot_document:
+            # Apply additional processing to position ASSAY PRINCIPLE at the beginning
+            logger.info("Fixing sample preparation and dilution sections")
+            update_template_populator(source_path, output_path, output_path)
+            
+            # Add ASSAY PRINCIPLE section
+            logger.info("Adding ASSAY PRINCIPLE section")
+            from add_assay_principle import add_assay_principle
+            add_assay_principle(output_path)
+            
+            # Fix OVERVIEW table
+            logger.info("Fixing OVERVIEW table with correct data")
+            from fix_overview_table import fix_overview_table
+            fix_overview_table(output_path)
+            
+            # Fix document structure to ensure tables are properly positioned
+            logger.info("Fixing document structure and table positions")
+            from fix_document_structure import ensure_sections_with_tables
+            ensure_sections_with_tables(output_path)
+        else:
+            logger.info("Skipping standard post-processing for Red Dot document")
+            # For Red Dot documents, only modify the footer text
+            from modify_footer import modify_footer_text
+            modify_footer_text(output_path)
         
         # Redirect to download page
         return redirect(url_for('download_file', filename=output_filename))
