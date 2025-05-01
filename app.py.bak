@@ -179,33 +179,17 @@ def upload_file():
         return redirect(request.url)
     
     # Get selected template or use enhanced template as default
-    template_file = request.form.get('template_file', 'default')
+    template_name = request.form.get('template', 'enhanced_template.docx')
     
-    # Handle the case for hardcoded templates in the dropdown
-    logger.info(f"Selected template option: {template_file}")
-    
-    if template_file == 'default':
-        # Use default enhanced template
-        template_path = DEFAULT_TEMPLATE
-    elif template_file == 'custom' and 'custom_template' in request.files:
-        # Handle custom template upload
-        custom_template = request.files['custom_template']
-        if custom_template.filename:
-            custom_template_filename = f"custom_{uuid.uuid4().hex[:8]}.docx"
-            custom_template_path = TEMPLATE_FOLDER / custom_template_filename
-            custom_template.save(custom_template_path)
-            template_path = custom_template_path
-        else:
-            flash('No custom template selected', 'error')
-            return redirect(request.url)
-    else:
-        # Use selected specific template from dropdown (boster, innovative, red dot)
-        template_path = TEMPLATE_FOLDER / template_file
-        logger.info(f"Using specific template: {template_path}")
+    if template_name:
+        template_path = TEMPLATE_FOLDER / template_name
         if not template_path.exists():
-            logger.warning(f"Selected template {template_file} not found, using default")
-            flash(f"Template {template_file} not found, using default template instead", "warning")
+            logger.warning(f"Selected template {template_name} not found, using default")
             template_path = DEFAULT_TEMPLATE
+    else:
+        # No template selected, use enhanced template
+        template_path = DEFAULT_TEMPLATE
+    
     # Log which template is being used
     logger.info(f"Using template: {template_path.name}")
         
