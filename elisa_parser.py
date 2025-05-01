@@ -1547,3 +1547,16 @@ To measure the target protein, add standards and samples to the wells, then add 
         
         If samples have been diluted, the concentration read from the standard curve must be multiplied by the dilution factor.
         """
+        
+def extract_elisa_data(source_path: Path) -> Dict[str, Any]:
+    """
+    Standalone function to extract data from an ELISA kit datasheet using the parser.
+    
+    Args:
+        source_path: Path to the source ELISA kit datasheet
+        
+    Returns:
+        Dictionary containing structured data extracted from the datasheet
+    """
+    parser = ELISADatasheetParser(source_path)
+    return parser.extract_data()

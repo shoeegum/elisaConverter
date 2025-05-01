@@ -67,14 +67,16 @@ def get_available_templates(template_dir: Path) -> List[Dict[str, str]]:
         'innovative_formatted_template.docx': "Innovative Research Template (Formatted)",
         'innovative_direct_template.docx': "Innovative Research Direct Format Template",
         'innovative_proper_template.docx': "Innovative Research Proper Template",
-        'innovative_exact_template.docx': "Innovative Research Exact Format Template"
+        'innovative_exact_template.docx': "Innovative Research Exact Format Template",
+        'red_dot_template.docx': "Red Dot Biotech Template"
     }
     
     # Set the order of templates to display
     template_order = [
         'enhanced_template.docx',  # Put enhanced template first 
         'boster_template_ready.docx',  # Second choice
-        'innovative_exact_template.docx',  # Third choice
+        'red_dot_template.docx',   # Third choice
+        'innovative_exact_template.docx',  # Fourth choice
         'default_template.docx',
         'innovative_template.docx',
         'innovative_formatted_template.docx',
@@ -155,6 +157,7 @@ def initialize_templates(template_dir: Path, assets_dir: Path) -> None:
     templates = [
         ('boster_template_ready.docx', 'default_template.docx'),
         ('IMSKLK1KT-Sample.docx', 'innovative_template.docx'),
+        ('RDR-LMNB2-Hu.docx', 'red_dot_template.docx'),
     ]
     
     # If enhanced template still doesn't exist, add it to the list
