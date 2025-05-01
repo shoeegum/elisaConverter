@@ -134,9 +134,11 @@ The color development is stopped and the intensity of the color is measured."""
             context['materials_required_but_not_supplied'] = "Standard laboratory materials are required."
         
         # Fill in missing sections with generic content
-        for section in [s.lower().replace(' ', '_') for s in SECTION_MAPPING.values() if SECTION_MAPPING[s]]:
-            if section not in context or not context[section]:
-                context[section] = f"Information not available in source document."
+        for section_name in SECTION_MAPPING.values():
+            if section_name:  # Skip None values
+                section = section_name.lower().replace(' ', '_')
+                if section not in context or not context[section]:
+                    context[section] = f"Information not available in source document."
                 
         # Add storage information if missing
         if not context.get('storage_of_the_kits'):
@@ -151,11 +153,35 @@ The information provided here is based on our best knowledge. However, no warran
         # Load template and populate
         logger.info(f"Populating template: {template_path}")
         doc = DocxTemplate(template_path)
-        doc.render(context)
         
-        # Save populated template
-        doc.save(output_path)
-        logger.info(f"Successfully populated template: {output_path}")
+        # Print context keys to debug template issues
+        logger.info(f"Template context keys: {', '.join(context.keys())}")
+        
+        try:
+            # Attempt to render the template with the context
+            doc.render(context)
+            
+            # Save populated template
+            doc.save(output_path)
+            logger.info(f"Successfully populated template: {output_path}")
+        except Exception as e:
+            logger.error(f"Template rendering error: {str(e)}")
+            
+            # Try to identify missing placeholders in the template
+            import re
+            with open(template_path, 'rb') as f:
+                content = f.read().decode('utf-8', errors='ignore')
+                placeholders = re.findall(r'\{\{([^}]+)\}\}', content)
+                if placeholders:
+                    logger.error(f"Found placeholders in template: {', '.join(placeholders)}")
+                    
+                    # Check which placeholders are missing from context
+                    missing = [p for p in placeholders if p.strip() not in context]
+                    if missing:
+                        logger.error(f"Missing context variables: {', '.join(missing)}")
+            
+            # Re-raise the exception
+            raise
         
         return True
         

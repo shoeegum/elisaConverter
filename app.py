@@ -222,19 +222,40 @@ def upload_file():
         catalog_number = request.form.get('catalog_number')
         lot_number = request.form.get('lot_number')
         
-        # Process the file
-        parser = ELISADatasheetParser(source_path)
-        data = parser.extract_data()
-        
-        # Populate template with user-provided values
-        populator = TemplatePopulator(template_path)
-        populator.populate(
-            data, 
-            output_path,
-            kit_name=kit_name,
-            catalog_number=catalog_number,
-            lot_number=lot_number
-        )
+        # Check if we're using the Red Dot template
+        if template_path.name == 'red_dot_template.docx':
+            logger.info("Using Red Dot template populator")
+            # Import the Red Dot template populator
+            from red_dot_template_populator import populate_red_dot_template
+            
+            # Populate the template with the Red Dot populator
+            success = populate_red_dot_template(
+                source_path=source_path,
+                template_path=template_path, 
+                output_path=output_path,
+                kit_name=kit_name,
+                catalog_number=catalog_number,
+                lot_number=lot_number
+            )
+            
+            if not success:
+                flash("Error populating Red Dot template", "error")
+                return redirect(url_for('index'))
+        else:
+            # Process the file with standard populator
+            logger.info("Using standard template populator")
+            parser = ELISADatasheetParser(source_path)
+            data = parser.extract_data()
+            
+            # Populate template with user-provided values
+            populator = TemplatePopulator(template_path)
+            populator.populate(
+                data, 
+                output_path,
+                kit_name=kit_name,
+                catalog_number=catalog_number,
+                lot_number=lot_number
+            )
         
         # Apply additional processing to position ASSAY PRINCIPLE at the beginning
         logger.info("Fixing sample preparation and dilution sections")
