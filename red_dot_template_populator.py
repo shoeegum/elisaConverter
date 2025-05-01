@@ -180,9 +180,9 @@ def populate_red_dot_template(
     source_path: Path, 
     template_path: Path, 
     output_path: Path,
-    kit_name: str = None,
-    catalog_number: str = None,
-    lot_number: str = None
+    kit_name: str = "",
+    catalog_number: str = "",
+    lot_number: str = ""
 ) -> bool:
     """
     Populate the Red Dot template with data from the source ELISA kit datasheet.

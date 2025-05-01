@@ -105,20 +105,34 @@ class BatchProcessor:
             self.progress[batch_id]['progress'] = 70
             self.progress[batch_id]['message'] = f'Populating template for {file_path.name}'
             
-            # Check if we're using the Red Dot template
-            if self.template_path.name == 'red_dot_template.docx':
+            # Check if we're using the Red Dot template or document
+            is_red_dot_template = self.template_path.name.lower() == 'red_dot_template.docx'
+            is_red_dot_document = "RDR" in file_path.name.upper() or file_path.name.upper().endswith('RDR.DOCX')
+            
+            if is_red_dot_template or is_red_dot_document:
                 logger.info("Using Red Dot template populator for batch processing")
                 # Import the Red Dot template populator
                 from red_dot_template_populator import populate_red_dot_template
                 
+                # If document is Red Dot but template isn't, use the Red Dot template
+                if is_red_dot_document and not is_red_dot_template:
+                    red_dot_template_path = Path("templates_docx/red_dot_template.docx")
+                    if red_dot_template_path.exists():
+                        logger.info(f"Switching to Red Dot template for document {file_path.name}")
+                        template_to_use = red_dot_template_path
+                    else:
+                        template_to_use = self.template_path
+                else:
+                    template_to_use = self.template_path
+                
                 # Populate the template with the Red Dot populator
                 success = populate_red_dot_template(
                     source_path=file_path,
-                    template_path=self.template_path, 
+                    template_path=template_to_use, 
                     output_path=output_path,
-                    kit_name=kit_name,
-                    catalog_number=catalog_number,
-                    lot_number=lot_number
+                    kit_name=kit_name if kit_name else "",
+                    catalog_number=catalog_number if catalog_number else "",
+                    lot_number=lot_number if lot_number else ""
                 )
                 
                 if not success:

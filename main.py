@@ -21,6 +21,7 @@ from pathlib import Path
 from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
 from updated_template_populator import update_template_populator
+from red_dot_template_populator import populate_red_dot_template
 
 # Import Flask app for Gunicorn
 from app import app
@@ -114,11 +115,6 @@ def main():
         output_dir.mkdir(parents=True, exist_ok=True)
     
     try:
-        # Parse the ELISA datasheet
-        logger.info(f"Parsing ELISA datasheet: {source_path}")
-        parser = ELISADatasheetParser(source_path)
-        data = parser.extract_data()
-        
         # Get custom parameters if provided
         kit_name = args.kit_name if hasattr(args, 'kit_name') and args.kit_name else None
         catalog_number = args.catalog_number if hasattr(args, 'catalog_number') and args.catalog_number else None
@@ -140,42 +136,72 @@ def main():
         if lot_number:
             logger.info(f"Using custom lot number: {lot_number}")
         
-        # Populate the template with extracted data
-        logger.info(f"Populating template: {template_path}")
-        populator = TemplatePopulator(template_path)
+        # Check if we should use the Red Dot template populator
+        is_red_dot_template = template_path.name.lower() == 'red_dot_template.docx'
+        is_red_dot_document = "RDR" in source_path.name.upper() or source_path.name.upper().endswith('RDR.DOCX')
         
-        # Pass optional user-provided values
-        populator.populate(
-            data, 
-            output_path,
-            kit_name=kit_name,  # Use variable we defined above
-            catalog_number=catalog_number,
-            lot_number=lot_number
-        )
-        
-        # Fix the sample preparation and dilution sections
-        logger.info("Fixing sample preparation and dilution sections")
-        update_template_populator(source_path, output_path, output_path)
-        
-        # Add ASSAY PRINCIPLE section
-        logger.info("Adding ASSAY PRINCIPLE section")
-        from add_assay_principle import add_assay_principle
-        add_assay_principle(output_path)
-        
-        # Fix OVERVIEW table
-        logger.info("Fixing OVERVIEW table with correct data")
-        from fix_overview_table import fix_overview_table
-        fix_overview_table(output_path)
-        
-        # Fix document structure to ensure tables are properly positioned
-        logger.info("Fixing document structure and table positions")
-        from fix_document_structure import ensure_sections_with_tables
-        ensure_sections_with_tables(output_path)
-        
-        # Modify footer text
-        logger.info("Modifying footer text")
-        from modify_footer import modify_footer_text
-        modify_footer_text(output_path)
+        if is_red_dot_template or is_red_dot_document:
+            # Use Red Dot template populator
+            logger.info("Using Red Dot template populator")
+            success = populate_red_dot_template(
+                source_path=source_path, 
+                template_path=template_path, 
+                output_path=output_path,
+                kit_name=kit_name if kit_name else "",
+                catalog_number=catalog_number if catalog_number else "",
+                lot_number=lot_number if lot_number else ""
+            )
+            
+            if not success:
+                logger.error("Error populating Red Dot template")
+                return 1
+                
+            # Modify footer text for Red Dot template
+            logger.info("Modifying footer text for Red Dot template")
+            from modify_footer import modify_footer_text
+            modify_footer_text(output_path)
+        else:
+            # Use standard template populator for non-Red Dot documents
+            logger.info(f"Parsing ELISA datasheet: {source_path}")
+            parser = ELISADatasheetParser(source_path)
+            data = parser.extract_data()
+            
+            # Populate the template with extracted data
+            logger.info(f"Populating template: {template_path}")
+            populator = TemplatePopulator(template_path)
+            
+            # Pass optional user-provided values
+            populator.populate(
+                data, 
+                output_path,
+                kit_name=kit_name,
+                catalog_number=catalog_number,
+                lot_number=lot_number
+            )
+            
+            # Fix the sample preparation and dilution sections
+            logger.info("Fixing sample preparation and dilution sections")
+            update_template_populator(source_path, output_path, output_path)
+            
+            # Add ASSAY PRINCIPLE section
+            logger.info("Adding ASSAY PRINCIPLE section")
+            from add_assay_principle import add_assay_principle
+            add_assay_principle(output_path)
+            
+            # Fix OVERVIEW table
+            logger.info("Fixing OVERVIEW table with correct data")
+            from fix_overview_table import fix_overview_table
+            fix_overview_table(output_path)
+            
+            # Fix document structure to ensure tables are properly positioned
+            logger.info("Fixing document structure and table positions")
+            from fix_document_structure import ensure_sections_with_tables
+            ensure_sections_with_tables(output_path)
+            
+            # Modify footer text
+            logger.info("Modifying footer text")
+            from modify_footer import modify_footer_text
+            modify_footer_text(output_path)
         
         # Create a date-based version of the output for preservation
         from datetime import datetime
