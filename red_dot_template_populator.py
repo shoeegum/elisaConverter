@@ -26,23 +26,33 @@ SECTION_MAPPING = {
     "INTENDED USE": "INTENDED USE",
     "BACKGROUND": None,  # No direct mapping, we'll handle this separately
     "ASSAY PRINCIPLE": "TEST PRINCIPLE",
-    "KIT COMPONENTS": "REAGENTS AND MATERIALS PROVIDED",
-    "MATERIALS REQUIRED BUT NOT SUPPLIED": "MATERIALS REQUIRED BUT NOT SUPPLIED",
+    "PRINCIPLE OF THE ASSAY": "TEST PRINCIPLE",
+    "KIT COMPONENTS": "REAGENTS PROVIDED",
+    "REAGENTS PROVIDED": "REAGENTS PROVIDED",
+    "REAGENTS AND MATERIALS PROVIDED": "REAGENTS PROVIDED", 
+    "MATERIALS REQUIRED BUT NOT SUPPLIED": "OTHER SUPPLIES REQUIRED",
+    "MATERIALS REQUIRED BUT NOT PROVIDED": "OTHER SUPPLIES REQUIRED",
+    "STORAGE OF THE KITS": "STORAGE OF THE KITS",
+    "STORAGE": "STORAGE OF THE KITS",
     "SAMPLE COLLECTION AND STORAGE": "SAMPLE COLLECTION AND STORAGE",
     "PREPARATION BEFORE ASSAY": "REAGENT PREPARATION",
+    "REAGENT PREPARATION": "REAGENT PREPARATION",
     "SAMPLE PREPARATION": "SAMPLE PREPARATION",
     "ASSAY PROCEDURE": "ASSAY PROCEDURE",
     "DATA ANALYSIS": "CALCULATION OF RESULTS",
+    "CALCULATION OF RESULTS": "CALCULATION OF RESULTS",
     "TYPICAL DATA": "TYPICAL DATA",
     "DETECTION RANGE": "DETECTION RANGE",
     "SENSITIVITY": "SENSITIVITY",
     "SPECIFICITY": "SPECIFICITY",
     "PRECISION": "PRECISION",
+    "STABILITY": "STABILITY",
     "RECOVERY": "STABILITY",  # Map recovery to stability since no exact match
     "LINEARITY": None,  # No direct mapping
     "CALIBRATION": None,  # No direct mapping
     "ASSAY PROCEDURE SUMMARY": "ASSAY PROCEDURE SUMMARY",
     "GENERAL NOTES": "IMPORTANT NOTE",
+    "IMPORTANT NOTE": "IMPORTANT NOTE",
     "PRECAUTION": "PRECAUTION",
     "DISCLAIMER": "DISCLAIMER"
 }
@@ -287,6 +297,16 @@ The color development is stopped and the intensity of the color is measured."""
         else:
             context['materials_required_but_not_supplied'] = "Standard laboratory materials are required."
         
+        # Add sample preparation if missing
+        if not context.get('sample_preparation'):
+            context['sample_preparation'] = """1.       Innovative Research is only responsible for the kit itself, not for the samples consumed during the assay. The user should calculate the possible amount of the samples used in the whole assay. Please reserve sufficient samples in advance.
+2.      Please predict the concentration before assaying. If values for these are not within the range of the standard curve, users must determine the optimal sample dilutions for their specific experiments. Samples should be diluted by 0.01 mol/L PBS (pH 7.0-7.2).
+3.      If the samples are not indicated in the manual, a preliminary experiment to determine the validity of the kit is necessary.
+4.      Tissue or cell extraction samples prepared using a chemical lysis buffer may cause unexpected ELISA results due to the impacts from certain chemicals.
+5.      Due to the possibility of mismatching between antigens from other origin and antibodies used in our kits (e.g., antibody targets conformational epitope rather than linear epitope), some native or recombinant proteins from other manufacturers may not be recognized by our products.
+6.      Samples from cell culture supernatant may not be detected by the kit due to influence from factors such as cell viability, cell number and/or sampling time.
+7.      Fresh samples are recommended for the assay. Protein degradation and denaturation may occur in samples stored over extensive periods of time and may lead to inaccurate or incorrect results."""
+                
         # Fill in missing sections with generic content
         for section_name in SECTION_MAPPING.values():
             if section_name:  # Skip None values

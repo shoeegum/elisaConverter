@@ -21,9 +21,12 @@ def modify_footer_text(document_path):
     Modifies the footer text in the document.
     
     Changes:
-    - Replaces "All rights reserved" with "Made by Sophie Gall"
-    - Removes the copyright symbol (©)
-    - Adds "Made by Sophie Gall" if not present
+    - For standard documents:
+      - Replaces "All rights reserved" with "Made by Sophie Gall"
+      - Removes the copyright symbol (©)
+      - Adds "Made by Sophie Gall" if not present
+    - For Red Dot documents:
+      - Sets footer to "www.innov-research.com\nPh: 248.896.0145 | Fx: 248.896.0149"
     
     Args:
         document_path: Path to the document to modify
@@ -45,6 +48,19 @@ def modify_footer_text(document_path):
         sections = list(doc.sections)
         logger.info(f"Found {len(sections)} sections in the document")
         
+        # Check if this is a Red Dot document based on filename
+        file_name = document_path.name.upper()
+        is_red_dot = "RDR" in file_name or file_name.endswith('RDR.DOCX') or "RED_DOT" in file_name
+
+        # Also check document content for Red Dot indicators if not already identified
+        if not is_red_dot:
+            # Check a few paragraphs to see if it mentions Red Dot
+            for i, para in enumerate(doc.paragraphs[:20]):
+                if "reddotbiotech.com" in para.text.lower() or "red dot" in para.text.lower():
+                    is_red_dot = True
+                    logger.info(f"Detected Red Dot document from content in paragraph {i}")
+                    break
+        
         # Process each section's footer
         for i, section in enumerate(sections):
             # Skip if linked to previous (except the first section)
@@ -52,64 +68,25 @@ def modify_footer_text(document_path):
                 continue
             
             logger.info(f"Processing section {i+1} footer")
-                
-            # Modify each paragraph in the footer
-            footer_paragraphs = list(section.footer.paragraphs)
-            logger.info(f"Section {i+1} has {len(footer_paragraphs)} footer paragraphs")
             
-            for paragraph in footer_paragraphs:
-                # Replace the text "All rights reserved" with "Made by Sophie Gall"
-                if "All rights reserved" in paragraph.text:
-                    paragraph.text = paragraph.text.replace("All rights reserved", "Made by Sophie Gall")
-                    logger.info(f"Replaced 'All rights reserved' with 'Made by Sophie Gall'")
-                    made_changes = True
+            # Clear the existing footer
+            for paragraph in list(section.footer.paragraphs):
+                paragraph._element.getparent().remove(paragraph._element)
                 
-                # Remove the copyright symbol
-                if "©" in paragraph.text:
-                    paragraph.text = paragraph.text.replace("©", "")
-                    logger.info(f"Removed copyright symbol")
-                    made_changes = True
+            # Create a new paragraph for the footer
+            new_para = section.footer.add_paragraph()
+            
+            # Set the appropriate footer text based on document type
+            if is_red_dot:
+                # Use Innovative Research footer for Red Dot documents
+                new_para.text = "www.innov-research.com\nPh: 248.896.0145 | Fx: 248.896.0149"
+                logger.info(f"Set Red Dot footer text for document: {document_path.name}")
+            else:
+                # Use standard "Made by Sophie Gall" footer for non-Red Dot documents
+                new_para.text = "Made by Sophie Gall"
+                logger.info(f"Set standard footer text: 'Made by Sophie Gall'")
                 
-                # Handle when footer has runs with different formatting
-                for run in paragraph.runs:
-                    if "All rights reserved" in run.text:
-                        run.text = run.text.replace("All rights reserved", "Made by Sophie Gall")
-                        logger.info(f"Replaced 'All rights reserved' with 'Made by Sophie Gall' in run")
-                        made_changes = True
-                    
-                    if "©" in run.text:
-                        run.text = run.text.replace("©", "")
-                        logger.info(f"Removed copyright symbol from run")
-                        made_changes = True
-                        
-            # If the footer is empty or doesn't contain "Made by Sophie Gall", add it
-            has_sophie_text = False
-            for paragraph in footer_paragraphs:
-                if "Made by Sophie Gall" in paragraph.text:
-                    has_sophie_text = True
-                    break
-                    
-                # Also check runs
-                for run in paragraph.runs:
-                    if "Made by Sophie Gall" in run.text:
-                        has_sophie_text = True
-                        break
-                        
-            if not has_sophie_text:
-                # If the footer is completely empty, add a new paragraph
-                if len(footer_paragraphs) == 0 or all(not p.text.strip() for p in footer_paragraphs):
-                    logger.info("Footer is empty, adding new paragraph with 'Made by Sophie Gall'")
-                    new_para = section.footer.add_paragraph("Made by Sophie Gall")
-                    made_changes = True
-                else:
-                    # Otherwise, append to the last paragraph
-                    last_para = footer_paragraphs[-1]
-                    if last_para.text.strip():
-                        last_para.text += " - Made by Sophie Gall"
-                    else:
-                        last_para.text = "Made by Sophie Gall"
-                    logger.info(f"Appended 'Made by Sophie Gall' to last paragraph: '{last_para.text}'")
-                    made_changes = True
+            made_changes = True
         
         # Save the document
         doc.save(document_path)
