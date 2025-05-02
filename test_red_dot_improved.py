@@ -40,7 +40,31 @@ def test_red_dot_extraction():
     if 'tables' in data and data['tables']:
         logger.info(f"Extracted {len(data['tables'])} tables")
         for i, table in enumerate(data['tables']):
-            logger.info(f"Table {i}: {len(table)} rows")
+            if len(table) > 0:
+                # Print table headers to help identify what each table contains
+                if len(table[0]) > 0:
+                    header_text = " | ".join([str(cell) for cell in table[0]])
+                    logger.info(f"Table {i}: {len(table)} rows, Header: {header_text}")
+                else:
+                    logger.info(f"Table {i}: {len(table)} rows")
+                
+                # Try to identify what this table contains
+                is_reagent_table = False
+                is_assay_table = False
+                reagent_keywords = ['component', 'reagent', 'kit', 'material', 'content']
+                assay_keywords = ['assay', 'step', 'procedure', 'protocol']
+                
+                # Check table headers for keywords
+                if len(table) > 0 and len(table[0]) > 0:
+                    header_lower = " ".join([str(cell).lower() for cell in table[0]])
+                    if any(keyword in header_lower for keyword in reagent_keywords):
+                        is_reagent_table = True
+                        logger.info(f"Table {i} appears to be a REAGENTS table")
+                    elif any(keyword in header_lower for keyword in assay_keywords):
+                        is_assay_table = True
+                        logger.info(f"Table {i} appears to be an ASSAY PROCEDURE table")
+            else:
+                logger.info(f"Table {i}: empty table")
     
     return data
 

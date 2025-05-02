@@ -385,41 +385,60 @@ The color development is stopped and the intensity of the color is measured."""
             context['reagents_table'] = "No reagents found in source document."
             
         # For REAGENTS PROVIDED section - extract from Kit Components or similar sections
-        if not context.get('reagents_provided'):
+        if not context.get('reagents_provided') or (context.get('reagents_provided') and len(context.get('reagents_provided')) < 20):
             # Try to find data in alternative sections from red_dot_sections
+            reagents_section_content = ""
             if 'red_dot_sections' in data:
                 if 'REAGENTS AND MATERIALS PROVIDED' in data['red_dot_sections']:
-                    context['reagents_provided'] = data['red_dot_sections']['REAGENTS AND MATERIALS PROVIDED']
-                    logger.info("Mapped REAGENTS AND MATERIALS PROVIDED to reagents_provided")
+                    reagents_section_content = data['red_dot_sections']['REAGENTS AND MATERIALS PROVIDED']
+                    logger.info("Using REAGENTS AND MATERIALS PROVIDED for reagents_provided")
                 elif 'KIT COMPONENTS' in data['red_dot_sections']:
-                    context['reagents_provided'] = data['red_dot_sections']['KIT COMPONENTS']
-                    logger.info("Mapped KIT COMPONENTS to reagents_provided")
+                    reagents_section_content = data['red_dot_sections']['KIT COMPONENTS']
+                    logger.info("Using KIT COMPONENTS for reagents_provided")
             
-            # Also check if there are tables related to reagents
+            # Get the reagents/kit components table if available
             if 'tables' in data and data['tables']:
-                # Find the reagents/kit components tables
-                reagents_table_text = ""
+                reagents_table_found = False
                 for i, table in enumerate(data['tables']):
                     # Skip empty tables
-                    if not table or len(table) == 0:
+                    if not table or len(table) == 0 or len(table[0]) == 0:
                         continue
                     
                     # Look for tables with component-related headers
-                    if len(table) > 0 and len(table[0]) > 0:
-                        header_text = " ".join([str(cell).lower() for cell in table[0] if cell]).lower()
-                        if any(keyword in header_text for keyword in ['component', 'reagent', 'material', 'content']):
-                            logger.info(f"Found potential reagents table at index {i}")
-                            # Format table as text
-                            table_formatted = []
-                            for row in table:
-                                table_formatted.append(" | ".join([str(cell) for cell in row]))
-                            reagents_table_text += "\n".join(table_formatted) + "\n\n"
+                    header_text = " ".join([str(cell).lower() for cell in table[0] if cell]).lower()
+                    if any(keyword in header_text for keyword in ['component', 'reagent', 'kit']):
+                        logger.info(f"Found reagents table at index {i}")
+                        reagents_table_found = True
+                        
+                        # Format the table nicely
+                        formatted_table = []
+                        
+                        # First row is header
+                        header_row = " | ".join([str(cell).strip() for cell in table[0]])
+                        formatted_table.append(header_row)
+                        formatted_table.append("-" * len(header_row))  # Add separator line
+                        
+                        # Add data rows
+                        for row_idx in range(1, len(table)):
+                            row = table[row_idx]
+                            formatted_table.append(" | ".join([str(cell).strip() for cell in row]))
+                        
+                        # Combine into full table text
+                        table_text = "\n".join(formatted_table)
+                        logger.info(f"Formatted reagents table: \n{table_text[:200]}...")
+                        
+                        # Combine the section content and table
+                        if reagents_section_content:
+                            context['reagents_provided'] = f"{reagents_section_content}\n\n{table_text}"
+                        else:
+                            context['reagents_provided'] = table_text
+                        
+                        logger.info("Added reagents table to REAGENTS PROVIDED section")
+                        break
                 
-                if reagents_table_text:
-                    if context.get('reagents_provided'):
-                        context['reagents_provided'] += "\n\n" + reagents_table_text
-                    else:
-                        context['reagents_provided'] = reagents_table_text
+                # If no specific reagents table found but we have section content
+                if not reagents_table_found and reagents_section_content:
+                    context['reagents_provided'] = reagents_section_content
             
         # Handle materials required but not supplied (OTHER SUPPLIES REQUIRED)
         if not context.get('other_supplies_required'):
