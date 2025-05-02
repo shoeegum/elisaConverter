@@ -473,9 +473,43 @@ The color development is stopped and the intensity of the color is measured."""
                 
         # For ASSAY PROCEDURE SUMMARY
         if not context.get('assay_procedure_summary'):
+            # First check if it was extracted in red_dot_sections
             if 'red_dot_sections' in data and 'ASSAY PROCEDURE SUMMARY' in data['red_dot_sections']:
                 context['assay_procedure_summary'] = data['red_dot_sections']['ASSAY PROCEDURE SUMMARY']
                 logger.info("Mapped ASSAY PROCEDURE SUMMARY to assay_procedure_summary")
+            else:
+                # If not found, try to extract it directly from the document as it's an important section
+                try:
+                    from check_assay_procedure_summary import find_assay_procedure_summary
+                    assay_summary = find_assay_procedure_summary(source_path)
+                    if assay_summary:
+                        context['assay_procedure_summary'] = assay_summary
+                        logger.info("Extracted ASSAY PROCEDURE SUMMARY directly from document")
+                    else:
+                        # If still not found, try to create a concise summary from ASSAY PROCEDURE
+                        if 'red_dot_sections' in data and 'ASSAY PROCEDURE' in data['red_dot_sections']:
+                            # Extract numbered steps from ASSAY PROCEDURE
+                            assay_procedure = data['red_dot_sections']['ASSAY PROCEDURE']
+                            summary_lines = []
+                            
+                            # Find lines that start with numbers (likely steps)
+                            import re
+                            step_lines = re.findall(r'\d+\.\s+[^\n]+', assay_procedure)
+                            
+                            if step_lines:
+                                # Take up to 8 steps for the summary
+                                for i, line in enumerate(step_lines[:8]):
+                                    summary_lines.append(line.strip())
+                                
+                                context['assay_procedure_summary'] = "\n".join(summary_lines)
+                                logger.info("Created ASSAY PROCEDURE SUMMARY from ASSAY PROCEDURE steps")
+                            else:
+                                context['assay_procedure_summary'] = "Please refer to ASSAY PROCEDURE section for detailed steps."
+                        else:
+                            context['assay_procedure_summary'] = "Please refer to ASSAY PROCEDURE section for detailed steps."
+                except Exception as e:
+                    logger.error(f"Error extracting ASSAY PROCEDURE SUMMARY: {e}")
+                    context['assay_procedure_summary'] = "Please refer to ASSAY PROCEDURE section for detailed steps."
         
         # Add sample preparation if missing
         if not context.get('sample_preparation'):
