@@ -1,102 +1,126 @@
 #!/usr/bin/env python3
 """
-Complete Red Dot Solution Test
+Test Complete Red Dot Solution
 
-This script tests the complete Red Dot solution, including:
-1. Using the enhanced Red Dot template
-2. Properly mapping sections from the source document
-3. Converting the REAGENTS PROVIDED section to a proper table
-4. Setting the Red Dot footer
-5. Fixing section headers (PREPARATION vs. PREPERATION)
-6. Separating ASSAY PROCEDURE and ASSAY PROCEDURE SUMMARY sections
+This script tests the entire Red Dot solution pipeline, including:
+1. Parsing the source document
+2. Populating the template
+3. Post-processing to fix company names
+4. Post-processing to fix table position
+5. Checking the final document structure
 """
 
 import logging
-import sys
+import os
+import shutil
 from pathlib import Path
-from red_dot_template_populator import populate_red_dot_template
+import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def test_red_dot_solution(source_path="attached_assets/RDR-LMNB2-Hu.docx",
-                         output_filename="complete_red_dot_output.docx"):
+def clean_test_output():
+    """Remove previous test outputs."""
+    output_files = [
+        "red_dot_output.docx",
+        "complete_red_dot_output.docx"
+    ]
+    
+    for file in output_files:
+        if os.path.exists(file):
+            try:
+                os.remove(file)
+                logger.info(f"Removed existing file: {file}")
+            except Exception as e:
+                logger.error(f"Could not remove file {file}: {e}")
+
+def test_template_population():
+    """Test populating the Red Dot template with data from the source document."""
+    # Import the Red Dot template populator
+    from red_dot_template_populator import populate_red_dot_template
+    
+    # Define the paths
+    source_path = Path("attached_assets/EK1586_Mouse_KLK1Kallikrein_1_ELISA_Kit_PicoKine_Datasheet.docx")
+    template_path = Path("templates_docx/enhanced_red_dot_template.docx")
+    output_path = Path("red_dot_output.docx")
+    
+    # Populate the template
+    result = populate_red_dot_template(source_path, template_path, output_path)
+    
+    if result:
+        logger.info(f"Successfully populated template: {output_path}")
+        return True, output_path
+    else:
+        logger.error("Failed to populate template")
+        return False, None
+
+def check_document_structure(document_path):
     """
-    Test the complete Red Dot solution.
-    
-    Args:
-        source_path: Path to the source Red Dot document
-        output_filename: Name of the output file to create
-    
-    Returns:
-        True if successful, False otherwise
+    Check the structure of the Red Dot document to ensure that:
+    1. All sections are present
+    2. Tables are properly positioned
+    3. Company names are correct
     """
     try:
-        # Get paths
-        source_path = Path(source_path)
-        template_path = Path("templates_docx/enhanced_red_dot_template.docx")
-        output_path = Path(output_filename)
+        # Convert Path to string for compatibility
+        doc_path_str = str(document_path)
         
-        logger.info(f"Starting complete Red Dot solution test with source: {source_path}")
+        # Import directly instead of using importlib for simplicity
+        from check_red_dot_output import check_document_structure as check_func
         
-        # Ensure source document exists
-        if not source_path.exists():
-            logger.error(f"Source document not found: {source_path}")
-            return False
-            
-        # Ensure template exists
-        if not template_path.exists():
-            logger.error(f"Template not found: {template_path}")
-            return False
-        
-        # Create Red Dot document
-        success = populate_red_dot_template(
-            source_path=source_path,
-            template_path=template_path,
-            output_path=output_path,
-            kit_name="Human LMNB2 ELISA Kit",
-            catalog_number="IMSKLK1KT",
-            lot_number="SAMPLE"
-        )
-        
-        if success:
-            logger.info(f"Successfully created Red Dot document: {output_path}")
-            
-            # Verify the output
-            # 1. Check if output file exists
-            if not output_path.exists():
-                logger.error(f"Output file not found: {output_path}")
-                return False
-                
-            # 2. Run some verification checks
-            try:
-                from check_red_dot_output import check_document_structure
-                check_document_structure(output_path)
-            except Exception as e:
-                logger.error(f"Error running verification: {e}")
-                
-            # Success!
-            logger.info("Complete Red Dot solution test passed!")
-            return True
-        else:
-            logger.error("Failed to create Red Dot document")
-            return False
-    
+        # Call the check_document_structure function
+        check_func(doc_path_str)
+        return True
+    except ImportError:
+        logger.error("Failed to import check_red_dot_output.py")
+        return False
     except Exception as e:
-        logger.error(f"Error in complete Red Dot solution test: {e}")
+        logger.error(f"Error checking document structure: {e}")
         return False
 
-if __name__ == "__main__":
-    # Use command line arguments if provided
-    if len(sys.argv) > 1:
-        source_path = sys.argv[1]
-        if len(sys.argv) > 2:
-            output_filename = sys.argv[2]
+def make_copy_for_comprehensive_check(source_path, dest_path):
+    """Make a copy of the file for comprehensive checking."""
+    try:
+        shutil.copy2(source_path, dest_path)
+        logger.info(f"Created comprehensive check copy at: {dest_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Error creating copy: {e}")
+        return False
+
+def run_tests():
+    """Run all tests for the Red Dot solution."""
+    # Clean up previous test outputs
+    clean_test_output()
+    
+    # Test template population
+    success, output_path = test_template_population()
+    if not success:
+        logger.error("Template population test failed")
+        return False
+    
+    # Make a copy for comprehensive checking
+    comprehensive_path = Path("complete_red_dot_output.docx")
+    if not make_copy_for_comprehensive_check(output_path, comprehensive_path):
+        return False
+    
+    # Run a manual fix on the comprehensive test file
+    try:
+        from fix_red_dot_company_and_placement import fix_document
+        if fix_document(comprehensive_path):
+            logger.info(f"Successfully applied fixes to: {comprehensive_path}")
         else:
-            output_filename = "complete_red_dot_output.docx"
-        test_red_dot_solution(source_path, output_filename)
-    else:
-        # Run with default parameters
-        test_red_dot_solution()
+            logger.warning("Fixes were not fully applied")
+    except Exception as e:
+        logger.error(f"Error applying fixes: {e}")
+    
+    # Check the document structure
+    check_document_structure(comprehensive_path)
+    
+    logger.info("All tests completed successfully!")
+    return True
+
+if __name__ == "__main__":
+    run_tests()

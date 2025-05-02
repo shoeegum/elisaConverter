@@ -3,10 +3,9 @@
 Check the structure of the Red Dot output document.
 """
 
-import sys
 import logging
-from pathlib import Path
 from docx import Document
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -21,91 +20,145 @@ def check_document_structure(document_path="red_dot_output.docx"):
     Args:
         document_path: Path to the document to check
     """
-    doc = Document(document_path)
-    
-    print(f"\n=== Document Structure for {document_path} ===\n")
-    
-    # Count paragraphs, tables, sections
-    total_paragraphs = len(doc.paragraphs)
-    total_tables = len(doc.tables)
-    
-    print(f"Total paragraphs: {total_paragraphs}")
-    print(f"Total tables: {total_tables}")
-    
-    # Print an outline structure
-    print("\n--- Document Outline ---\n")
-    
-    element_idx = 0
-    table_idx = 0
-    
-    for element in doc.element.body:
-        if element.tag.endswith('p'):  # Paragraph
-            para = doc.paragraphs[element_idx]
-            text = para.text.strip()
+    try:
+        # Convert to Path if string
+        if isinstance(document_path, str):
+            document_path = Path(document_path)
             
-            # Skip empty paragraphs in the outline
-            if text:
-                # Determine paragraph style/level for display
-                if para.style.name.startswith('Heading 1'):
-                    print(f"# {text}")
-                elif para.style.name.startswith('Heading 2'):
-                    print(f"## {text}")
-                elif para.style.name.startswith('Heading 3'):
-                    print(f"### {text}")
-                elif para.style.name.startswith('Title'):
-                    print(f"TITLE: {text}")
-                elif len(text) > 100:
-                    print(f"Para: {text[:100]}...")
-                else:
-                    print(f"Para: {text}")
-                    
-            element_idx += 1
-            
-        elif element.tag.endswith('tbl'):  # Table
-            if table_idx < len(doc.tables):
-                table = doc.tables[table_idx]
-                rows = len(table.rows)
-                cols = len(table.rows[0].cells) if rows > 0 else 0
-                
-                # Extract table header or first row to identify it
-                header_text = ""
-                if rows > 0:
-                    header_text = " | ".join([cell.text.strip() for cell in table.rows[0].cells])
-                
-                if len(header_text) > 80:
-                    header_text = header_text[:77] + "..."
-                    
-                print(f"TABLE {table_idx}: {rows}×{cols} - {header_text}")
-                table_idx += 1
-    
-    print("\n--- End of Document Outline ---")
-
-    # Print additional information about the Red Dot document
-    print("\n--- Red Dot Document Details ---\n")
-    
-    # Check for Red Dot specific sections
-    red_dot_sections = [
-        "INTENDED USE", "TEST PRINCIPLE", "REAGENT PREPARATION", 
-        "SAMPLE PREPARATION", "ASSAY PROCEDURE", "CALCULATION OF RESULTS"
-    ]
-    
-    for section in red_dot_sections:
-        found = False
-        for para in doc.paragraphs:
-            if section in para.text.upper():
-                found = True
-                print(f"Found Red Dot section: {section}")
-                break
+        # Load the document
+        doc = Document(document_path)
         
-        if not found:
-            print(f"Missing Red Dot section: {section}")
-    
-    print("\n--- End of Red Dot Document Details ---")
-
+        logger.info(f"=== Document Structure of {document_path} ===")
+        
+        # Check document title
+        if len(doc.paragraphs) > 0:
+            title = doc.paragraphs[0].text
+            logger.info(f"Document Title: {title}")
+        
+        # Check for correct company name
+        incorrect_name_count = 0
+        for para in doc.paragraphs:
+            if "Reddot Biotech" in para.text:
+                incorrect_name_count += 1
+                logger.warning(f"Found incorrect company name in paragraph: '{para.text[:50]}...'")
+                
+        if incorrect_name_count > 0:
+            logger.warning(f"Found {incorrect_name_count} instances of incorrect company name 'Reddot Biotech'")
+        else:
+            logger.info("Company name appears to be correct (no 'Reddot Biotech' instances found)")
+            
+        # Find all section headings
+        sections = []
+        for i, para in enumerate(doc.paragraphs):
+            # If paragraph has a style that starts with 'Heading' or contains uppercase text that could be a heading
+            if (para.style.name.startswith('Heading') or 
+                (para.text.isupper() and len(para.text.strip()) > 0 and len(para.text.strip()) < 50)):
+                sections.append((i, para.text))
+                logger.info(f"Section at P{i}: {para.text}")
+                
+                # Check next paragraph for placeholders
+                if i + 1 < len(doc.paragraphs):
+                    next_para = doc.paragraphs[i + 1]
+                    if "{{" in next_para.text and "}}" in next_para.text:
+                        logger.warning(f"  - Found unprocessed placeholder: {next_para.text}")
+                    else:
+                        # Show a snippet of the next paragraph
+                        content = next_para.text[:50] + "..." if len(next_para.text) > 50 else next_para.text
+                        if content.strip():
+                            logger.info(f"  - Content starts with: {content}")
+                            
+        # Check tables
+        logger.info("\n=== Tables ===")
+        for i, table in enumerate(doc.tables):
+            rows = len(table.rows)
+            cols = len(table.columns) if rows > 0 else 0
+            
+            # Get table title (from preceding paragraph if possible)
+            table_title = "Unknown"
+            table_xml = table._element
+            prev_paragraph = table_xml.getprevious()
+            
+            # Try to extract the closest preceding paragraph
+            if prev_paragraph is not None:
+                try:
+                    import re
+                    from docx.oxml.text.paragraph import CT_P
+                    if isinstance(prev_paragraph, CT_P):
+                        text = "".join([t.text for t in prev_paragraph.xpath(".//w:t")])
+                        table_title = text
+                except Exception:
+                    # If we can't extract it, just use a generic title
+                    pass
+            
+            logger.info(f"Table {i}: {rows}x{cols} (Title: {table_title})")
+            
+            # Check if this appears to be the reagents table
+            reagents_table = False
+            if rows > 0:
+                header_cells = [cell.text.strip() for cell in table.rows[0].cells]
+                if 'Reagents' in header_cells or 'Component' in header_cells:
+                    reagents_table = True
+                    
+            if reagents_table:
+                # Check where this table is positioned
+                table_index = i
+                correct_position = False
+                
+                # Try to determine if this table is in the right place (after REAGENTS PROVIDED section)
+                for sec_idx, (para_idx, section_title) in enumerate(sections):
+                    if "REAGENTS PROVIDED" in section_title:
+                        # Find the table closest to this section
+                        # This is a bit of a heuristic since we can't directly know which table
+                        # is associated with which paragraph in python-docx
+                        if i == 0 or (i > 0 and para_idx > sections[sec_idx-1][0]):
+                            correct_position = True
+                            break
+                            
+                logger.info(f"Reagents Table Found at index {table_index}")
+                if correct_position:
+                    logger.info("  - Table appears to be in the correct position")
+                else:
+                    logger.warning("  - Table may not be in the correct position")
+                    
+                # Show some table contents
+                if rows > 0:
+                    for j, cell in enumerate(table.rows[0].cells):
+                        logger.info(f"  - Column {j}: {cell.text}")
+                        
+                    # Show a sample of rows
+                    max_sample = min(5, rows)
+                    for j in range(1, max_sample):
+                        try:
+                            row_text = " | ".join([cell.text for cell in table.rows[j].cells])
+                            logger.info(f"  - Row {j}: {row_text[:50]}..." if len(row_text) > 50 else f"  - Row {j}: {row_text}")
+                        except:
+                            pass
+                        
+        # Check footer
+        logger.info("\n=== Footer ===")
+        for i, section in enumerate(doc.sections):
+            footer = section.footer
+            for para in footer.paragraphs:
+                logger.info(f"Footer text in section {i+1}: '{para.text}'")
+                if "innov-research.com" in para.text.lower():
+                    logger.info("Footer appears to be correct (contains 'innov-research.com')")
+                else:
+                    logger.warning("Footer does not contain expected text 'innov-research.com'")
+                    
+        logger.info("\n=== Check Complete ===")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error checking document structure: {e}")
+        return False
+        
 if __name__ == "__main__":
-    # Use command-line argument if provided, otherwise use default
+    import sys
+    
+    # Use command line argument or default
     if len(sys.argv) > 1:
         document_path = sys.argv[1]
-        check_document_structure(document_path)
     else:
-        check_document_structure()
+        document_path = "red_dot_output.docx"
+    
+    check_document_structure(document_path)

@@ -650,6 +650,16 @@ This material is sold for in-vitro use only in manufacturing and research. This 
                     logger.warning("Could not convert REAGENTS PROVIDED to table, using text format")
             except Exception as table_error:
                 logger.error(f"Error converting reagents to table: {table_error}")
+                
+            # Apply fix for company names and table placement
+            try:
+                from fix_red_dot_company_and_placement import process_output_document
+                if process_output_document(output_path):
+                    logger.info(f"Successfully fixed company names and table placement in: {output_path}")
+                else:
+                    logger.warning("Could not fix company names or table placement, document may need manual adjustment")
+            except Exception as fix_error:
+                logger.error(f"Error applying fixes: {fix_error}")
         except Exception as e:
             logger.error(f"Template rendering error: {str(e)}")
             
