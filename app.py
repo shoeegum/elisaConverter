@@ -316,9 +316,9 @@ def upload_file():
             ensure_sections_with_tables(output_path)
         else:
             logger.info("Skipping standard post-processing for Red Dot document")
-            # For Red Dot documents, only modify the footer text
-            from modify_footer import modify_footer_text
-            modify_footer_text(output_path)
+            # For Red Dot documents, use the specialized footer function
+            from modify_red_dot_footer import modify_red_dot_footer
+            modify_red_dot_footer(output_path)
         
         # Redirect to download page
         return redirect(url_for('download_file', filename=output_filename))
