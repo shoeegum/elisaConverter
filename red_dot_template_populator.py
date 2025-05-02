@@ -640,6 +640,16 @@ This material is sold for in-vitro use only in manufacturing and research. This 
                 logger.info(f"Applied Red Dot footer to document: {output_path}")
             except Exception as footer_error:
                 logger.error(f"Error applying Red Dot footer: {footer_error}")
+                
+            # Apply post-processing to convert text tables to proper Word tables
+            try:
+                from fix_reagents_table_post_processing import convert_text_to_table
+                if convert_text_to_table(output_path):
+                    logger.info(f"Successfully converted REAGENTS PROVIDED to proper table in: {output_path}")
+                else:
+                    logger.warning("Could not convert REAGENTS PROVIDED to table, using text format")
+            except Exception as table_error:
+                logger.error(f"Error converting reagents to table: {table_error}")
         except Exception as e:
             logger.error(f"Template rendering error: {str(e)}")
             
