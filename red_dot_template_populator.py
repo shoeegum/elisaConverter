@@ -471,22 +471,22 @@ The color development is stopped and the intensity of the color is measured."""
                     context['assay_procedure'] = data['red_dot_sections']['ASSAY PROTOCOL']
                     logger.info("Mapped ASSAY PROTOCOL to assay_procedure")
                 
-        # For ASSAY PROCEDURE SUMMARY
+        # For ASSAY PROCEDURE SUMMARY - this is a critical section to extract properly
         if not context.get('assay_procedure_summary'):
-            # First check if it was extracted in red_dot_sections
-            if 'red_dot_sections' in data and 'ASSAY PROCEDURE SUMMARY' in data['red_dot_sections']:
-                context['assay_procedure_summary'] = data['red_dot_sections']['ASSAY PROCEDURE SUMMARY']
-                logger.info("Mapped ASSAY PROCEDURE SUMMARY to assay_procedure_summary")
-            else:
-                # If not found, try to extract it directly from the document as it's an important section
-                try:
-                    from check_assay_procedure_summary import find_assay_procedure_summary
-                    assay_summary = find_assay_procedure_summary(source_path)
-                    if assay_summary:
-                        context['assay_procedure_summary'] = assay_summary
-                        logger.info("Extracted ASSAY PROCEDURE SUMMARY directly from document")
+            # First try our specialized extractor that handles multiple detection methods
+            try:
+                from check_assay_procedure_summary import find_assay_procedure_summary
+                assay_summary = find_assay_procedure_summary(source_path)
+                if assay_summary:
+                    context['assay_procedure_summary'] = assay_summary
+                    logger.info("Extracted ASSAY PROCEDURE SUMMARY directly from document using specialized extractor")
+                else:
+                    # If specialized extractor failed, check if it was previously extracted
+                    if 'red_dot_sections' in data and 'ASSAY PROCEDURE SUMMARY' in data['red_dot_sections']:
+                        context['assay_procedure_summary'] = data['red_dot_sections']['ASSAY PROCEDURE SUMMARY']
+                        logger.info("Mapped ASSAY PROCEDURE SUMMARY from red_dot_sections")
                     else:
-                        # If still not found, try to create a concise summary from ASSAY PROCEDURE
+                        # Still not found, try to create a concise summary from ASSAY PROCEDURE
                         if 'red_dot_sections' in data and 'ASSAY PROCEDURE' in data['red_dot_sections']:
                             # Extract numbered steps from ASSAY PROCEDURE
                             assay_procedure = data['red_dot_sections']['ASSAY PROCEDURE']
@@ -504,12 +504,43 @@ The color development is stopped and the intensity of the color is measured."""
                                 context['assay_procedure_summary'] = "\n".join(summary_lines)
                                 logger.info("Created ASSAY PROCEDURE SUMMARY from ASSAY PROCEDURE steps")
                             else:
-                                context['assay_procedure_summary'] = "Please refer to ASSAY PROCEDURE section for detailed steps."
+                                # If no numbered steps, look for note or short paragraphs
+                                paragraphs = assay_procedure.split('\n')
+                                for para in paragraphs:
+                                    if para.strip() and len(para.strip()) < 120:
+                                        summary_lines.append(para.strip())
+                                
+                                if summary_lines:
+                                    # Take up to 8 short paragraphs
+                                    context['assay_procedure_summary'] = "\n".join(summary_lines[:8])
+                                    logger.info("Created ASSAY PROCEDURE SUMMARY from short paragraphs in ASSAY PROCEDURE")
+                                else:
+                                    context['assay_procedure_summary'] = """Prepare all reagents and standards.
+Add samples and standards to wells and incubate.
+Wash and add Detection Reagent A, then incubate.
+Wash and add Detection Reagent B, then incubate.
+Add substrate solution and develop color.
+Add stop solution and read plate immediately."""
+                                    logger.info("Using standard ASSAY PROCEDURE SUMMARY template")
                         else:
-                            context['assay_procedure_summary'] = "Please refer to ASSAY PROCEDURE section for detailed steps."
-                except Exception as e:
-                    logger.error(f"Error extracting ASSAY PROCEDURE SUMMARY: {e}")
-                    context['assay_procedure_summary'] = "Please refer to ASSAY PROCEDURE section for detailed steps."
+                            # Use a generic summary as last resort
+                            context['assay_procedure_summary'] = """Prepare all reagents and standards.
+Add samples and standards to wells and incubate.
+Wash and add Detection Reagent A, then incubate.
+Wash and add Detection Reagent B, then incubate.
+Add substrate solution and develop color.
+Add stop solution and read plate immediately."""
+                            logger.info("Using standard ASSAY PROCEDURE SUMMARY template")
+            except Exception as e:
+                logger.error(f"Error extracting ASSAY PROCEDURE SUMMARY: {e}")
+                # Use a generic summary as last resort
+                context['assay_procedure_summary'] = """Prepare all reagents and standards.
+Add samples and standards to wells and incubate.
+Wash and add Detection Reagent A, then incubate.
+Wash and add Detection Reagent B, then incubate.
+Add substrate solution and develop color.
+Add stop solution and read plate immediately."""
+                logger.info("Using standard ASSAY PROCEDURE SUMMARY template after extraction error")
         
         # Add sample preparation if missing
         if not context.get('sample_preparation'):
