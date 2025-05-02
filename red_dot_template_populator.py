@@ -411,13 +411,27 @@ The color development is stopped and the intensity of the color is measured."""
                         logger.info(f"Found reagents table at index {i}")
                         reagents_table_found = True
                         
-                        # Format the table nicely
+                        # Create a proper HTML table for Jinja2 template rendering
+                        context['reagents_table_data'] = []
+                        
+                        # Store header row
+                        header_row = [str(cell).strip() for cell in table[0]]
+                        context['reagents_table_headers'] = header_row
+                        
+                        # Store data rows
+                        for row_idx in range(1, len(table)):
+                            row_data = [str(cell).strip() for cell in table[row_idx]]
+                            context['reagents_table_data'].append(row_data)
+                        
+                        logger.info(f"Extracted reagents table with {len(context['reagents_table_data'])} data rows")
+                        
+                        # Also provide text format for compatibility with templates that don't use tables
                         formatted_table = []
                         
                         # First row is header
-                        header_row = " | ".join([str(cell).strip() for cell in table[0]])
-                        formatted_table.append(header_row)
-                        formatted_table.append("-" * len(header_row))  # Add separator line
+                        header_row_text = " | ".join([str(cell).strip() for cell in table[0]])
+                        formatted_table.append(header_row_text)
+                        formatted_table.append("-" * len(header_row_text))  # Add separator line
                         
                         # Add data rows
                         for row_idx in range(1, len(table)):
@@ -466,17 +480,32 @@ The color development is stopped and the intensity of the color is measured."""
                 else:
                     context['other_supplies_required'] = "Standard laboratory materials are required."
         
-        # For ASSAY PROCEDURE section
+        # For ASSAY PROCEDURE section - this must be separate from ASSAY PROCEDURE SUMMARY
         if not context.get('assay_procedure'):
-            if 'red_dot_sections' in data:
-                if 'ASSAY PROCEDURE' in data['red_dot_sections']:
-                    context['assay_procedure'] = data['red_dot_sections']['ASSAY PROCEDURE']
-                    logger.info("Mapped ASSAY PROCEDURE to assay_procedure")
-                elif 'ASSAY PROTOCOL' in data['red_dot_sections']:
-                    context['assay_procedure'] = data['red_dot_sections']['ASSAY PROTOCOL']
-                    logger.info("Mapped ASSAY PROTOCOL to assay_procedure")
+            # First check for ASSAY PROCEDURE section explicitly
+            if 'red_dot_sections' in data and 'ASSAY PROCEDURE' in data['red_dot_sections']:
+                context['assay_procedure'] = data['red_dot_sections']['ASSAY PROCEDURE']
+                logger.info("Mapped ASSAY PROCEDURE to assay_procedure")
+            # Fall back to ASSAY PROTOCOL if needed
+            elif 'red_dot_sections' in data and 'ASSAY PROTOCOL' in data['red_dot_sections']:
+                context['assay_procedure'] = data['red_dot_sections']['ASSAY PROTOCOL']
+                logger.info("Mapped ASSAY PROTOCOL to assay_procedure")
+            # If still not found, use generic content
+            else:
+                context['assay_procedure'] = """1. Prepare all reagents and standards as directed.
+2. Set a Blank well without any solution.
+3. Add samples and standards into wells as required.
+4. Add prepared Detection Reagent A, incubate.
+5. Aspirate, wash plates with buffer.
+6. Add prepared Detection Reagent B, incubate.
+7. Aspirate and wash again.
+8. Add Substrate Solution. Add Stop Solution and read absorbance.
+
+For detailed protocol, refer to the product manual."""
+                logger.info("Using generic ASSAY PROCEDURE content (not found in source)")
                 
         # For ASSAY PROCEDURE SUMMARY - this is a critical section to extract properly
+        # Make sure it's different from the full ASSAY PROCEDURE section
         if not context.get('assay_procedure_summary'):
             # First try our specialized extractor that handles multiple detection methods
             try:
@@ -546,6 +575,21 @@ Wash and add Detection Reagent B, then incubate.
 Add substrate solution and develop color.
 Add stop solution and read plate immediately."""
                 logger.info("Using standard ASSAY PROCEDURE SUMMARY template after extraction error")
+                
+        # Make sure ASSAY PROCEDURE and ASSAY PROCEDURE SUMMARY are different
+        if context.get('assay_procedure') == context.get('assay_procedure_summary'):
+            logger.warning("ASSAY PROCEDURE and ASSAY PROCEDURE SUMMARY are identical - creating separate versions")
+            if context.get('assay_procedure') and len(context.get('assay_procedure')) > 200:
+                # If procedure is long, create a shorter summary
+                import re
+                # Extract numbered steps
+                step_lines = re.findall(r'\d+\.\s+[^\n]+', context.get('assay_procedure'))
+                
+                if step_lines:
+                    # Create a summary from the steps
+                    summary_lines = [line.strip() for line in step_lines[:8]]
+                    context['assay_procedure_summary'] = "\n".join(summary_lines)
+                    logger.info("Created distinct ASSAY PROCEDURE SUMMARY from ASSAY PROCEDURE steps")
         
         # Add sample preparation if missing
         if not context.get('sample_preparation'):
