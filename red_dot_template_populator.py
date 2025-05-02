@@ -196,18 +196,32 @@ def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
                 section_paragraphs = doc.paragraphs[start_idx:end_idx+1]
                 section_text = []
                 
+                # Track list numbers for each list level
+                list_counters = {}
+                
                 # Process each paragraph to maintain proper formatting
                 for para in section_paragraphs:
                     # Check if it's a list item (bullet or number)
                     is_list_item = False
                     if hasattr(para, '_p') and para._p.pPr is not None and para._p.pPr.numPr is not None:
                         is_list_item = True
-                        if para.style.name.startswith('List'):
+                        # Try to determine list level and type
+                        list_level = 0
+                        if para._p.pPr.numPr.ilvl is not None:
+                            list_level = int(para._p.pPr.numPr.ilvl.val)
+                        
+                        # Get list type if possible (bullet or number)
+                        if para.style and para.style.name and 'bullet' in para.style.name.lower():
                             # Handle bullet points
                             section_text.append(f"• {para.text}")
                         else:
-                            # Handle numbered list (approximate, as we can't get the exact number easily)
-                            section_text.append(f"1. {para.text}")
+                            # Handle numbered list with proper sequence
+                            if list_level not in list_counters:
+                                list_counters[list_level] = 1
+                            else:
+                                list_counters[list_level] += 1
+                                
+                            section_text.append(f"{list_counters[list_level]}. {para.text}")
                     else:
                         # Regular paragraph
                         if para.text.strip().lower().startswith("note:"):
@@ -370,13 +384,79 @@ The color development is stopped and the intensity of the color is measured."""
         else:
             context['reagents_table'] = "No reagents found in source document."
             
-        # Handle materials required but not supplied
-        materials = data.get('materials_required', [])
-        if materials:
-            materials_text = "\\n".join([f"• {material}" for material in materials])
-            context['materials_required_but_not_supplied'] = materials_text
-        else:
-            context['materials_required_but_not_supplied'] = "Standard laboratory materials are required."
+        # For REAGENTS PROVIDED section - extract from Kit Components or similar sections
+        if not context.get('reagents_provided'):
+            # Try to find data in alternative sections from red_dot_sections
+            if 'red_dot_sections' in data:
+                if 'REAGENTS AND MATERIALS PROVIDED' in data['red_dot_sections']:
+                    context['reagents_provided'] = data['red_dot_sections']['REAGENTS AND MATERIALS PROVIDED']
+                    logger.info("Mapped REAGENTS AND MATERIALS PROVIDED to reagents_provided")
+                elif 'KIT COMPONENTS' in data['red_dot_sections']:
+                    context['reagents_provided'] = data['red_dot_sections']['KIT COMPONENTS']
+                    logger.info("Mapped KIT COMPONENTS to reagents_provided")
+            
+            # Also check if there are tables related to reagents
+            if 'tables' in data and data['tables']:
+                # Find the reagents/kit components tables
+                reagents_table_text = ""
+                for i, table in enumerate(data['tables']):
+                    # Skip empty tables
+                    if not table or len(table) == 0:
+                        continue
+                    
+                    # Look for tables with component-related headers
+                    if len(table) > 0 and len(table[0]) > 0:
+                        header_text = " ".join([str(cell).lower() for cell in table[0] if cell]).lower()
+                        if any(keyword in header_text for keyword in ['component', 'reagent', 'material', 'content']):
+                            logger.info(f"Found potential reagents table at index {i}")
+                            # Format table as text
+                            table_formatted = []
+                            for row in table:
+                                table_formatted.append(" | ".join([str(cell) for cell in row]))
+                            reagents_table_text += "\n".join(table_formatted) + "\n\n"
+                
+                if reagents_table_text:
+                    if context.get('reagents_provided'):
+                        context['reagents_provided'] += "\n\n" + reagents_table_text
+                    else:
+                        context['reagents_provided'] = reagents_table_text
+            
+        # Handle materials required but not supplied (OTHER SUPPLIES REQUIRED)
+        if not context.get('other_supplies_required'):
+            # Try to find in red_dot_sections first
+            if 'red_dot_sections' in data:
+                if 'MATERIALS REQUIRED BUT NOT SUPPLIED' in data['red_dot_sections']:
+                    context['other_supplies_required'] = data['red_dot_sections']['MATERIALS REQUIRED BUT NOT SUPPLIED']
+                    logger.info("Mapped MATERIALS REQUIRED BUT NOT SUPPLIED to other_supplies_required")
+                elif 'OTHER SUPPLIES REQUIRED' in data['red_dot_sections']:
+                    context['other_supplies_required'] = data['red_dot_sections']['OTHER SUPPLIES REQUIRED']
+                    logger.info("Mapped OTHER SUPPLIES REQUIRED to other_supplies_required")
+                    
+            # If not found in sections, format materials list
+            if not context.get('other_supplies_required'):
+                materials = data.get('materials_required', [])
+                if materials:
+                    materials_text = "\n".join([f"{i+1}. {material}" for i, material in enumerate(materials)])
+                    context['other_supplies_required'] = materials_text
+                    logger.info("Created OTHER SUPPLIES REQUIRED from materials_required list")
+                else:
+                    context['other_supplies_required'] = "Standard laboratory materials are required."
+        
+        # For ASSAY PROCEDURE section
+        if not context.get('assay_procedure'):
+            if 'red_dot_sections' in data:
+                if 'ASSAY PROCEDURE' in data['red_dot_sections']:
+                    context['assay_procedure'] = data['red_dot_sections']['ASSAY PROCEDURE']
+                    logger.info("Mapped ASSAY PROCEDURE to assay_procedure")
+                elif 'ASSAY PROTOCOL' in data['red_dot_sections']:
+                    context['assay_procedure'] = data['red_dot_sections']['ASSAY PROTOCOL']
+                    logger.info("Mapped ASSAY PROTOCOL to assay_procedure")
+                
+        # For ASSAY PROCEDURE SUMMARY
+        if not context.get('assay_procedure_summary'):
+            if 'red_dot_sections' in data and 'ASSAY PROCEDURE SUMMARY' in data['red_dot_sections']:
+                context['assay_procedure_summary'] = data['red_dot_sections']['ASSAY PROCEDURE SUMMARY']
+                logger.info("Mapped ASSAY PROCEDURE SUMMARY to assay_procedure_summary")
         
         # Add sample preparation if missing
         if not context.get('sample_preparation'):
@@ -400,10 +480,10 @@ The color development is stopped and the intensity of the color is measured."""
             context['storage_of_the_kits'] = """Store at 2-8°C for unopened kit.
 All reagents should be stored according to individual storage requirements noted on the product label."""
                 
-        # Add disclaimer if missing
-        if not context.get('disclaimer'):
-            context['disclaimer'] = """THE PRODUCTS ARE FOR RESEARCH USE ONLY AND NOT FOR DIAGNOSTIC OR THERAPEUTIC USE.
-The information provided here is based on our best knowledge. However, no warranty, expressed or implied, is made due to the fact that many factors which may influence the performance of this product are beyond our control."""
+        # Add disclaimer if missing or always override with required text
+        context['disclaimer'] = """This information is believed to be correct but does not claim to be all-inclusive and shall be used only as a guide. The supplier of this kit shall not be held liable for any damage resulting from handling of or contact with the above product.
+
+This material is sold for in-vitro use only in manufacturing and research. This material is not suitable for human use. It is the responsibility of the user to undertake sufficient verification and testing to determine the suitability of each product's application. The statements herein are offered for informational purposes only and are intended to be used solely for your consideration, investigation and verification."""
         
         # Load template and populate
         logger.info(f"Populating template: {template_path}")
@@ -419,6 +499,14 @@ The information provided here is based on our best knowledge. However, no warran
             # Save populated template
             doc.save(output_path)
             logger.info(f"Successfully populated template: {output_path}")
+            
+            # Apply the Red Dot footer
+            try:
+                from modify_red_dot_footer import modify_red_dot_footer
+                modify_red_dot_footer(output_path)
+                logger.info(f"Applied Red Dot footer to document: {output_path}")
+            except Exception as footer_error:
+                logger.error(f"Error applying Red Dot footer: {footer_error}")
         except Exception as e:
             logger.error(f"Template rendering error: {str(e)}")
             
