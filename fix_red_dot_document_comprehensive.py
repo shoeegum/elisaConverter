@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 
 def update_footer(doc):
     """
-    Update the footer to 'Innovative Research, Inc.' in Calibri 26pt, right-aligned.
+    Update the footer with:
+    - 'Innovative Research, Inc.' in Calibri 26pt, right-aligned
+    - Contact information on the left side
     
     Args:
         doc: The document object to modify
@@ -44,19 +46,35 @@ def update_footer(doc):
         # Clear the existing footer
         for paragraph in list(section.footer.paragraphs):
             paragraph._element.getparent().remove(paragraph._element)
+        
+        # Create a two-column table in the footer
+        width = section.page_width - section.left_margin - section.right_margin
+        footer_table = section.footer.add_table(rows=1, cols=2, width=width)
+        
+        # Configure table properties
+        footer_table.autofit = False
             
-        # Create a new paragraph for the footer
-        new_para = section.footer.add_paragraph()
+        # Remove cell borders
+        for row in footer_table.rows:
+            for cell in row.cells:
+                for border in ['top', 'left', 'bottom', 'right']:
+                    setattr(cell._element.tcPr.tcBorders, border, None)
         
-        # Set paragraph alignment to right
-        new_para.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+        # Left cell - Contact information
+        left_para = footer_table.cell(0, 0).paragraphs[0]
+        left_para.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+        contact_run = left_para.add_run("www.innov-research.com\nPh: 248.896.0145 | Fx: 248.896.0149")
+        contact_run.font.name = "Calibri"
+        contact_run.font.size = Pt(11)
         
-        # Add text with Calibri 26pt font
-        run = new_para.add_run("Innovative Research, Inc.")
-        run.font.name = "Calibri"
-        run.font.size = Pt(26)
+        # Right cell - Company name
+        right_para = footer_table.cell(0, 1).paragraphs[0]
+        right_para.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+        company_run = right_para.add_run("Innovative Research, Inc.")
+        company_run.font.name = "Calibri"
+        company_run.font.size = Pt(26)
         
-        logger.info(f"Set footer text to 'Innovative Research, Inc.' (Calibri 26pt, right-aligned)")
+        logger.info(f"Set complete footer with contact info and company name")
     
     return True
 
