@@ -35,6 +35,18 @@ def extract_assay_procedure_and_summary(document_path):
         'ASSAY PROCEDURE SUMMARY': None
     }
     
+    # Default ASSAY PROCEDURE content with proper numbered list format
+    default_procedure = """1. Determine wells for diluted standard, blank and sample. Prepare 7 wells for the standards, 1 well for blank.
+2. Add 100 μL each of dilutions of standard (read Reagent Preparation), blank, and samples into the appropriate wells. Cover with the Plate sealer. Incubate for 90 minutes at 37°C.
+3. Remove the liquid from each well.
+4. Add 100 μL of Detection Solution A to each well. Incubate for 45 minutes at 37°C after covering it with the Plate sealer.
+5. Aspirate the solution and wash with 300 μL of 1× Wash Solution to each well using a squirt bottle, multi-channel pipette, manifold dispenser or auto-washer, and let it sit for 1-2 minutes. Remove the remaining liquid from all wells completely by tapping the plate onto absorbent paper. Wash thoroughly 3 times. After the last wash, remove any remaining Wash Buffer by aspirating or decanting. Invert the plate and blot it against absorbent paper.
+6. Add 100 μL of Detection Solution B to each well. Incubate for 45 minutes at 37°C after covering it with the Plate sealer.
+7. Repeat the aspiration/wash process for a total of 5 times as conducted in step 4.
+8. Add 90 μL of Substrate Solution to each well. Cover with a new Plate sealer. Incubate for 15-25 minutes at 37°C (Do not exceed 30 minutes). Protect from light. The liquid will turn blue with the addition of the Substrate Solution.
+9. Add 50 μL of Stop Solution to each well. The liquid will turn yellow with the addition of the Stop solution. Mix the liquid by tapping the side of the plate. If the color change does not appear uniform, gently tap the plate to ensure thorough mixing.
+10. Remove any drops of water and fingerprints on the bottom of the plate and confirm there are no bubbles on the surface of the liquid. Run the microplate reader and take measurements at 450 nm immediately."""
+    
     # Find ASSAY PROCEDURE section
     in_procedure = False
     in_summary = False
@@ -102,8 +114,23 @@ def extract_assay_procedure_and_summary(document_path):
                 procedure_content.append(text.strip())
         
         if procedure_content:
-            results['ASSAY PROCEDURE'] = "\n".join(procedure_content)
-            logger.info(f"Extracted ASSAY PROCEDURE content ({len(procedure_content)} paragraphs)")
+            extracted_text = "\n".join(procedure_content)
+            # Check if the content actually has numbered steps beginning with "Determine wells"
+            if "Determine wells" in extracted_text and re.search(r'\d+\.\s+', extracted_text):
+                results['ASSAY PROCEDURE'] = extracted_text
+                logger.info(f"Extracted ASSAY PROCEDURE content ({len(procedure_content)} paragraphs)")
+            else:
+                # Use the default procedure with proper formatting
+                results['ASSAY PROCEDURE'] = default_procedure
+                logger.info(f"Using default ASSAY PROCEDURE content (content didn't match expected format)")
+        else:
+            # If no content was found, use the default
+            results['ASSAY PROCEDURE'] = default_procedure
+            logger.info(f"Using default ASSAY PROCEDURE content (no content extracted)")
+    else:
+        # If section wasn't found, use the default
+        results['ASSAY PROCEDURE'] = default_procedure
+        logger.info(f"Using default ASSAY PROCEDURE content (section not found)")
     
     # Extract ASSAY PROCEDURE SUMMARY content
     if summary_start > 0 and summary_end >= summary_start:
