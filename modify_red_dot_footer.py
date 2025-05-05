@@ -3,14 +3,15 @@
 Modify Footer Text for Red Dot Documents
 
 This script changes the footer text to the specified Red Dot format:
-www.innov-research.com
-Ph: 248.896.0145 | Fx: 248.896.0149
+'Innovative Research, Inc.' in Calibri 26pt, right-aligned
 """
 
 import logging
 from pathlib import Path
 import shutil
 from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -22,7 +23,9 @@ def modify_red_dot_footer(document_path):
     Modifies the footer text in the Red Dot document.
     
     Changes:
-    - Sets the footer to "www.innov-research.com\nPh: 248.896.0145 | Fx: 248.896.0149"
+    - Sets the footer text to "Innovative Research, Inc."
+    - Uses Calibri 26pt font
+    - Right-aligns the text
     
     Args:
         document_path: Path to the document to modify
@@ -56,9 +59,15 @@ def modify_red_dot_footer(document_path):
             # Create a new paragraph for the footer
             new_para = section.footer.add_paragraph()
             
-            # Set the Red Dot specific footer text
-            new_para.text = "www.innov-research.com\nPh: 248.896.0145 | Fx: 248.896.0149"
-            logger.info(f"Set Red Dot footer text: '{new_para.text}'")
+            # Set paragraph alignment to right
+            new_para.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+            
+            # Add text with Calibri 26pt font
+            run = new_para.add_run("Innovative Research, Inc.")
+            run.font.name = "Calibri"
+            run.font.size = Pt(26)
+            
+            logger.info(f"Set Red Dot footer text: 'Innovative Research, Inc.' (Calibri 26pt, right-aligned)")
         
         # Save the document
         doc.save(document_path)
