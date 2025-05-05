@@ -47,30 +47,17 @@ def update_footer(doc):
         for paragraph in list(section.footer.paragraphs):
             paragraph._element.getparent().remove(paragraph._element)
         
-        # Create a two-column table in the footer
-        width = section.page_width - section.left_margin - section.right_margin
-        footer_table = section.footer.add_table(rows=1, cols=2, width=width)
-        
-        # Configure table properties
-        footer_table.autofit = False
-            
-        # Remove cell borders
-        for row in footer_table.rows:
-            for cell in row.cells:
-                for border in ['top', 'left', 'bottom', 'right']:
-                    setattr(cell._element.tcPr.tcBorders, border, None)
-        
-        # Left cell - Contact information
-        left_para = footer_table.cell(0, 0).paragraphs[0]
-        left_para.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-        contact_run = left_para.add_run("www.innov-research.com\nPh: 248.896.0145 | Fx: 248.896.0149")
+        # Add a paragraph for contact info on the left
+        contact_para = section.footer.add_paragraph()
+        contact_para.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+        contact_run = contact_para.add_run("www.innov-research.com\nPh: 248.896.0145 | Fx: 248.896.0149")
         contact_run.font.name = "Calibri"
         contact_run.font.size = Pt(11)
         
-        # Right cell - Company name
-        right_para = footer_table.cell(0, 1).paragraphs[0]
-        right_para.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
-        company_run = right_para.add_run("Innovative Research, Inc.")
+        # Add a paragraph for company name on the right
+        company_para = section.footer.add_paragraph()
+        company_para.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+        company_run = company_para.add_run("Innovative Research, Inc.")
         company_run.font.name = "Calibri"
         company_run.font.size = Pt(26)
         

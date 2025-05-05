@@ -156,10 +156,22 @@ def main():
                 logger.error("Error populating Red Dot template")
                 return 1
                 
-            # Modify footer text for Red Dot template
-            logger.info("Modifying footer text for Red Dot template")
-            from modify_footer import modify_footer_text
-            modify_footer_text(output_path)
+            # Apply comprehensive fixes for Red Dot documents
+            logger.info("Applying comprehensive fixes for Red Dot document")
+            
+            # Apply fix for ASSAY PROCEDURE vs ASSAY PROCEDURE SUMMARY
+            from fix_assay_procedure import fix_assay_sections_in_document
+            if fix_assay_sections_in_document(output_path):
+                logger.info(f"Successfully fixed ASSAY PROCEDURE sections in: {output_path}")
+            else:
+                logger.warning("Could not properly fix ASSAY PROCEDURE sections")
+                
+            # Apply all other comprehensive fixes (footer, formatting, table placement)
+            from fix_red_dot_document_comprehensive import fix_red_dot_document
+            if fix_red_dot_document(output_path):
+                logger.info(f"Applied comprehensive formatting fixes to: {output_path}")
+            else:
+                logger.warning("Could not apply all formatting fixes, document may need manual adjustment")
         else:
             # Use standard template populator for non-Red Dot documents
             logger.info(f"Parsing ELISA datasheet: {source_path}")
@@ -210,9 +222,14 @@ def main():
             catalog_based_filename = f"{catalog_number}-{today}.docx"
             output_dir = output_path.parent
             dated_path = output_dir / catalog_based_filename
-            import shutil
-            shutil.copy2(output_path, dated_path)
-            logger.info(f"Copy saved with date-based filename: {catalog_based_filename}")
+            
+            # Skip if the output path is already using the same filename
+            if str(output_path) != str(dated_path):
+                import shutil
+                shutil.copy2(output_path, dated_path)
+                logger.info(f"Copy saved with date-based filename: {catalog_based_filename}")
+            else:
+                logger.info(f"Output file already using date-based filename: {catalog_based_filename}")
         
         logger.info(f"Successfully generated populated template at: {output_path}")
         return 0
