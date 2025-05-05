@@ -315,10 +315,25 @@ def upload_file():
             from fix_document_structure import ensure_sections_with_tables
             ensure_sections_with_tables(output_path)
         else:
-            logger.info("Skipping standard post-processing for Red Dot document")
-            # For Red Dot documents, use the specialized footer function
-            from modify_red_dot_footer import modify_red_dot_footer
-            modify_red_dot_footer(output_path)
+            logger.info("Applying specialized post-processing for Red Dot document")
+            
+            # Apply comprehensive Red Dot document fixes
+            try:
+                # Apply fix for ASSAY PROCEDURE vs ASSAY PROCEDURE SUMMARY
+                from fix_assay_procedure import fix_assay_sections_in_document
+                if fix_assay_sections_in_document(output_path):
+                    logger.info(f"Successfully fixed ASSAY PROCEDURE sections in: {output_path}")
+                else:
+                    logger.warning("Could not properly fix ASSAY PROCEDURE sections")
+                    
+                # Apply all other comprehensive fixes (footer, formatting, table placement)
+                from fix_red_dot_document_comprehensive import fix_red_dot_document
+                if fix_red_dot_document(output_path):
+                    logger.info(f"Applied comprehensive formatting fixes to: {output_path}")
+                else:
+                    logger.warning("Could not apply all formatting fixes, document may need manual adjustment")
+            except Exception as fix_error:
+                logger.error(f"Error applying comprehensive fixes: {fix_error}")
         
         # Redirect to download page
         return redirect(url_for('download_file', filename=output_filename))

@@ -633,33 +633,23 @@ This material is sold for in-vitro use only in manufacturing and research. This 
             doc.save(output_path)
             logger.info(f"Successfully populated template: {output_path}")
             
-            # Apply the Red Dot footer
+            # Apply comprehensive Red Dot document fixes
             try:
-                from modify_red_dot_footer import modify_red_dot_footer
-                modify_red_dot_footer(output_path)
-                logger.info(f"Applied Red Dot footer to document: {output_path}")
-            except Exception as footer_error:
-                logger.error(f"Error applying Red Dot footer: {footer_error}")
-                
-            # Apply post-processing to convert text tables to proper Word tables
-            try:
-                from fix_reagents_table_post_processing import convert_text_to_table
-                if convert_text_to_table(output_path):
-                    logger.info(f"Successfully converted REAGENTS PROVIDED to proper table in: {output_path}")
+                # Apply fix for ASSAY PROCEDURE vs ASSAY PROCEDURE SUMMARY
+                from fix_assay_procedure import fix_assay_sections_in_document
+                if fix_assay_sections_in_document(output_path):
+                    logger.info(f"Successfully fixed ASSAY PROCEDURE sections in: {output_path}")
                 else:
-                    logger.warning("Could not convert REAGENTS PROVIDED to table, using text format")
-            except Exception as table_error:
-                logger.error(f"Error converting reagents to table: {table_error}")
-                
-            # Apply fix for company names and table placement
-            try:
-                from fix_red_dot_company_and_placement import process_output_document
-                if process_output_document(output_path):
-                    logger.info(f"Successfully fixed company names and table placement in: {output_path}")
+                    logger.warning("Could not properly fix ASSAY PROCEDURE sections")
+                    
+                # Apply all other comprehensive fixes (footer, formatting, table placement)
+                from fix_red_dot_document_comprehensive import fix_red_dot_document
+                if fix_red_dot_document(output_path):
+                    logger.info(f"Applied comprehensive formatting fixes to: {output_path}")
                 else:
-                    logger.warning("Could not fix company names or table placement, document may need manual adjustment")
+                    logger.warning("Could not apply all formatting fixes, document may need manual adjustment")
             except Exception as fix_error:
-                logger.error(f"Error applying fixes: {fix_error}")
+                logger.error(f"Error applying comprehensive fixes: {fix_error}")
         except Exception as e:
             logger.error(f"Template rendering error: {str(e)}")
             
