@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Create Red Dot Template from Sample
+Create Innovative Research Template from Sample
 
-This script creates a Red Dot template from the provided sample document.
+This script creates an Innovative Research template from the provided sample document.
 """
 
 import logging

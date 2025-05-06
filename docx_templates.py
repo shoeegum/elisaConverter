@@ -68,7 +68,7 @@ def get_available_templates(template_dir: Path) -> List[Dict[str, str]]:
         'innovative_direct_template.docx': "Innovative Research Direct Format Template",
         'innovative_proper_template.docx': "Innovative Research Proper Template",
         'innovative_exact_template.docx': "Innovative Research Exact Format Template",
-        'red_dot_template.docx': "Red Dot Biotech Template"
+        'red_dot_template.docx': "Innovative Research Template"
     }
     
     # Set the order of templates to display
