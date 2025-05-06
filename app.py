@@ -242,7 +242,46 @@ def upload_file():
         is_innovative_template = template_path.name.lower() == 'red_dot_template.docx'
         is_innovative_document = "RDR" in source_path.name.upper() or source_path.name.upper().endswith('RDR.DOCX')
         
-        if is_innovative_template or is_innovative_document:
+        # Check if this is a Boster document (PicoKine is Boster's brand)
+        is_boster_template = template_path.name.lower() == 'boster_template.docx'
+        is_boster_document = "PICOKINE" in source_path.name.upper() or "BOSTER" in source_path.name.upper() or "EK" in source_path.name.upper()
+        
+        # Check for Boster documents first
+        if is_boster_template or is_boster_document:
+            logger.info(f"Using Boster template populator for {'template' if is_boster_template else 'document'}: {source_path.name}")
+            # Import the Boster template populator
+            from boster_template_populator import populate_boster_template
+            
+            # If document is Boster but template isn't, use the Boster template
+            if is_boster_document and not is_boster_template:
+                boster_template_path = Path("templates_docx/boster_template.docx")
+                if not boster_template_path.exists():
+                    # Create the Boster template if it doesn't exist
+                    logger.info("Boster template not found, creating it...")
+                    from create_boster_template import create_boster_template
+                    boster_template_path = create_boster_template()
+                
+                logger.info(f"Switching to Boster template for document {source_path.name}")
+                template_to_use = boster_template_path
+            else:
+                template_to_use = template_path
+            
+            # Populate the template with the Boster populator
+            success = populate_boster_template(
+                source_path=source_path,
+                template_path=template_to_use, 
+                output_path=output_path,
+                kit_name=kit_name if kit_name else "",
+                catalog_number=catalog_number if catalog_number else "",
+                lot_number=lot_number if lot_number else ""
+            )
+            
+            if not success:
+                flash("Error populating Boster template", "error")
+                return redirect(url_for('index'))
+                
+        # If not Boster, check for Innovative Research documents
+        elif is_innovative_template or is_innovative_document:
             logger.info(f"Using Innovative Research template populator for {'template' if is_innovative_template else 'document'}: {source_path.name}")
             # Import the Innovative Research template populator
             from red_dot_template_populator import populate_red_dot_template
@@ -294,8 +333,9 @@ def upload_file():
                 lot_number=lot_number
             )
         
-        # Apply additional processing only for standard templates (not Innovative Research)
-        if not is_innovative_template and not is_innovative_document:
+        # Apply additional processing only for standard templates 
+        # (not Innovative Research and not Boster)
+        if not is_innovative_template and not is_innovative_document and not is_boster_template and not is_boster_document:
             # Apply additional processing to position ASSAY PRINCIPLE at the beginning
             logger.info("Fixing sample preparation and dilution sections")
             update_template_populator(source_path, output_path, output_path)
