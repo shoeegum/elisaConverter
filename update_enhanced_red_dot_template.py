@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def update_template(template_path):
     """
-    Update the enhanced Red Dot template.
+    Update the enhanced Innovative Research template.
     
     Args:
         template_path: Path to the template to update
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         template_path = sys.argv[1]
     else:
-        template_path = "templates_docx/enhanced_red_dot_template.docx"
+        template_path = "templates_docx/enhanced_innovative_research_template.docx"
     
     # Update the template
     update_template(template_path)

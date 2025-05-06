@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Comprehensive Red Dot Document Fixes
+Comprehensive Innovative Research Document Fixes
 
-This script applies several important fixes to Red Dot documents:
+This script applies several important fixes to Innovative Research documents:
 1. Sets the footer to 'Innovative Research, Inc.' in Calibri 26pt, right-aligned
 2. Ensures INTENDED USE section appears on the first page
 3. Makes all fonts in the document Calibri 
@@ -313,7 +313,7 @@ def remove_unwanted_phrases(doc):
 
 def fix_red_dot_document(document_path):
     """
-    Apply all fixes to a Red Dot document.
+    Apply all fixes to an Innovative Research document.
     
     Args:
         document_path: Path to the document to modify
@@ -344,13 +344,13 @@ def fix_red_dot_document(document_path):
         return True
         
     except Exception as e:
-        logger.error(f"Error fixing Red Dot document: {e}")
+        logger.error(f"Error fixing Innovative Research document: {e}")
         return False
 
 def post_process_red_dot_document(document_path):
     """
-    Apply post-processing to a Red Dot document after template population.
-    This function is called from the Red Dot template populator.
+    Apply post-processing to an Innovative Research document after template population.
+    This function is called from the Innovative Research template populator.
     
     Args:
         document_path: Path to the document to modify
@@ -367,10 +367,10 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         document_path = sys.argv[1]
     else:
-        document_path = "red_dot_output.docx"
+        document_path = "innovative_research_output.docx"
     
     # Fix the document
     if fix_red_dot_document(document_path):
-        logger.info(f"Successfully fixed Red Dot document: {document_path}")
+        logger.info(f"Successfully fixed Innovative Research document: {document_path}")
     else:
-        logger.error(f"Failed to fix Red Dot document: {document_path}")
+        logger.error(f"Failed to fix Innovative Research document: {document_path}")
