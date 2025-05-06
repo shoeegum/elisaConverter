@@ -338,6 +338,45 @@ def fix_red_dot_document(document_path):
         fix_paragraph_formatting(doc)
         remove_unwanted_phrases(doc)
         
+        # Replace all instances of company names
+        replacements = [
+            ('Reddot Biotech INC.', 'Innovative Research, Inc.'),
+            ('Reddot Biotech', 'Innovative Research'),
+        ]
+        
+        name_count = 0
+        # Replace in paragraphs
+        for para in doc.paragraphs:
+            original_text = para.text
+            modified_text = original_text
+            
+            for old_text, new_text in replacements:
+                if old_text in modified_text:
+                    modified_text = modified_text.replace(old_text, new_text)
+            
+            if modified_text != original_text:
+                para.text = modified_text
+                name_count += 1
+        
+        # Replace in tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for para in cell.paragraphs:
+                        original_text = para.text
+                        modified_text = original_text
+                        
+                        for old_text, new_text in replacements:
+                            if old_text in modified_text:
+                                modified_text = modified_text.replace(old_text, new_text)
+                        
+                        if modified_text != original_text:
+                            para.text = modified_text
+                            name_count += 1
+        
+        if name_count > 0:
+            logger.info(f"Replaced {name_count} instances of company names")
+        
         # Save the document
         doc.save(document_path)
         logger.info(f"Successfully applied all fixes to: {document_path}")
