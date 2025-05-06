@@ -8,45 +8,20 @@ It maps extracted ELISA kit data from Boster format to the Innovative Research t
 
 import logging
 import re
-import os
 from pathlib import Path
-from typing import Dict, Any, List, Tuple, Optional
-from docxtpl import DocxTemplate
+import shutil
 
+import docxtpl
+from docxtpl import DocxTemplate
 import docx
-from elisa_parser import extract_elisa_data, ELISADatasheetParser
+from docx import Document
+
+from elisa_parser import ELISADatasheetParser
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# Mapping of Boster document sections to Innovative Research template sections
-BOSTER_SECTION_MAPPING = {
-    # First page paragraph -> INTENDED USE
-    "INTENDED USE": "INTENDED USE",
-    
-    # Standard mappings
-    "ASSAY PRINCIPLE": "TEST PRINCIPLE",
-    "PRINCIPLE OF THE ASSAY": "TEST PRINCIPLE",
-    "OVERVIEW": "OVERVIEW",
-    "TECHNICAL DETAILS": "TECHNICAL DETAILS",
-    "PREPARATIONS BEFORE ASSAY": "PREPARATIONS BEFORE ASSAY",
-    "KIT COMPONENTS": "REAGENTS PROVIDED",
-    "MATERIALS PROVIDED": "REAGENTS PROVIDED",
-    "REQUIRED MATERIALS THAT ARE NOT SUPPLIED": "OTHER SUPPLIES REQUIRED",
-    "MATERIALS REQUIRED BUT NOT PROVIDED": "OTHER SUPPLIES REQUIRED",
-    "DILUTION OF STANDARD": "DILUTION OF STANDARD",
-    "SAMPLE PREPARATION AND STORAGE": "SAMPLE PREPARATION AND STORAGE",
-    "SAMPLE COLLECTION NOTES": "SAMPLE COLLECTION NOTES",
-    "SAMPLE DILUTION GUIDELINE": "SAMPLE DILUTION GUIDELINE",
-    "ASSAY PROTOCOL": "ASSAY PROCEDURE",
-    "DATA ANALYSIS": "CALCULATION OF RESULTS",
-    "BACKGROUND": "BACKGROUND",
-    "INTRA/INTER-ASSAY VARIABILITY": "REPRODUCIBILITY",
-    "REPRODUCIBILITY": "REPRODUCIBILITY",
-    "PREPARATIONS BEFORE THE EXPERIMENT": "PREPARATIONS BEFORE ASSAY",
-}
 
 def extract_boster_data(source_path):
     """
@@ -58,82 +33,100 @@ def extract_boster_data(source_path):
     Returns:
         Dictionary containing extracted data
     """
-    # First extract the basic data using the standard extractor
-    data = extract_elisa_data(source_path)
-    
-    # Now enhance with Boster-specific extraction
-    doc = docx.Document(source_path)
-    
-    # Extract the first page paragraph as INTENDED USE
-    intended_use = ""
-    for i, para in enumerate(doc.paragraphs[:20]):  # Check first 20 paragraphs
-        # Look for paragraphs that are not headings and have substantial content
-        if len(para.text.strip()) > 100 and not para.style.name.startswith('Heading'):
-            intended_use = para.text.strip()
-            logger.info(f"Extracted first page paragraph as INTENDED USE: {intended_use[:50]}...")
-            break
-    
-    if intended_use:
-        data["intended_use"] = intended_use
-    
-    # Create a dictionary to store Boster-specific sections
-    boster_sections = {}
-    
-    # Define all the section headings we want to extract
-    sections_to_extract = [
-        "ASSAY PRINCIPLE", "OVERVIEW", "TECHNICAL DETAILS", 
-        "PREPARATIONS BEFORE ASSAY", "KIT COMPONENTS", "MATERIALS PROVIDED",
-        "REQUIRED MATERIALS THAT ARE NOT SUPPLIED", "DILUTION OF STANDARD",
-        "SAMPLE PREPARATION AND STORAGE", "SAMPLE COLLECTION NOTES",
-        "SAMPLE DILUTION GUIDELINE", "ASSAY PROTOCOL", "DATA ANALYSIS",
-        "BACKGROUND", "INTRA/INTER-ASSAY VARIABILITY", "REPRODUCIBILITY",
-        "PREPARATIONS BEFORE THE EXPERIMENT"
-    ]
-    
-    # Initialize current section
-    current_section = None
-    section_content = []
-    
-    # Process paragraphs to extract sections
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        upper_text = text.upper()
+    try:
+        parser = ELISADatasheetParser(source_path)
+        data = parser.extract_data()
         
-        # Check if this is a section header
-        is_section_header = False
-        matched_section = None
+        # Parse the Boster document structure
+        doc = Document(source_path)
         
-        for section in sections_to_extract:
-            # Check for exact match or close match (e.g., "Assay Principle" vs "ASSAY PRINCIPLE")
-            if upper_text == section or upper_text == section.title():
-                is_section_header = True
-                matched_section = section
-                break
+        # Extract additional data not handled by the standard parser
+        # This will map Boster-specific sections to our standard format
         
-        # If it's a new section header
-        if is_section_header:
-            # Save the previous section if we were tracking one
-            if current_section and section_content:
-                boster_sections[current_section] = "\n".join(section_content)
-                logger.info(f"Extracted {current_section} section: {len(section_content)} paragraphs")
+        # Initialize standard sections to be populated
+        section_mappings = {
+            'INTENDED USE': None,  # Section text or part of title
+            'TEST PRINCIPLE': None,  # ASSAY PRINCIPLE 
+            'CHARACTERISTICS': None,  
+            'KIT COMPONENTS': None,
+            'STORAGE INFORMATION': None,
+            'DILUTION OF STANDARD': None,
+            'SAMPLE PREPARATION': None,
+            'REAGENT PREPARATION': None,  
+            'ASSAY PROTOCOL': None,
+            'DATA ANALYSIS': None
+        }
+        
+        # Locate Boster-specific sections
+        current_section = None
+        section_content = {}
+        
+        for i, para in enumerate(doc.paragraphs):
+            text = para.text.strip()
             
-            # Start tracking the new section
-            current_section = matched_section
-            section_content = []
+            # Check if this is a section header
+            if text.upper() in section_mappings:
+                current_section = text.upper()
+                section_content[current_section] = []
+            elif current_section:
+                # Add content to current section
+                if text:
+                    section_content[current_section].append(text)
         
-        # If we're in a section, add the paragraph
-        elif current_section and text:
-            section_content.append(text)
-    
-    # Add the last section if we were tracking one
-    if current_section and section_content:
-        boster_sections[current_section] = "\n".join(section_content)
-        logger.info(f"Extracted {current_section} section: {len(section_content)} paragraphs")
-    
-    # Store the Boster-specific sections in the data
-    data["boster_sections"] = boster_sections
-    
-    return data
+        # Extract specific content for targeted sections
+        if 'INTENDED USE' in section_content:
+            data['intended_use'] = '\n'.join(section_content['INTENDED USE'])
+        
+        if 'TEST PRINCIPLE' in section_content:
+            data['test_principle'] = '\n'.join(section_content['TEST PRINCIPLE'])
+            
+        # Map Boster sections to the Innovative Research template
+        # The Boster document uses different section names than our template
+        # Map the extracted content to the correct template placeholders
+        if data.get('test_principle'):
+            data['assay_principle'] = data['test_principle']
+        
+        # Handle Boster-specific tables
+        # Extract special tables like Typical Data (standard curve), etc.
+        
+        # Cleanup content - remove text that shouldn't appear in the Innovative Research version
+        # Remove phrases like "according to the picture shown below"
+        for key in data:
+            if isinstance(data[key], str):
+                data[key] = data[key].replace("according to the picture shown below", "")
+        
+        # Add default disclaimer for Boster documents
+        data['disclaimer'] = (
+            "FOR RESEARCH USE ONLY. NOT FOR USE IN DIAGNOSTIC PROCEDURES.\n\n"
+            "This kit is manufactured by Boster Biological Technology. "
+            "Innovative Research is the exclusive distributor of this product. "
+            "The product is warranted to perform as described in the accompanying "
+            "protocol. If this product does not perform as described in our published "
+            "materials, please contact Innovative Research for replacement."
+        )
+        
+        # Map Boster section names to Innovative Research template section names
+        # This helps ensure our template is populated with the right content
+        section_name_mappings = {
+            'background': 'background',
+            'assay_principle': 'test_principle',
+            'standard_curve': 'typical_data',
+            'sample_collection': 'sample_preparation',
+            'reagent_preparation': 'reagent_preparation',
+            'assay_procedure': 'assay_protocol'
+        }
+        
+        # Log the mappings that are being applied
+        for standard_name, boster_name in section_name_mappings.items():
+            if boster_name in data and standard_name != boster_name:
+                logger.info(f"Mapped standard {standard_name} to {boster_name}")
+                data[standard_name] = data[boster_name]
+        
+        return data
+        
+    except Exception as e:
+        logger.exception(f"Error extracting data from Boster document: {e}")
+        return {}
 
 def populate_boster_template(source_path, template_path, output_path,
                            kit_name=None, catalog_number=None, lot_number=None):
@@ -152,84 +145,78 @@ def populate_boster_template(source_path, template_path, output_path,
         True if successful, False otherwise
     """
     try:
+        # Convert paths to Path objects if they're strings
         source_path = Path(source_path)
         template_path = Path(template_path)
         output_path = Path(output_path)
         
+        # Extract data from Boster document
         logger.info(f"Extracting data from Boster document: {source_path}")
         data = extract_boster_data(source_path)
         
-        # Override extracted values if provided
+        if not data:
+            logger.error("Failed to extract data from Boster document")
+            return False
+            
+        # Override extracted values with user-provided values if available
         if kit_name:
-            data["kit_name"] = kit_name
+            logger.info(f"Using custom kit name: {kit_name}")
+            data['kit_name'] = kit_name
+            data['document_title'] = kit_name
+            
         if catalog_number:
-            data["catalog_number"] = catalog_number
+            logger.info(f"Using custom catalog number: {catalog_number}")
+            data['catalog_number'] = catalog_number
+            
         if lot_number:
-            data["lot_number"] = lot_number
-        
-        # Create a context dictionary for the template
-        context = {
-            "kit_name": data.get("kit_name", "ELISA Kit"),
-            "catalog_number": data.get("catalog_number", ""),
-            "lot_number": data.get("lot_number", ""),
-        }
-        
-        # Map Boster sections to template sections
-        if "boster_sections" in data:
-            for boster_section, content in data["boster_sections"].items():
-                if boster_section in BOSTER_SECTION_MAPPING:
-                    template_section = BOSTER_SECTION_MAPPING[boster_section].lower()
-                    template_section = template_section.replace(" ", "_")
-                    context[template_section] = content
-                    logger.info(f"Mapped {boster_section} to {template_section}")
-        
-        # Handle INTENDED USE separately since it's from the first page paragraph
-        if "intended_use" in data:
-            context["intended_use"] = data["intended_use"]
-        
-        # Map any standard sections that weren't in the Boster sections
-        standard_mappings = {
-            "background": "background",
-            "materials_required": "other_supplies_required",
-            "reagents_provided": "reagents_provided",
-            "assay_principle": "test_principle",
-            "storage": "storage_of_the_kits",
-            "standard_curve": "typical_data"
-        }
-        
-        for source_key, target_key in standard_mappings.items():
-            if source_key in data and target_key not in context:
-                context[target_key] = data[source_key]
-                logger.info(f"Mapped standard {source_key} to {target_key}")
-        
-        # Load the template and render with the context
-        template = DocxTemplate(template_path)
-        template.render(context)
-        
-        # Create output directory if it doesn't exist
-        output_path.parent.mkdir(exist_ok=True)
-        
-        # Save the populated template
-        template.save(output_path)
-        logger.info(f"Saved populated template to: {output_path}")
-        
-        # Replace any remaining instances of "Boster" or "PicoKine" with "Innovative Research"
-        from fix_red_dot_document_comprehensive import fix_red_dot_document
-        if fix_red_dot_document(output_path):
-            logger.info(f"Applied comprehensive formatting fixes to: {output_path}")
-        else:
-            logger.warning(f"Could not apply all formatting fixes to: {output_path}")
-        
-        return True
-        
+            logger.info(f"Using custom lot number: {lot_number}")
+            data['lot_number'] = lot_number
+            
+        # Populate the Innovative Research template with extracted data
+        logger.info(f"Populating template: {template_path}")
+        try:
+            # Use DocxTemplate to render the template with our data
+            doc = DocxTemplate(template_path)
+            doc.render(data)
+            doc.save(output_path)
+            logger.info(f"Saved populated template to: {output_path}")
+            
+            # Apply comprehensive fixes that include footer and formatting updates
+            from fix_red_dot_document_comprehensive import fix_red_dot_document
+            success = fix_red_dot_document(output_path)
+            
+            if success:
+                logger.info(f"Applied comprehensive formatting fixes to: {output_path}")
+            else:
+                logger.warning("Could not apply all formatting fixes, document may need manual adjustment")
+                
+            return True
+            
+        except Exception as e:
+            logger.exception(f"Error rendering template: {e}")
+            return False
+            
     except Exception as e:
-        logger.error(f"Error populating Boster template: {e}")
+        logger.exception(f"Error processing Boster document: {e}")
         return False
 
 if __name__ == "__main__":
-    # Example usage
+    # When run directly, use the default Boster test document
     source_path = Path("attached_assets/EK1586_Mouse_KLK1Kallikrein_1_ELISA_Kit_PicoKine_Datasheet.docx")
-    template_path = Path("templates_docx/innovative_template.docx")
-    output_path = Path("output_boster_template.docx")
+    # Use the enhanced template since it has the right structure
+    template_path = Path("templates_docx/enhanced_template.docx")
+    output_path = Path("boster_output.docx")
     
-    populate_boster_template(source_path, template_path, output_path)
+    # Example custom values
+    kit_name = "Mouse KLK1/Kallikrein 1 ELISA Kit"
+    catalog_number = "IMSKLK1KT"
+    lot_number = "20250506"
+    
+    populate_boster_template(
+        source_path=source_path,
+        template_path=template_path,
+        output_path=output_path,
+        kit_name=kit_name,
+        catalog_number=catalog_number,
+        lot_number=lot_number
+    )
