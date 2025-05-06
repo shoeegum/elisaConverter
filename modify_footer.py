@@ -56,7 +56,7 @@ def modify_footer_text(document_path):
         if not is_red_dot:
             # Check a few paragraphs to see if it mentions Red Dot
             for i, para in enumerate(doc.paragraphs[:20]):
-                if "reddotbiotech.com" in para.text.lower() or "red dot" in para.text.lower():
+                if "reddotbiotech.com" in para.text.lower() or "innov-research.com" in para.text.lower() or "red dot" in para.text.lower() or "innovative research" in para.text.lower():
                     is_red_dot = True
                     logger.info(f"Detected Red Dot document from content in paragraph {i}")
                     break

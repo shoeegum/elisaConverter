@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Red Dot document detection logic.
+Test Innovative Research document detection logic.
 """
 import sys
 from pathlib import Path
@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 
 def is_red_dot_document(source_path: Path) -> bool:
     """
-    Determine if a document is a Red Dot document based on filename patterns.
+    Determine if a document is an Innovative Research document based on filename patterns.
     
     Args:
         source_path: Path to the document to check
         
     Returns:
-        True if the document is a Red Dot document, False otherwise
+        True if the document is an Innovative Research document, False otherwise
     """
     # Check filename indicators
     name_upper = source_path.name.upper()
@@ -31,7 +31,7 @@ def is_red_dot_document(source_path: Path) -> bool:
     logger.info(f"  Filename upper: {name_upper}")
     logger.info(f"  Contains 'RDR': {'RDR' in name_upper}")
     logger.info(f"  Ends with 'RDR.DOCX': {name_upper.endswith('RDR.DOCX')}")
-    logger.info(f"  Is Red Dot: {is_red_dot}")
+    logger.info(f"  Is Innovative Research: {is_red_dot}")
     
     return is_red_dot
 
