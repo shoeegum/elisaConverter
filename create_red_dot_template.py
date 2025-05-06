@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def create_red_dot_template():
     """
-    Create a Red Dot template from the sample document.
+    Create an Innovative Research template from the sample document.
     """
     try:
         # Source is the sample document from attached assets
@@ -33,11 +33,11 @@ def create_red_dot_template():
         
         # Copy the file
         shutil.copy2(source_path, dest_path)
-        logger.info(f"Successfully created Red Dot template at {dest_path}")
+        logger.info(f"Successfully created Innovative Research template at {dest_path}")
         
         return True
     except Exception as e:
-        logger.exception(f"Error creating Red Dot template: {e}")
+        logger.exception(f"Error creating Innovative Research template: {e}")
         return False
 
 if __name__ == "__main__":

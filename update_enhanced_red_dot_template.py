@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Update Enhanced Red Dot Template
+Update Enhanced Innovative Research Template
 
-This script modifies the enhanced Red Dot template to:
+This script modifies the enhanced Innovative Research template to:
 1. Add proper placeholders for the reagents table in the REAGENTS PROVIDED section
 2. Replace all Reddot Biotech references with Innovative Research
 """

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Run Red Dot Template Populator
+Run Innovative Research Template Populator
 
-This script tests the Red Dot template populator by parsing a source ELISA datasheet
-and generating a Red Dot formatted document.
+This script tests the Innovative Research template populator by parsing a source ELISA datasheet
+and generating an Innovative Research formatted document.
 """
 
 import logging
@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 def main():
     """
-    Main function to test Red Dot template population.
+    Main function to test Innovative Research template population.
     """
     try:
         # Source file is the sample ELISA datasheet
         source_path = Path('attached_assets/EK1586_Mouse_KLK1Kallikrein_1_ELISA_Kit_PicoKine_Datasheet.docx')
-        # Template is the Red Dot template we created
+        # Template is the Innovative Research template we created
         template_path = Path('templates_docx/red_dot_template.docx')
         # Output path
         output_path = Path('output_red_dot_template.docx')
@@ -45,7 +45,7 @@ def main():
         lot_number = "20250501"
         
         # Populate the template
-        logger.info(f"Populating Red Dot template with data from {source_path}")
+        logger.info(f"Populating Innovative Research template with data from {source_path}")
         success = populate_red_dot_template(
             source_path=source_path,
             template_path=template_path,
@@ -56,7 +56,7 @@ def main():
         )
         
         if not success:
-            logger.error("Failed to populate Red Dot template")
+            logger.error("Failed to populate Innovative Research template")
             return False
             
         # Apply consistent formatting
@@ -67,16 +67,16 @@ def main():
         logger.info("Modifying footer text")
         modify_footer_text(output_path)
         
-        logger.info(f"Successfully generated Red Dot template at {output_path}")
+        logger.info(f"Successfully generated Innovative Research template at {output_path}")
         return True
         
     except Exception as e:
-        logger.exception(f"Error running Red Dot template test: {e}")
+        logger.exception(f"Error running Innovative Research template test: {e}")
         return False
 
 if __name__ == "__main__":
     success = main()
     if success:
-        print("Red Dot template population completed successfully!")
+        print("Innovative Research template population completed successfully!")
     else:
-        print("Error: Failed to complete Red Dot template population.")
+        print("Error: Failed to complete Innovative Research template population.")
