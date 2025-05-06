@@ -70,7 +70,7 @@ def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
     # First try the standard extraction method
     data = extract_elisa_data(source_path)
     
-    # Check if the document looks like a Red Dot document
+    # Check if the document looks like an Innovative Research document
     doc = docx.Document(source_path)
     is_red_dot = False
     
@@ -78,35 +78,35 @@ def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
     file_name = os.path.basename(source_path).upper()
     if "RDR" in file_name:
         is_red_dot = True
-        logger.info(f"Detected Red Dot document based on filename: {file_name}")
+        logger.info(f"Detected Innovative Research document based on filename: {file_name}")
     
     # If not found in filename, check document content
     if not is_red_dot:
-        # Check first few paragraphs for Red Dot indicators
+        # Check first few paragraphs for Innovative Research indicators
         for i, para in enumerate(doc.paragraphs[:30]):
             text = para.text.strip().upper()
-            if "RED DOT" in text or "RDR" in text or "REDDOT" in text:
+            if "RED DOT" in text or "RDR" in text or "REDDOT" in text or "INNOVATIVE RESEARCH" in text:
                 is_red_dot = True
-                logger.info(f"Detected Red Dot document based on paragraph {i}: {text}")
+                logger.info(f"Detected Innovative Research document based on paragraph {i}: {text}")
                 break
                 
-        # Check for Red Dot website URL
+        # Check for website URL
         if not is_red_dot:
             for i, para in enumerate(doc.paragraphs[:30]):
                 text = para.text.strip().lower()
-                if "reddotbiotech.com" in text:
+                if "reddotbiotech.com" in text or "innov-research.com" in text:
                     is_red_dot = True
-                    logger.info(f"Detected Red Dot document based on website URL in paragraph {i}: {text}")
+                    logger.info(f"Detected Innovative Research document based on website URL in paragraph {i}: {text}")
                     break
     
-    # Mark as Red Dot if we're processing RDR-LMNB2-Hu.docx (special case for test file)
+    # Mark as Innovative Research if we're processing RDR-LMNB2-Hu.docx (special case for test file)
     if "RDR-LMNB2-Hu.docx" in str(source_path):
         is_red_dot = True
-        logger.info("Detected Red Dot document - special case for RDR-LMNB2-Hu.docx")
+        logger.info("Detected Innovative Research document - special case for RDR-LMNB2-Hu.docx")
     
-    # If it's a Red Dot document, enhance the extraction with Red Dot specific parsing
+    # If it's an Innovative Research document, enhance the extraction with specific parsing
     if is_red_dot:
-        logger.info("Processing as Red Dot document format")
+        logger.info("Processing as Innovative Research document format")
         
         # Identify key sections that we need to extract with their formatting
         red_dot_sections = {
@@ -239,7 +239,7 @@ def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
                 
                 red_dot_sections[section] = section_content
         
-        # Add Red Dot specific sections to data
+        # Add Innovative Research specific sections to data
         data['red_dot_sections'] = red_dot_sections
         
         # Also extract tables for direct access
@@ -276,7 +276,7 @@ def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
                     break
     
     else:
-        logger.info("Not identified as a Red Dot document, using standard extraction")
+        logger.info("Not identified as an Innovative Research document, using standard extraction")
     
     return data
 
