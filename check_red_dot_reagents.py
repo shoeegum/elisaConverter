@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Check the REAGENTS PROVIDED section in the Red Dot template output.
+Check the REAGENTS PROVIDED section in the Innovative Research template output.
 
 This script examines how the reagents information is processed 
 and added to the output document.

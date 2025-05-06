@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Check the structure of the Red Dot output document.
+Check the structure of the Innovative Research output document.
 """
 
 import logging

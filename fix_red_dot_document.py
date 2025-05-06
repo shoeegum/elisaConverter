@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Fix Red Dot Document Issues
+Fix Innovative Research Document Issues
 
-This script addresses two issues with Red Dot documents:
+This script addresses two issues with Innovative Research documents:
 1. Moves the REAGENTS PROVIDED table to the correct position in the document
 2. Replaces all instances of 'Reddot Biotech INC.' with 'Innovative Research, Inc.'
    and 'Reddot Biotech' with 'Innovative Research'
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def fix_red_dot_document(document_path):
     """
-    Fix two issues with Red Dot documents:
+    Fix two issues with Innovative Research documents:
     1. Move the REAGENTS PROVIDED table to the correct position
     2. Replace Reddot company names with Innovative Research
     

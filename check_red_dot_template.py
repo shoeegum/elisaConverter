@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Check the Red Dot template structure and placeholder configuration.
+Check the Innovative Research template structure and placeholder configuration.
 """
 
 import logging
@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 def check_red_dot_template(template_path):
-    """Check the Red Dot template for placeholders and structure."""
+    """Check the Innovative Research template for placeholders and structure."""
     # Load the document
     doc = Document(template_path)
     
