@@ -238,34 +238,34 @@ def upload_file():
         catalog_number = request.form.get('catalog_number')
         lot_number = request.form.get('lot_number')
         
-        # Check if we're using the Red Dot template or if it's a Red Dot document
-        is_red_dot_template = template_path.name.lower() == 'red_dot_template.docx'
-        is_red_dot_document = "RDR" in source_path.name.upper() or source_path.name.upper().endswith('RDR.DOCX')
+        # Check if we're using the Innovative Research template or if it's an Innovative Research document
+        is_innovative_template = template_path.name.lower() == 'red_dot_template.docx'
+        is_innovative_document = "RDR" in source_path.name.upper() or source_path.name.upper().endswith('RDR.DOCX')
         
-        if is_red_dot_template or is_red_dot_document:
-            logger.info(f"Using Red Dot template populator for {'template' if is_red_dot_template else 'document'}: {source_path.name}")
-            # Import the Red Dot template populator
+        if is_innovative_template or is_innovative_document:
+            logger.info(f"Using Innovative Research template populator for {'template' if is_innovative_template else 'document'}: {source_path.name}")
+            # Import the Innovative Research template populator
             from red_dot_template_populator import populate_red_dot_template
             
-            # If document is Red Dot but template isn't, use the Red Dot template
-            if is_red_dot_document and not is_red_dot_template:
-                # First, check for enhanced Red Dot template
-                enhanced_red_dot_template_path = Path("templates_docx/enhanced_red_dot_template.docx")
-                if enhanced_red_dot_template_path.exists():
-                    logger.info(f"Switching to enhanced Red Dot template for document {source_path.name}")
-                    template_to_use = enhanced_red_dot_template_path
+            # If document is Innovative Research but template isn't, use the Innovative Research template
+            if is_innovative_document and not is_innovative_template:
+                # First, check for enhanced Innovative Research template
+                enhanced_innovative_template_path = Path("templates_docx/enhanced_innovative_research_template.docx")
+                if enhanced_innovative_template_path.exists():
+                    logger.info(f"Switching to enhanced Innovative Research template for document {source_path.name}")
+                    template_to_use = enhanced_innovative_template_path
                 else:
-                    # Fall back to standard Red Dot template
-                    red_dot_template_path = Path("templates_docx/red_dot_template.docx")
-                    if red_dot_template_path.exists():
-                        logger.info(f"Switching to Red Dot template for document {source_path.name}")
-                        template_to_use = red_dot_template_path
+                    # Fall back to standard Innovative Research template
+                    innovative_template_path = Path("templates_docx/red_dot_template.docx")
+                    if innovative_template_path.exists():
+                        logger.info(f"Switching to Innovative Research template for document {source_path.name}")
+                        template_to_use = innovative_template_path
                     else:
                         template_to_use = template_path
             else:
                 template_to_use = template_path
             
-            # Populate the template with the Red Dot populator
+            # Populate the template with the Innovative Research populator
             success = populate_red_dot_template(
                 source_path=source_path,
                 template_path=template_to_use, 
@@ -276,7 +276,7 @@ def upload_file():
             )
             
             if not success:
-                flash("Error populating Red Dot template", "error")
+                flash("Error populating Innovative Research template", "error")
                 return redirect(url_for('index'))
         else:
             # Process the file with standard populator
@@ -294,8 +294,8 @@ def upload_file():
                 lot_number=lot_number
             )
         
-        # Apply additional processing only for standard templates (not Red Dot)
-        if not is_red_dot_template and not is_red_dot_document:
+        # Apply additional processing only for standard templates (not Innovative Research)
+        if not is_innovative_template and not is_innovative_document:
             # Apply additional processing to position ASSAY PRINCIPLE at the beginning
             logger.info("Fixing sample preparation and dilution sections")
             update_template_populator(source_path, output_path, output_path)
@@ -315,9 +315,9 @@ def upload_file():
             from fix_document_structure import ensure_sections_with_tables
             ensure_sections_with_tables(output_path)
         else:
-            logger.info("Applying specialized post-processing for Red Dot document")
+            logger.info("Applying specialized post-processing for Innovative Research document")
             
-            # Apply comprehensive Red Dot document fixes
+            # Apply comprehensive Innovative Research document fixes
             try:
                 # Apply fix for ASSAY PROCEDURE vs ASSAY PROCEDURE SUMMARY
                 from fix_assay_procedure import fix_assay_sections_in_document
