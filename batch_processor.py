@@ -105,11 +105,48 @@ class BatchProcessor:
             self.progress[batch_id]['progress'] = 70
             self.progress[batch_id]['message'] = f'Populating template for {file_path.name}'
             
-            # Check if we're using the Red Dot template or document
+            # Check if we're using the Red Dot or Boster template or document
             is_red_dot_template = self.template_path.name.lower() == 'red_dot_template.docx'
             is_red_dot_document = "RDR" in file_path.name.upper() or file_path.name.upper().endswith('RDR.DOCX')
             
-            if is_red_dot_template or is_red_dot_document:
+            is_boster_template = self.template_path.name.lower() == 'boster_template.docx'
+            is_boster_document = "PICOKINE" in file_path.name.upper() or "BOSTER" in file_path.name.upper() or "EK" in file_path.name.upper()
+            
+            # Check for Boster documents first
+            if is_boster_template or is_boster_document:
+                logger.info("Using Boster template populator for batch processing")
+                # Import the Boster template populator
+                from boster_template_populator import populate_boster_template
+                
+                # If document is Boster but template isn't, use the Boster template
+                if is_boster_document and not is_boster_template:
+                    boster_template_path = Path("templates_docx/boster_template.docx")
+                    if not boster_template_path.exists():
+                        # Create the Boster template if it doesn't exist
+                        logger.info("Boster template not found, creating it...")
+                        from create_boster_template import create_boster_template
+                        boster_template_path = create_boster_template()
+                    
+                    logger.info(f"Switching to Boster template for document {file_path.name}")
+                    template_to_use = boster_template_path
+                else:
+                    template_to_use = self.template_path
+                
+                # Populate the template with the Boster populator
+                success = populate_boster_template(
+                    source_path=file_path,
+                    template_path=template_to_use, 
+                    output_path=output_path,
+                    kit_name=kit_name if kit_name else "",
+                    catalog_number=catalog_number if catalog_number else "",
+                    lot_number=lot_number if lot_number else ""
+                )
+                
+                if not success:
+                    return False, "Error populating Boster template", output_path
+                    
+            # If not Boster, check for Red Dot templates/documents
+            elif is_red_dot_template or is_red_dot_document:
                 logger.info("Using Red Dot template populator for batch processing")
                 # Import the Red Dot template populator
                 from red_dot_template_populator import populate_red_dot_template
@@ -155,11 +192,13 @@ class BatchProcessor:
                     lot_number=lot_number
                 )
             
-            # Apply additional processing only for standard templates (not Red Dot)
+            # Apply additional processing only for standard templates (not Red Dot or Boster)
             is_red_dot_template = self.template_path.name.lower() == 'red_dot_template.docx'
             is_red_dot_document = "RDR" in file_path.name.upper() or file_path.name.upper().endswith('RDR.DOCX')
+            is_boster_template = self.template_path.name.lower() == 'boster_template.docx'
+            is_boster_document = "PICOKINE" in file_path.name.upper() or "BOSTER" in file_path.name.upper() or "EK" in file_path.name.upper()
             
-            if not is_red_dot_template and not is_red_dot_document:
+            if not is_red_dot_template and not is_red_dot_document and not is_boster_template and not is_boster_document:
                 self.progress[batch_id]['progress'] = 85
                 self.progress[batch_id]['message'] = f'Applying enhancements for {file_path.name}'
                 update_template_populator(file_path, output_path, output_path)
@@ -176,9 +215,13 @@ class BatchProcessor:
                 from fix_document_structure import ensure_sections_with_tables
                 ensure_sections_with_tables(output_path)
             else:
-                # For Red Dot templates/documents, just update progress and modify footer
+                # For specialized templates/documents (Red Dot or Boster), just update progress and modify footer
                 self.progress[batch_id]['progress'] = 85
-                self.progress[batch_id]['message'] = f'Red Dot document already fully populated for {file_path.name}'
+                if is_boster_template or is_boster_document:
+                    self.progress[batch_id]['message'] = f'Boster document already fully populated for {file_path.name}'
+                else:
+                    self.progress[batch_id]['message'] = f'Red Dot document already fully populated for {file_path.name}'
+                    
                 # Modify footer text
                 from modify_footer import modify_footer_text
                 modify_footer_text(output_path)

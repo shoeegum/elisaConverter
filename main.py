@@ -22,6 +22,7 @@ from elisa_parser import ELISADatasheetParser
 from template_populator_enhanced import TemplatePopulator
 from updated_template_populator import update_template_populator
 from red_dot_template_populator import populate_red_dot_template
+from boster_template_populator import populate_boster_template
 
 # Import Flask app for Gunicorn
 from app import app
@@ -136,11 +137,53 @@ def main():
         if lot_number:
             logger.info(f"Using custom lot number: {lot_number}")
         
-        # Check if we should use the Red Dot template populator
+        # Check if we should use the Red Dot or Boster template populator
         is_red_dot_template = template_path.name.lower() == 'red_dot_template.docx'
         is_red_dot_document = "RDR" in source_path.name.upper() or source_path.name.upper().endswith('RDR.DOCX')
         
-        if is_red_dot_template or is_red_dot_document:
+        is_boster_template = template_path.name.lower() == 'boster_template.docx'
+        is_boster_document = "PICOKINE" in source_path.name.upper() or "BOSTER" in source_path.name.upper() or "EK" in source_path.name.upper()
+        
+        # Check for Boster documents first
+        if is_boster_template or is_boster_document:
+            # Use Boster template populator
+            logger.info("Using Boster template populator")
+            
+            # If we don't have a Boster template already, create it
+            if not is_boster_template:
+                boster_template_path = Path("templates_docx/boster_template.docx")
+                if not boster_template_path.exists():
+                    logger.info("Creating Boster template for document")
+                    from create_boster_template import create_boster_template
+                    boster_template_path = create_boster_template()
+                logger.info(f"Using Boster template for document: {boster_template_path}")
+                template_path = boster_template_path
+            
+            success = populate_boster_template(
+                source_path=source_path, 
+                template_path=template_path, 
+                output_path=output_path,
+                kit_name=kit_name if kit_name else "",
+                catalog_number=catalog_number if catalog_number else "",
+                lot_number=lot_number if lot_number else ""
+            )
+            
+            if not success:
+                logger.error("Error populating Boster template")
+                return 1
+                
+            # Apply comprehensive fixes including Innovative Research naming
+            logger.info("Applying comprehensive fixes for Boster document")
+            
+            # Apply all other comprehensive fixes (footer, formatting, company name)
+            from fix_red_dot_document_comprehensive import fix_red_dot_document
+            if fix_red_dot_document(output_path):
+                logger.info(f"Applied comprehensive formatting fixes to: {output_path}")
+            else:
+                logger.warning("Could not apply all formatting fixes, document may need manual adjustment")
+                
+        # Check for Red Dot documents
+        elif is_red_dot_template or is_red_dot_document:
             # Use Red Dot template populator
             logger.info("Using Red Dot template populator")
             success = populate_red_dot_template(
