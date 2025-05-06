@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Red Dot Template Populator
+Innovative Research Template Populator
 
-This module populates the Red Dot template with data extracted from source documents.
-It maps extracted ELISA kit data to the Red Dot template format.
+This module populates the Innovative Research template with data extracted from source documents.
+It maps extracted ELISA kit data to the Innovative Research template format.
 """
 
 import logging
@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Mapping of source document sections to Red Dot template sections
+# Mapping of source document sections to Innovative Research template sections
 SECTION_MAPPING = {
     "INTENDED USE": "INTENDED USE",
     "BACKGROUND": None,  # No direct mapping, we'll handle this separately
@@ -59,10 +59,10 @@ SECTION_MAPPING = {
 
 def extract_red_dot_data(source_path: Path) -> Dict[str, Any]:
     """
-    Extract data specifically from a Red Dot ELISA kit datasheet.
+    Extract data specifically from an Innovative Research ELISA kit datasheet.
     
     Args:
-        source_path: Path to the source Red Dot ELISA kit datasheet
+        source_path: Path to the source Innovative Research ELISA kit datasheet
         
     Returns:
         Dictionary containing structured data extracted from the datasheet
@@ -290,11 +290,11 @@ def populate_red_dot_template(
     lot_number: str = ""
 ) -> bool:
     """
-    Populate the Red Dot template with data from the source ELISA kit datasheet.
+    Populate the Innovative Research template with data from the source ELISA kit datasheet.
     
     Args:
         source_path: Path to the source ELISA kit datasheet
-        template_path: Path to the Red Dot template
+        template_path: Path to the Innovative Research template
         output_path: Path where the populated template will be saved
         kit_name: Override the kit name extracted from the source
         catalog_number: Override the catalog number extracted from the source
@@ -303,13 +303,13 @@ def populate_red_dot_template(
     Returns:
         True if successful, False otherwise
     """
-    # Check if enhanced Red Dot template exists and use it instead
+    # Check if enhanced Innovative Research template exists and use it instead
     enhanced_template_path = Path("templates_docx/enhanced_red_dot_template.docx")
     if enhanced_template_path.exists():
-        logger.info(f"Using enhanced Red Dot template: {enhanced_template_path}")
+        logger.info(f"Using enhanced Innovative Research template: {enhanced_template_path}")
         template_path = enhanced_template_path
     try:
-        # Extract data from source document using Red Dot specific extraction
+        # Extract data from source document using Innovative Research specific extraction
         logger.info(f"Extracting data from {source_path}")
         data = extract_red_dot_data(source_path)
         
@@ -329,18 +329,18 @@ def populate_red_dot_template(
         context['catalog_number'] = data.get('catalog_number', '')
         context['lot_number'] = data.get('lot_number', '')
         
-        # Check if we have Red Dot specific data
+        # Check if we have Innovative Research specific data
         if 'red_dot_sections' in data:
-            # Use the Red Dot specific sections directly
-            logger.info("Using Red Dot specific section data")
+            # Use the Innovative Research specific sections directly
+            logger.info("Using Innovative Research specific section data")
             red_dot_sections = data['red_dot_sections']
             
-            # Map Red Dot sections directly to context variables
+            # Map Innovative Research sections directly to context variables
             for section_name, content in red_dot_sections.items():
                 var_name = section_name.lower().replace(' ', '_')
                 if content:  # Only add non-empty sections
                     context[var_name] = content
-                    logger.info(f"Added Red Dot section: {section_name}")
+                    logger.info(f"Added Innovative Research section: {section_name}")
         
         # Also map sections from standard extraction as fallback
         for src_section, tgt_section in SECTION_MAPPING.items():
@@ -350,7 +350,7 @@ def populate_red_dot_template(
             # Convert target section to context variable name
             var_name = tgt_section.lower().replace(' ', '_')
             
-            # Skip if we already have this from Red Dot specific extraction
+            # Skip if we already have this from Innovative Research specific extraction
             if var_name in context and context[var_name]:
                 continue
                 
