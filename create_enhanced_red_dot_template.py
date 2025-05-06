@@ -174,7 +174,7 @@ def create_enhanced_red_dot_template():
         footer_para = footer.paragraphs[0]
         if footer_para.text:
             footer_para.text = ""  # Clear any existing text
-        footer_run = footer_para.add_run("| www.reddotbiotech.com")
+        footer_run = footer_para.add_run("| www.innov-research.com")
         footer_run.font.name = 'Calibri'
         footer_run.font.size = Pt(10)
         footer_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
